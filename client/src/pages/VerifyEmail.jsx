@@ -64,6 +64,15 @@ const VerifyEmail = () => {
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               We sent a verification code to your email. Enter the 6-digit code below to verify your account.
+              <br /><br />
+              <a 
+                href="https://mail.google.com" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                style={{ color: '#1976d2', textDecoration: 'none', fontWeight: 'bold' }}
+              >
+                Open Gmail to check your inbox →
+              </a>
             </Typography>
             
             {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
