@@ -142,17 +142,17 @@ const Login = () => {
         </Link>
       </Box>
 
-      {/* Resend Verification Email Button */}
-      <Box sx={{ mt: 2, textAlign: 'center' }}>
-        <Typography variant="body2" color="text.secondary">
+      {/* RESEND VERIFICATION EMAIL BUTTON - ALWAYS VISIBLE */}
+      <Box sx={{ mt: 3, mb: 3, textAlign: 'center', p: 2, bgcolor: 'rgba(25, 118, 210, 0.05)', borderRadius: 1 }}>
+        <Typography variant="body2" color="text.primary">
           Haven't received your verification email?{' '}
           <Button
             size="small"
             onClick={handleResendVerification}
             disabled={resendLoading || !email}
-            sx={{ textTransform: 'none', p: 0, minWidth: 'auto' }}
+            sx={{ textTransform: 'none', p: 0, minWidth: 'auto', fontWeight: 'bold', color: '#1976d2' }}
           >
-            {resendLoading ? <CircularProgress size={16} /> : 'Resend it'}
+            {resendLoading ? <CircularProgress size={16} color="inherit" /> : 'Resend it'}
           </Button>
         </Typography>
         {resendSuccess && (

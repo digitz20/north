@@ -220,28 +220,32 @@ const Register = () => {
         {loading ? <CircularProgress size={24} color="inherit" /> : 'Create Account'}
       </Button>
 
-      {/* Post-registration verification message */}
+      {/* RESEND VERIFICATION EMAIL BUTTON - ALWAYS VISIBLE */}
+      <Box sx={{ mt: 2, mb: 3, textAlign: 'center', p: 2, bgcolor: 'rgba(25, 118, 210, 0.05)', borderRadius: 1 }}>
+        <Typography variant="body2" color="text.primary">
+          Haven't received your verification email?{' '}
+          <Button
+            size="small"
+            onClick={handleResendVerification}
+            disabled={resendLoading || !formData.email}
+            sx={{ textTransform: 'none', p: 0, minWidth: 'auto', fontWeight: 'bold', color: '#1976d2' }}
+          >
+            {resendLoading ? <CircularProgress size={16} color="inherit" /> : 'Resend it'}
+          </Button>
+        </Typography>
+        {resendSuccess && (
+          <Alert severity="success" sx={{ mt: 2 }}>
+            {resendSuccess}
+          </Alert>
+        )}
+      </Box>
+      
+      {/* Also keep it in the post-registration message just in case */}
       {registrationSuccess && (
         <Box sx={{ mb: 2 }}>
           <Alert severity="success" sx={{ mb: 2 }}>
             Your account has been created successfully! A verification email has been sent to your email address. Please verify your email to log in.
           </Alert>
-          <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
-            Haven't received your verification email?{' '}
-            <Button
-              size="small"
-              onClick={handleResendVerification}
-              disabled={resendLoading}
-              sx={{ textTransform: 'none', p: 0, minWidth: 'auto' }}
-            >
-              {resendLoading ? <CircularProgress size={16} /> : 'Resend it'}
-            </Button>
-          </Typography>
-          {resendSuccess && (
-            <Alert severity="success" sx={{ mt: 2 }}>
-              {resendSuccess}
-            </Alert>
-          )}
         </Box>
       )}
       
