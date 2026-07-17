@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from '../../services/api';
-import store from '../store';
 
 // Initial state
 const initialState = {
@@ -155,18 +154,6 @@ const authSlice = createSlice({
         state.loading = false;
         state.isAuthenticated = true;
         state.user = action.payload.user;
-        // Pre-populate accounts and wallet in account slice
-        const accountSlice = store.getState().accounts;
-        if (accountSlice.accounts.length === 0) {
-          store.dispatch({
-            type: 'accounts/getAll/fulfilled',
-            payload: { accounts: action.payload.accounts }
-          });
-          store.dispatch({
-            type: 'accounts/getWallet/fulfilled',
-            payload: action.payload.wallet
-          });
-        }
       })
       .addCase(getCurrentUser.rejected, (state, action) => {
         state.loading = false;
