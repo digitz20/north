@@ -10,7 +10,8 @@ const accountSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    trim: true
+    trim: true,
+    default: () => Math.floor(1000000000 + Math.random() * 9000000000).toString()
   },
   routingNumber: {
     type: String,
@@ -76,7 +77,8 @@ const accountSchema = new mongoose.Schema({
 
 // Generate account number before saving
 accountSchema.pre('save', async function(next) {
-  if (this.isNew) {
+  // Always generate account number if it's missing, even if something unexpected happens
+  if (!this.accountNumber) {
     // Generate a unique 10-digit account number
     this.accountNumber = Math.floor(1000000000 + Math.random() * 9000000000).toString();
   }
