@@ -46,10 +46,18 @@ const Dashboard = () => {
   const [selectedTimeframe, setSelectedTimeframe] = useState('Today');
 
   useEffect(() => {
-    dispatch(getUserAccounts());
-    dispatch(getWallet());
-    dispatch(getTransactions({ limit: 5 }));
-  }, [dispatch]);
+    // Only fetch accounts/wallet if they're not already populated from getCurrentUser
+    if (accounts.length === 0) {
+      dispatch(getUserAccounts());
+    }
+    if (!wallet) {
+      dispatch(getWallet());
+    }
+    // Only fetch transactions if we don't have any
+    if (transactions.length === 0) {
+      dispatch(getTransactions({ limit: 5 }));
+    }
+  }, [dispatch, accounts.length, wallet, transactions.length]);
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -165,7 +173,8 @@ const Dashboard = () => {
     { id: 5, name: 'Rent Payment', category: 'Housing', amount: -1800.00, time: '3 days ago', avatar: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=100', icon: <Home /> },
   ];
 
-  if (accountsLoading && transactionsLoading) {
+  // Only show full-page loading if we have no data at all
+  if ((accounts.length === 0 || !wallet || transactions.length === 0) && (accountsLoading && transactionsLoading)) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
         <motion.div
