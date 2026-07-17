@@ -792,7 +792,7 @@ const Landing = () => {
             </Grid>
 
             {/* Hero Right Side - REARRANGED AS REQUESTED: TOP (Balance) -> MIDDLE (Credit Card) -> BOTTOM (Transfer) */}
-            <Grid item xs={12} lg={5} sx={{ position: 'relative', minHeight: { xs: 900, lg: 500 }, mt: { xs: 10, lg: 0 } }}>
+            <Grid item xs={12} lg={5} sx={{ position: 'relative', minHeight: { xs: 1050, lg: 500 }, mt: { xs: 10, lg: 0 } }}>
               {/* 1. TOTAL BALANCE CARD - TOP (UP) as requested */}
               <motion.div
                 style={{
@@ -832,7 +832,7 @@ const Landing = () => {
               <motion.div
                 style={{
                   position: 'absolute',
-                  top: { xs: 320, lg: 140 },
+                  top: { xs: 380, lg: 140 },
                   left: '50%',
                   transform: 'translateX(-50%)',
                   width: { xs: 320, lg: 340 },
@@ -870,7 +870,7 @@ const Landing = () => {
               <motion.div
                 style={{
                   position: 'absolute',
-                  top: { xs: 560, lg: 380 },
+                  top: { xs: 680, lg: 380 },
                   left: { xs: '50%', lg: 0 },
                   transform: { xs: 'translateX(-50%)', lg: 'none' },
                   width: { xs: 240, lg: 240 },

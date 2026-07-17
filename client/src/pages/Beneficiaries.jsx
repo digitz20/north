@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { Box, Typography, Paper, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, Grid, Avatar, Chip, Tooltip } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Typography, Paper, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, Grid, Avatar, Chip, Tooltip, Alert, CircularProgress } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import PersonIcon from '@mui/icons-material/Person';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import { motion, AnimatePresence } from 'framer-motion';
+import api from '../services/api';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -27,25 +28,31 @@ const itemVariants = {
 
 const Beneficiaries = () => {
   const [open, setOpen] = useState(false);
-  const [beneficiaries, setBeneficiaries] = useState([
-    {
-      id: 1,
-      name: 'John Smith',
-      accountNumber: '****1234',
-      bank: 'NorthCrest Bank'
-    },
-    {
-      id: 2,
-      name: 'Sarah Johnson',
-      accountNumber: '****5678',
-      bank: 'Chase Bank'
-    }
-  ]);
+  const [beneficiaries, setBeneficiaries] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
   const [newBeneficiary, setNewBeneficiary] = useState({
     name: '',
     accountNumber: '',
-    bank: ''
+    bankName: '',
+    routingNumber: '021000021' // Default routing number
   });
+
+  // Fetch beneficiaries on component mount
+  useEffect(() => {
+    const fetchBeneficiaries = async () => {
+      try {
+        const response = await api.get('/beneficiaries');
+        setBeneficiaries(response.data.data.beneficiaries);
+        setLoading(false);
+      } catch (err) {
+        setError('Failed to load beneficiaries');
+        setLoading(false);
+      }
+    };
+    fetchBeneficiaries();
+  }, []);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -53,16 +60,23 @@ const Beneficiaries = () => {
 
   const handleClose = () => {
     setOpen(false);
+    setNewBeneficiary({ name: '', accountNumber: '', bankName: '', routingNumber: '021000021' });
   };
 
-  const handleAddBeneficiary = () => {
-    if (newBeneficiary.name && newBeneficiary.accountNumber && newBeneficiary.bank) {
-      setBeneficiaries([...beneficiaries, {
-        id: Date.now(),
-        ...newBeneficiary
-      }]);
-      setNewBeneficiary({ name: '', accountNumber: '', bank: '' });
-      setOpen(false);
+  const handleAddBeneficiary = async () => {
+    if (newBeneficiary.name && newBeneficiary.accountNumber && newBeneficiary.bankName) {
+      setSubmitting(true);
+      setError(null);
+      try {
+        const response = await api.post('/beneficiaries', newBeneficiary);
+        setBeneficiaries([...beneficiaries, response.data.data]);
+        setNewBeneficiary({ name: '', accountNumber: '', bankName: '', routingNumber: '021000021' });
+        setOpen(false);
+      } catch (err) {
+        setError(err.response?.data?.message || 'Failed to add beneficiary');
+      } finally {
+        setSubmitting(false);
+      }
     }
   };
 
@@ -78,7 +92,13 @@ const Beneficiaries = () => {
       style={{ width: '100%' }}
     >
       <Box sx={{ mb: 6 }}>
-        <motion.div variants={itemVariants}>
+        {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <motion.div variants={itemVariants}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 3 }}>
             <Box>
               <Typography 
@@ -121,6 +141,7 @@ const Beneficiaries = () => {
             </motion.div>
           </Box>
         </motion.div>
+        )}
       </Box>
 
       <Grid container spacing={4} sx={{ mb: 6 }}>
@@ -224,7 +245,7 @@ const Beneficiaries = () => {
                 <AnimatePresence>
                   {beneficiaries.map((b) => (
                     <motion.tr
-                      key={b.id}
+                      key={b._id}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 20, transition: { duration: 0.3 } }}
@@ -241,7 +262,7 @@ const Beneficiaries = () => {
                       </TableCell>
                       <TableCell sx={{ py: 3 }}>
                         <Chip 
-                          label={b.accountNumber} 
+                          label={`****${b.accountNumber.slice(-4)}`} 
                           variant="outlined" 
                           sx={{ 
                             borderColor: '#cbd5e1',
@@ -252,10 +273,10 @@ const Beneficiaries = () => {
                       </TableCell>
                       <TableCell sx={{ py: 3 }}>
                         <Chip 
-                          label={b.bank}
+                          label={b.bankName}
                           sx={{ 
-                            bgcolor: b.bank === 'NorthCrest Bank' ? 'rgba(0,200,150,0.1)' : 'rgba(255,179,0,0.1)',
-                            color: b.bank === 'NorthCrest Bank' ? '#00C896' : '#FFB300',
+                            bgcolor: b.isInternal ? 'rgba(0,200,150,0.1)' : 'rgba(255,179,0,0.1)',
+                            color: b.isInternal ? '#00C896' : '#FFB300',
                             fontWeight: 600,
                             border: 'none'
                           }}
@@ -266,7 +287,7 @@ const Beneficiaries = () => {
                           <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
                             <IconButton 
                               color="error" 
-                              onClick={() => handleDelete(b.id)}
+                              onClick={() => handleDelete(b._id)}
                               sx={{ 
                                 bgcolor: 'rgba(255,107,107,0.1)',
                                 '&:hover': { bgcolor: 'rgba(255,107,107,0.2)' }
@@ -332,8 +353,19 @@ const Beneficiaries = () => {
             margin="dense"
             label="Bank Name"
             fullWidth
-            value={newBeneficiary.bank}
-            onChange={(e) => setNewBeneficiary({...newBeneficiary, bank: e.target.value})}
+            value={newBeneficiary.bankName}
+            onChange={(e) => setNewBeneficiary({...newBeneficiary, bankName: e.target.value})}
+            sx={{ mb: 3 }}
+            InputProps={{
+              sx: { borderRadius: 2, fontSize: '1rem' }
+            }}
+          />
+          <TextField
+            margin="dense"
+            label="Routing Number (Optional)"
+            fullWidth
+            value={newBeneficiary.routingNumber}
+            onChange={(e) => setNewBeneficiary({...newBeneficiary, routingNumber: e.target.value})}
             InputProps={{
               sx: { borderRadius: 2, fontSize: '1rem' }
             }}
@@ -354,7 +386,7 @@ const Beneficiaries = () => {
           <Button 
             onClick={handleAddBeneficiary} 
             variant="contained"
-            disabled={!newBeneficiary.name || !newBeneficiary.accountNumber || !newBeneficiary.bank}
+            disabled={!newBeneficiary.name || !newBeneficiary.accountNumber || !newBeneficiary.bankName || submitting}
             sx={{ 
               background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
               textTransform: 'none',
@@ -366,7 +398,7 @@ const Beneficiaries = () => {
               boxShadow: '0 8px 20px rgba(0,102,255,0.3)'
             }}
           >
-            Add Beneficiary
+            {submitting ? <CircularProgress size={24} color="inherit" /> : 'Add Beneficiary'}
           </Button>
         </DialogActions>
       </Dialog>
