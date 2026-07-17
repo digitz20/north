@@ -4,7 +4,7 @@ import NorthCrestLogo from '../components/common/NorthCrestLogo';
 import { Box, keyframes } from '@mui/material';
 
 // Define the fade in and out animation
-const logoPulse = keyframes`
+const splashAnimation = keyframes`
   0% { 
     opacity: 0; 
     transform: scale(0.8);
@@ -59,7 +59,7 @@ export const useNavigationWithSplash = () => {
       >
         <Box
           sx={{
-            animation: `${logoPulse} 3s ease-in-out forwards`,
+            animation: `${splashAnimation} 3s ease-in-out forwards`,
           }}
         >
           <NorthCrestLogo />
