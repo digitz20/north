@@ -77,7 +77,11 @@ const Register = () => {
     password: '',
     confirmPassword: '',
     dateOfBirth: '',
-    address: ''
+    street: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    country: ''
   });
   const [countryCode, setCountryCode] = useState('+1'); // Default to USA (+1)
   const [showPassword, setShowPassword] = useState(false);
@@ -133,8 +137,10 @@ const Register = () => {
     
     // Validate form fields - prepend country code to phone number
     const fullPhone = `${countryCode} ${formData.phone}`;
-    const { confirmPassword, phone, ...restFormData } = formData;
-    const registerData = { ...restFormData, phone: fullPhone };
+    const { confirmPassword, phone, street, city, state, zipCode, country, ...restFormData } = formData;
+    // Create address object that matches KYC schema
+    const address = { street, city, state, zipCode, country };
+    const registerData = { ...restFormData, phone: fullPhone, address };
     
     dispatch(register(registerData)).then((result) => {
       // If registration is successful, navigate to verify email page
@@ -252,11 +258,59 @@ const Register = () => {
           <TextField
             required
             fullWidth
-            name="address"
+            name="street"
             label="Street Address"
-            id="address"
+            id="street"
             autoComplete="street-address"
-            value={formData.address}
+            value={formData.street}
+            onChange={handleChange}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            required
+            fullWidth
+            name="city"
+            label="City"
+            id="city"
+            autoComplete="address-level2"
+            value={formData.city}
+            onChange={handleChange}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            required
+            fullWidth
+            name="state"
+            label="State/Province"
+            id="state"
+            autoComplete="address-level1"
+            value={formData.state}
+            onChange={handleChange}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            required
+            fullWidth
+            name="zipCode"
+            label="Zip/Postal Code"
+            id="zipCode"
+            autoComplete="postal-code"
+            value={formData.zipCode}
+            onChange={handleChange}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            required
+            fullWidth
+            name="country"
+            label="Country"
+            id="country"
+            autoComplete="country"
+            value={formData.country}
             onChange={handleChange}
           />
         </Grid>
