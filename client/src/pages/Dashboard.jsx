@@ -38,35 +38,6 @@ const Dashboard = () => {
   const { transactions, loading: transactionsLoading } = useSelector(state => state.transactions);
   const { user } = useSelector(state => state.auth);
   
-  // Helper functions for transaction formatting
-  const getTransactionIcon = (category) => {
-    const iconMap = {
-      shopping: <ShoppingCart />,
-      food: <Restaurant />,
-      housing: <Home />,
-      transportation: <Flight />,
-      healthcare: <LocalHospital />,
-      entertainment: <PlayCircle />,
-      deposit: <AttachMoney />,
-      transfer: <SwapHoriz />,
-      other: <MoreHoriz />
-    };
-    return iconMap[category] || <MoreHoriz />;
-  };
-
-  const getRelativeTime = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.round(diffMs / 60000);
-    const diffHours = Math.round(diffMs / 3600000);
-    const diffDays = Math.round(diffMs / 86400000);
-    
-    if (diffMins < 60) return `${diffMins} min ago`;
-    if (diffHours < 24) return `${diffHours} hours ago`;
-    return `${diffDays} days ago`;
-  };
-  
   const dashboardRef = useRef(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const { scrollYProgress } = useScroll();
@@ -197,16 +168,7 @@ const Dashboard = () => {
 
 
 
-  // Format real transactions for the recent transactions list
-  const liveTransactions = recentTransactions.map(tx => ({
-    id: tx._id,
-    name: tx.description,
-    category: tx.category.charAt(0).toUpperCase() + tx.category.slice(1),
-    amount: tx.direction === 'debit' ? -tx.amount : tx.amount,
-    time: getRelativeTime(tx.createdAt),
-    avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(tx.description)}&background=0066FF&color=fff&size=100`,
-    icon: getTransactionIcon(tx.category)
-  }));
+
 
   // Only show full-page loading if we have no data at all
   if ((accounts.length === 0 || !wallet || transactions.length === 0) && (accountsLoading && transactionsLoading)) {
@@ -659,45 +621,74 @@ const Dashboard = () => {
                   </Button>
                 </Box>
                 <List>
-                  {liveTransactions.map((transaction, index) => (
-                    <motion.div
-                      key={transaction.id}
-                      initial={{ x: -50, opacity: 0 }}
-                      animate={{ x: 0, opacity: 1 }}
-                      transition={{ delay: index * 0.1 }}
-                    >
-                      <ListItem
-                        sx={{
-                          px: 0,
-                          py: 2,
-                          borderBottom: index < liveTransactions.length - 1 ? '1px solid rgba(0,0,0,0.05)' : 'none'
-                        }}
+                  {recentTransactions.map((tx, index) => {
+                    // Calculate values inline to avoid variable hoisting issues
+                    const amount = tx.direction === 'debit' ? -tx.amount : tx.amount;
+                    const date = new Date(tx.createdAt);
+                    const now = new Date();
+                    const diffMs = now - date;
+                    const diffMins = Math.round(diffMs / 60000);
+                    const diffHours = Math.round(diffMs / 3600000);
+                    const diffDays = Math.round(diffMs / 86400000);
+                    let time = '';
+                    if (diffMins < 60) time = `${diffMins} min ago`;
+                    else if (diffHours < 24) time = `${diffHours} hours ago`;
+                    else time = `${diffDays} days ago`;
+                    
+                    // Get transaction icon
+                    const iconMap = {
+                      shopping: <ShoppingCart />,
+                      food: <Restaurant />,
+                      housing: <Home />,
+                      transportation: <Flight />,
+                      healthcare: <LocalHospital />,
+                      entertainment: <PlayCircle />,
+                      deposit: <AttachMoney />,
+                      transfer: <SwapHoriz />,
+                      other: <MoreHoriz />
+                    };
+                    const icon = iconMap[tx.category] || <MoreHoriz />;
+                    
+                    return (
+                      <motion.div
+                        key={tx._id}
+                        initial={{ x: -50, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        transition={{ delay: index * 0.1 }}
                       >
-                        <ListItemAvatar>
-                          <Avatar src={transaction.avatar} sx={{ width: 50, height: 50 }}>
-                            {transaction.icon}
-                          </Avatar>
-                        </ListItemAvatar>
-                        <ListItemText
-                          primary={
-                            <Typography variant="body1" sx={{ fontWeight: 600 }}>{transaction.name}</Typography>
-                          }
-                          secondary={
-                            <Typography variant="body2" color="text.secondary">{transaction.category} • {transaction.time}</Typography>
-                          }
-                        />
-                        <Typography
-                          variant="h6"
+                        <ListItem
                           sx={{
-                            fontWeight: 700,
-                            color: transaction.amount > 0 ? '#00C896' : '#FF6B6B'
+                            px: 0,
+                            py: 2,
+                            borderBottom: index < recentTransactions.length - 1 ? '1px solid rgba(0,0,0,0.05)' : 'none'
                           }}
                         >
-                          {transaction.amount > 0 ? '+' : ''}${transaction.amount.toFixed(2)}
-                        </Typography>
-                      </ListItem>
-                    </motion.div>
-                  ))}
+                          <ListItemAvatar>
+                            <Avatar src={`https://ui-avatars.com/api/?name=${encodeURIComponent(tx.description)}&background=0066FF&color=fff&size=100`} sx={{ width: 50, height: 50 }}>
+                              {icon}
+                            </Avatar>
+                          </ListItemAvatar>
+                          <ListItemText
+                            primary={
+                              <Typography variant="body1" sx={{ fontWeight: 600 }}>{tx.description}</Typography>
+                            }
+                            secondary={
+                              <Typography variant="body2" color="text.secondary">{tx.category.charAt(0).toUpperCase() + tx.category.slice(1)} • {time}</Typography>
+                            }
+                          />
+                          <Typography
+                            variant="h6"
+                            sx={{
+                              fontWeight: 700,
+                              color: amount > 0 ? '#00C896' : '#FF6B6B'
+                            }}
+                          >
+                            {amount > 0 ? '+' : ''}${amount.toFixed(2)}
+                          </Typography>
+                        </ListItem>
+                      </motion.div>
+                    );
+                  })}
                 </List>
               </Paper>
             </motion.div>
