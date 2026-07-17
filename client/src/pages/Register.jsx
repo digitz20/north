@@ -142,14 +142,16 @@ const Register = () => {
     const address = { street, city, state, zipCode, country };
     const registerData = { ...restFormData, phone: fullPhone, address };
     
-    dispatch(register(registerData)).then((result) => {
-      // If registration is successful, navigate to verify email page
-      if (result.payload?.otpId) {
-        navigate('/verify-email', { state: { otpId: result.payload.otpId } });
-      }
-    }).catch(() => {
-      // Error handled by redux
-    });
+    dispatch(register(registerData)).unwrap()
+      .then((result) => {
+        // If registration is successful, navigate to verify email page
+        if (result?.data?.otpId) {
+          navigate('/verify-email', { state: { otpId: result.data.otpId } });
+        }
+      })
+      .catch(() => {
+        // Error handled by redux
+      });
   };
 
   const passwordsMatch = formData.password === formData.confirmPassword;
