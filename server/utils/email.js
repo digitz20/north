@@ -304,9 +304,9 @@ class EmailService {
       <div class="transaction-details">
         <ul>
           <li><strong>IP Address:</strong> ${session.ip}</li>
-          <li><strong>Device:</strong> ${session.device || 'Unknown'}</li>
-          <li><strong>Browser:</strong> ${session.browser || 'Unknown'}</li>
-          <li><strong>Location:</strong> ${session.location?.city || 'Unknown'}, ${session.location?.country || 'Unknown'}</li>
+          ${session.device ? `<li><strong>Device:</strong> ${session.device}</li>` : ''}
+          ${session.browser ? `<li><strong>Browser:</strong> ${session.browser}</li>` : ''}
+          ${(session.location?.city && session.location?.country) ? `<li><strong>Location:</strong> ${session.location.city}, ${session.location.country}</li>` : ''}
           <li><strong>Time:</strong> ${new Date().toLocaleString()}</li>
         </ul>
       </div>
