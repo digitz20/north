@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create axios instance with base URL
 const api = axios.create({
-  baseURL: '/api/v1',
+  baseURL: 'https://established-vanny-digitz-b5fdc94b.koyeb.app/api/v1',
   headers: {
     'Content-Type': 'application/json'
   }
@@ -35,7 +35,7 @@ api.interceptors.response.use(
       try {
         const refreshToken = localStorage.getItem('adminRefreshToken');
         if (refreshToken) {
-          const response = await axios.post('/api/v1/auth/refresh-token', { refreshToken });
+          const response = await axios.post('https://established-vanny-digitz-b5fdc94b.koyeb.app/api/v1/auth/refresh-token', { refreshToken });
           const { token } = response.data.data;
           
           localStorage.setItem('adminToken', token);
