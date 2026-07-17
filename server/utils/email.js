@@ -13,14 +13,15 @@ class EmailService {
   }
 
   createProductionTransporter() {
-    // Gmail SMTP configuration
+    // Gmail SMTP configuration - automatically strip spaces from app password
+    const cleanSmtpPass = process.env.SMTP_PASS ? process.env.SMTP_PASS.replace(/\s+/g, '') : '';
     this.transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
       port: 587,
       secure: false, // true for 465, false for other ports
       auth: {
         user: process.env.SMTP_USER, // your gmail address
-        pass: process.env.SMTP_PASS  // your app password
+        pass: cleanSmtpPass  // cleaned app password (spaces removed)
       }
     });
   }
@@ -159,12 +160,26 @@ class EmailService {
   async sendEmail(options) {
     const { to, subject, html, text, attachments = [] } = options;
 
+    // Wait for transporter to initialize if it's not ready yet
+    let attempts = 0;
+    while (!this.transporter && attempts < 5) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      attempts++;
+    }
+
     if (!this.transporter) {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      logger.error('Email transporter failed to initialize');
+      return { success: false, error: 'Email service not initialized' };
+    }
+
+    // Validate required environment variables
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+      logger.error('SMTP credentials not configured properly');
+      return { success: false, error: 'Email service configuration error' };
     }
 
     const mailOptions = {
-      from: `"NorthCrest Bank" <${process.env.SMTP_USER}>`,
+      from: `"NorthCrest Bank" <${process.env.FROM_EMAIL || process.env.SMTP_USER}>`,
       to: Array.isArray(to) ? to.join(', ') : to,
       subject: `NorthCrest Bank: ${subject}`,
       text: text || this.stripHtml(html),
@@ -176,13 +191,14 @@ class EmailService {
       const info = await this.transporter.sendMail(mailOptions);
       
       if (process.env.NODE_ENV === 'development') {
-        logger.info(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+        const previewUrl = nodemailer.getTestMessageUrl(info);
+        if (previewUrl) logger.info(`Email preview URL: ${previewUrl}`);
       }
       
-      logger.info(`Email sent: ${info.messageId}`);
+      logger.info(`Email sent successfully to ${to}: ${info.messageId}`);
       return { success: true, messageId: info.messageId };
     } catch (error) {
-      logger.error(`Failed to send email: ${error.message}`);
+      logger.error(`Failed to send email to ${to}: ${error.message}`);
       return { success: false, error: error.message };
     }
   }
