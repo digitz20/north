@@ -1,6 +1,6 @@
-// Only load dotenv in development - production uses environment variables from hosting platform
-if (process.env.NODE_ENV !== 'production') {
-  require('dotenv').config();
+// Load environment variables: dotenv only for local development
+if (typeof process.env.MONGODB_URI === 'undefined') {
+  require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 }
 const express = require('express');
 const cors = require('cors');

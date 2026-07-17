@@ -8,12 +8,8 @@ class EmailService {
   }
 
   initialize() {
-    if (process.env.NODE_ENV === 'development') {
-      // Create test account for development
-      this.createTestAccount();
-    } else {
-      this.createProductionTransporter();
-    }
+    // Always use Gmail for all environments (development + production)
+    this.createProductionTransporter();
   }
 
   createProductionTransporter() {
