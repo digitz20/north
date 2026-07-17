@@ -360,6 +360,9 @@ const Landing = () => {
         )}
       </AnimatePresence>
       
+      {/* Navigation splash screen for smooth transitions */}
+      <NavigationSplash />
+      
       <Box sx={{ overflow: 'hidden', bgcolor: '#F5F7FA', minHeight: '100vh' }}>
         {/* Scroll Progress Bar */}
       <motion.div
@@ -779,16 +782,15 @@ const Landing = () => {
               </motion.div>
             </Grid>
 
-            {/* Hero Right Side - Floating Cards */}
-            <Grid item xs={12} lg={5} sx={{ position: 'relative', minHeight: { xs: 650, lg: 500 }, mt: { xs: 6, lg: 0 } }}>
-              {/* Floating Glass Card 1 (Top-left on desktop, Top-centered on mobile) */}
+            {/* Hero Right Side - Floating Cards - PROPERLY CENTERED FOR ALL SCREENS */}
+            <Grid item xs={12} lg={5} sx={{ position: 'relative', minHeight: { xs: 750, lg: 500 }, mt: { xs: 10, lg: 0 } }}>
+              {/* Floating Glass Card 1 - TOP: Always positioned correctly on all devices */}
               <motion.div
                 style={{
                   position: 'absolute',
-                  top: { xs: 20, lg: 30 },
-                  right: { xs: '50%', lg: 'auto' },
-                  left: { xs: 'auto', lg: 0 },
-                  transform: { xs: 'translateX(50%)', lg: 'none' },
+                  top: { xs: 40, lg: 30 },
+                  left: { xs: '50%', lg: 0 },
+                  transform: { xs: 'translateX(-50%)', lg: 'none' },
                   width: { xs: 280, lg: 280 },
                   background: 'rgba(255,255,255,0.1)',
                   backdropFilter: 'blur(20px)',
@@ -817,11 +819,11 @@ const Landing = () => {
                 </Box>
               </motion.div>
 
-              {/* Debit Card Mockup - CENTERED on ALL screens, perfectly stacked in the middle */}
+              {/* Debit Card Mockup - CENTER: Perfectly centered on EVERY screen, massive spacing from other cards */}
               <motion.div
                 style={{
                   position: 'absolute',
-                  top: { xs: 180, lg: 140 },
+                  top: { xs: 280, lg: 140 },
                   left: '50%',
                   transform: 'translateX(-50%)',
                   width: { xs: 320, lg: 340 },
@@ -855,14 +857,14 @@ const Landing = () => {
                 </Box>
               </motion.div>
 
-              {/* Floating Glass Card 2 (Bottom-right on desktop, Bottom-centered on mobile) */}
+              {/* Floating Glass Card 2 - BOTTOM: Always anchored properly, no overlap */}
               <motion.div
                 style={{
                   position: 'absolute',
-                  bottom: { xs: 20, lg: 30 },
-                  right: { xs: '50%', lg: 0 },
-                  left: { xs: 'auto', lg: 'auto' },
-                  transform: { xs: 'translateX(50%)', lg: 'none' },
+                  bottom: { xs: 40, lg: 30 },
+                  right: { xs: 'auto', lg: 0 },
+                  left: { xs: '50%', lg: 'auto' },
+                  transform: { xs: 'translateX(-50%)', lg: 'none' },
                   width: { xs: 240, lg: 240 },
                   background: 'rgba(255,255,255,0.1)',
                   backdropFilter: 'blur(20px)',
