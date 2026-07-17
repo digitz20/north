@@ -16,9 +16,9 @@ initializeSocket(server);
 const startServer = async () => {
   await connectDB();
   
-  server.listen(PORT, () => {
+  server.listen(PORT, '0.0.0.0', () => {
     logger.info(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
-    logger.info(`API available at http://localhost:${PORT}`);
+    logger.info(`API available at http://0.0.0.0:${PORT}`);
   });
 };
 
