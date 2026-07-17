@@ -620,7 +620,16 @@ const Landing = () => {
           overflow: 'hidden',
           margin: 0,
           padding: 0,
-          // Completely removed blue overlay gradient
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            background: 'rgba(0, 0, 0, 0.5)',
+            zIndex: 1,
+          }
         }}
       >
         {/* Background Image Slideshow - 20 mixed high-quality HD images */}
@@ -783,12 +792,12 @@ const Landing = () => {
             </Grid>
 
             {/* Hero Right Side - REARRANGED AS REQUESTED: TOP (Balance) -> MIDDLE (Credit Card) -> BOTTOM (Transfer) */}
-            <Grid item xs={12} lg={5} sx={{ position: 'relative', minHeight: { xs: 750, lg: 500 }, mt: { xs: 10, lg: 0 } }}>
+            <Grid item xs={12} lg={5} sx={{ position: 'relative', minHeight: { xs: 900, lg: 500 }, mt: { xs: 10, lg: 0 } }}>
               {/* 1. TOTAL BALANCE CARD - TOP (UP) as requested */}
               <motion.div
                 style={{
                   position: 'absolute',
-                  top: { xs: 40, lg: 30 },
+                  top: { xs: 20, lg: 30 },
                   left: { xs: '50%', lg: 0 },
                   transform: { xs: 'translateX(-50%)', lg: 'none' },
                   width: { xs: 280, lg: 280 },
@@ -823,7 +832,7 @@ const Landing = () => {
               <motion.div
                 style={{
                   position: 'absolute',
-                  top: { xs: 280, lg: 140 },
+                  top: { xs: 320, lg: 140 },
                   left: '50%',
                   transform: 'translateX(-50%)',
                   width: { xs: 320, lg: 340 },
@@ -861,9 +870,8 @@ const Landing = () => {
               <motion.div
                 style={{
                   position: 'absolute',
-                  bottom: { xs: 40, lg: 30 },
-                  right: { xs: 'auto', lg: 0 },
-                  left: { xs: '50%', lg: 'auto' },
+                  top: { xs: 560, lg: 380 },
+                  left: { xs: '50%', lg: 0 },
                   transform: { xs: 'translateX(-50%)', lg: 'none' },
                   width: { xs: 240, lg: 240 },
                   background: 'rgba(255,255,255,0.1)',
