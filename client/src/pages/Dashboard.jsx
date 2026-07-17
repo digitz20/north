@@ -68,37 +68,80 @@ const Dashboard = () => {
   // Get recent transactions (max 5)
   const recentTransactions = transactions.slice(0, 5);
   
-  // Advanced financial data for charts
-  const monthlyData = [
-    { name: 'Jan', income: 4500, expenses: 3200, savings: 1300 },
-    { name: 'Feb', income: 5100, expenses: 2800, savings: 2300 },
-    { name: 'Mar', income: 4800, expenses: 3500, savings: 1300 },
-    { name: 'Apr', income: 5200, expenses: 3100, savings: 2100 },
-    { name: 'May', income: 4900, expenses: 2900, savings: 2000 },
-    { name: 'Jun', income: 5500, expenses: 3400, savings: 2100 },
-    { name: 'Jul', income: 6200, expenses: 3100, savings: 3100 },
-  ];
+  // Calculate real monthly income and expenses from transactions
+  const currentDate = new Date();
+  const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+  
+  // Calculate monthly income (all credits this month)
+  const monthlyIncome = transactions
+    .filter(tx => new Date(tx.createdAt) >= firstDayOfMonth && tx.direction === 'credit')
+    .reduce((sum, tx) => sum + tx.amount, 0);
+  
+  // Calculate monthly expenses (all debits this month)
+  const monthlyExpenses = transactions
+    .filter(tx => new Date(tx.createdAt) >= firstDayOfMonth && tx.direction === 'debit')
+    .reduce((sum, tx) => sum + tx.amount, 0);
 
-  const portfolioData = [
-    { name: 'Stocks', value: 45000, color: '#0066FF' },
-    { name: 'Bonds', value: 25000, color: '#00BFFF' },
-    { name: 'Real Estate', value: 55000, color: '#00C896' },
-    { name: 'Crypto', value: 15000, color: '#FFC857' },
-  ];
+  // Calculate spending by category for this month
+  const categorySpending = {};
+  transactions
+    .filter(tx => new Date(tx.createdAt) >= firstDayOfMonth && tx.direction === 'debit')
+    .forEach(tx => {
+      if (!categorySpending[tx.category]) {
+        categorySpending[tx.category] = 0;
+      }
+      categorySpending[tx.category] += tx.amount;
+    });
+  
+  // Format spending by category for pie chart
+  const categoryColors = {
+    food: '#0066FF',
+    transportation: '#00BFFF',
+    shopping: '#00C896',
+    utilities: '#FFC857',
+    healthcare: '#FF6B6B',
+    entertainment: '#9333EA',
+    other: '#6B7280'
+  };
+  const spendingByCategory = Object.entries(categorySpending).map(([name, value]) => ({
+    name: name.charAt(0).toUpperCase() + name.slice(1),
+    value,
+    fill: categoryColors[name] || '#6B7280'
+  }));
 
-  const spendingByCategory = [
-    { name: 'Housing', value: 35, fill: '#0066FF' },
-    { name: 'Food', value: 15, fill: '#00BFFF' },
-    { name: 'Transport', value: 12, fill: '#00C896' },
-    { name: 'Shopping', value: 18, fill: '#FFC857' },
-    { name: 'Utilities', value: 20, fill: '#FF6B6B' },
-  ];
+  // Calculate real monthly data for line chart (last 6 months)
+  const getLast6Months = () => {
+    const months = [];
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+      const monthStart = date;
+      const monthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() - i + 1, 0);
+      
+      const monthIncome = transactions
+        .filter(tx => new Date(tx.createdAt) >= monthStart && new Date(tx.createdAt) <= monthEnd && tx.direction === 'credit')
+        .reduce((sum, tx) => sum + tx.amount, 0);
+      
+      const monthExpenses = transactions
+        .filter(tx => new Date(tx.createdAt) >= monthStart && new Date(tx.createdAt) <= monthEnd && tx.direction === 'debit')
+        .reduce((sum, tx) => sum + tx.amount, 0);
+      
+      months.push({
+        name: monthNames[date.getMonth()],
+        income: monthIncome,
+        expenses: monthExpenses,
+        savings: monthIncome - monthExpenses
+      });
+    }
+    return months;
+  };
+  const monthlyData = getLast6Months();
 
   const realtimeStats = [
     { title: 'Total Balance', value: totalBalance, prefix: '$', icon: <AccountBalance sx={{ fontSize: 40 }} />, change: '+2.4%', positive: true, color: 'linear-gradient(135deg, #021024 0%, #063970 100%)' },
-    { title: 'Monthly Income', value: 6200, prefix: '$', icon: <AttachMoney sx={{ fontSize: 40 }} />, change: '+5.1%', positive: true, color: 'linear-gradient(135deg, #063970 0%, #0066FF 100%)' },
-    { title: 'Monthly Expenses', value: 3100, prefix: '$', icon: <Payments sx={{ fontSize: 40 }} />, change: '-3.2%', positive: true, color: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)' },
-    { title: 'Net Savings', value: 3100, prefix: '$', icon: <TrendingUp sx={{ fontSize: 40 }} />, change: '+12.5%', positive: true, color: 'linear-gradient(135deg, #00C896 0%, #00BFFF 100%)' },
+    { title: 'Monthly Income', value: monthlyIncome, prefix: '$', icon: <AttachMoney sx={{ fontSize: 40 }} />, change: monthlyIncome > 0 ? `+${((monthlyIncome - monthlyExpenses)/monthlyExpenses*100).toFixed(1)}%` : '+0%', positive: true, color: 'linear-gradient(135deg, #063970 0%, #0066FF 100%)' },
+    { title: 'Monthly Expenses', value: monthlyExpenses, prefix: '$', icon: <Payments sx={{ fontSize: 40 }} />, change: monthlyExpenses > 0 ? `-${((monthlyExpenses - monthlyIncome)/monthlyIncome*100).toFixed(1)}%` : '-0%', positive: monthlyExpenses < monthlyIncome, color: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)' },
+    { title: 'Net Savings', value: monthlyIncome - monthlyExpenses, prefix: '$', icon: <TrendingUp sx={{ fontSize: 40 }} />, change: monthlyIncome - monthlyExpenses > 0 ? `+${((monthlyIncome - monthlyExpenses)/monthlyExpenses*100).toFixed(1)}%` : '+0%', positive: (monthlyIncome - monthlyExpenses) > 0, color: 'linear-gradient(135deg, #00C896 0%, #00BFFF 100%)' },
   ];
 
   const quickActions = [

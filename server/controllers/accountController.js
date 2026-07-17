@@ -13,11 +13,17 @@ exports.getAccounts = async (req, res, next) => {
     const accounts = await Account.find({ user: req.user.id });
     const total = accounts.length;
 
-    await AuditLog.create({
-      user: req.user.id,
+    await AuditLog.log({
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
       action: 'accounts_viewed',
+      category: 'account-management',
       description: `User viewed their accounts`,
-      ipAddress: req.ip
+      entity: { type: 'user', id: req.user.id }
     });
 
     res.status(200).json({

@@ -36,11 +36,17 @@ exports.getTransactions = async (req, res, next) => {
       .populate('sourceAccount', 'accountType nickname')
       .populate('destinationAccount', 'accountType nickname');
 
-    await AuditLog.create({
-      user: req.user.id,
+    await AuditLog.log({
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
       action: 'transactions_viewed',
+      category: 'transaction-management',
       description: `User viewed their transaction history`,
-      ipAddress: req.ip
+      entity: { type: 'user', id: req.user.id }
     });
 
     res.status(200).json({
@@ -82,11 +88,17 @@ exports.getTransaction = async (req, res, next) => {
       });
     }
 
-    await AuditLog.create({
-      user: req.user.id,
+    await AuditLog.log({
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
       action: 'transaction_viewed',
+      category: 'transaction-management',
       description: `User viewed transaction ${req.params.id}`,
-      ipAddress: req.ip
+      entity: { type: 'transaction', id: req.params.id }
     });
 
     res.status(200).json({

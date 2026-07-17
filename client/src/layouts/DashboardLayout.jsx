@@ -103,7 +103,7 @@ const DashboardLayout = () => {
           <ListItem
             button
             key={item.text}
-            onClick={() => navigateWithSplash(item.path)}
+            onClick={() => navigate(item.path)}
             selected={location.pathname === item.path}
             sx={{
               mx: 1,

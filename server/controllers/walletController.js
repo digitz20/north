@@ -22,11 +22,17 @@ exports.getWallet = async (req, res, next) => {
       });
     }
 
-    await AuditLog.create({
-      user: req.user.id,
+    await AuditLog.log({
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
       action: 'wallet_viewed',
+      category: 'account-management',
       description: `User viewed their wallet balance`,
-      ipAddress: req.ip
+      entity: { type: 'wallet', id: wallet._id }
     });
 
     res.status(200).json({
