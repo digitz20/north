@@ -16,7 +16,8 @@ import {
   ArrowUpward, ArrowDownward, SwapHoriz, TrendingUp, AccountBalance, 
   Payments, MoreHoriz, Person, ShoppingCart, Restaurant, Home,
   ShowChart, AccountTree, Security, Speed, AttachMoney, CreditCard,
-  ArrowForward, Notifications, Settings, HelpOutline, ChevronRight, PlayCircle
+  ArrowForward, Notifications, Settings, HelpOutline, ChevronRight, PlayCircle,
+  LocalHospital, Flight, Payment
 } from '@mui/icons-material';
 // Alias for icon names used in component
 const ArrowUpwardIcon = ArrowUpward;
@@ -165,13 +166,45 @@ const Dashboard = () => {
     { title: 'Fraud Monitor', status: 'Active', icon: <Speed sx={{ fontSize: 28 }} />, color: '#00BFFF' },
   ];
 
-  const liveTransactions = [
-    { id: 1, name: 'Amazon Purchase', category: 'Shopping', amount: -156.99, time: '2 min ago', avatar: 'https://images.unsplash.com/photo-1523474253046-8cd2748b5fd2?w=100', icon: <ShoppingCart /> },
-    { id: 2, name: 'Salary Deposit', category: 'Income', amount: 6200.00, time: '5 hours ago', avatar: 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=100', icon: <AttachMoney /> },
-    { id: 3, name: 'Netflix Subscription', category: 'Entertainment', amount: -15.99, time: '1 day ago', avatar: 'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=100', icon: <PlayCircle /> },
-    { id: 4, name: 'Whole Foods Market', category: 'Groceries', amount: -89.42, time: '1 day ago', avatar: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=100', icon: <Restaurant /> },
-    { id: 5, name: 'Rent Payment', category: 'Housing', amount: -1800.00, time: '3 days ago', avatar: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=100', icon: <Home /> },
-  ];
+  // Map real transactions to UI format with correct icons and timestamps
+  const getTransactionIcon = (category) => {
+    const iconMap = {
+      shopping: <ShoppingCart />,
+      food: <Restaurant />,
+      housing: <Home />,
+      transportation: <Flight />,
+      healthcare: <LocalHospital />,
+      entertainment: <PlayCircle />,
+      deposit: <AttachMoney />,
+      transfer: <SwapHoriz />,
+      other: <MoreHoriz />
+    };
+    return iconMap[category] || <MoreHoriz />;
+  };
+
+  const getRelativeTime = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.round(diffMs / 60000);
+    const diffHours = Math.round(diffMs / 3600000);
+    const diffDays = Math.round(diffMs / 86400000);
+    
+    if (diffMins < 60) return `${diffMins} min ago`;
+    if (diffHours < 24) return `${diffHours} hours ago`;
+    return `${diffDays} days ago`;
+  };
+
+  // Format real transactions for the recent transactions list
+  const liveTransactions = recentTransactions.map(tx => ({
+    id: tx._id,
+    name: tx.description,
+    category: tx.category.charAt(0).toUpperCase() + tx.category.slice(1),
+    amount: tx.direction === 'debit' ? -tx.amount : tx.amount,
+    time: getRelativeTime(tx.createdAt),
+    avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(tx.description)}&background=0066FF&color=fff&size=100`,
+    icon: getTransactionIcon(tx.category)
+  }));
 
   // Only show full-page loading if we have no data at all
   if ((accounts.length === 0 || !wallet || transactions.length === 0) && (accountsLoading && transactionsLoading)) {
@@ -524,43 +557,26 @@ const Dashboard = () => {
                   boxShadow: '0 8px 32px rgba(0,0,0,0.05)'
                 }}
               >
-                <Typography variant="h5" sx={{ fontWeight: 600, color: '#021024', mb: 1 }}>Portfolio Allocation</Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>Your investment distribution</Typography>
-                <ResponsiveContainer width="100%" height={220}>
-                  <PieChart>
-                    <Pie
-                      data={portfolioData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={90}
-                      paddingAngle={5}
-                      dataKey="value"
-                    >
-                      {portfolioData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <RechartsTooltip
-                      contentStyle={{
-                        background: 'rgba(255,255,255,0.95)',
-                        backdropFilter: 'blur(10px)',
-                        borderRadius: 12,
-                        border: '1px solid rgba(0,102,255,0.2)'
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+                <Typography variant="h5" sx={{ fontWeight: 600, color: '#021024', mb: 1 }}>Account Summary</Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>Your accounts and balances</Typography>
                 <Box sx={{ mt: 2 }}>
-                  {portfolioData.map((item, index) => (
-                    <Box key={item.name} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1.5, borderBottom: index < portfolioData.length - 1 ? '1px solid rgba(0,0,0,0.05)' : 'none' }}>
+                  {accounts.map((account, index) => (
+                    <Box key={account._id} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1.5, borderBottom: index < accounts.length - 1 ? '1px solid rgba(0,0,0,0.05)' : 'none' }}>
                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: item.color, mr: 2 }} />
-                        <Typography variant="body2">{item.name}</Typography>
+                        <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: index === 0 ? '#0066FF' : index === 1 ? '#00BFFF' : '#00C896', mr: 2 }} />
+                        <Typography variant="body2">{account.nickname || `${account.accountType.charAt(0).toUpperCase() + account.accountType.slice(1)} Account`}</Typography>
                       </Box>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>${item.value.toLocaleString()}</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>${account.balance.toLocaleString()}</Typography>
                     </Box>
                   ))}
+                  {/* Add wallet balance */}
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1.5 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#FFC857', mr: 2 }} />
+                      <Typography variant="body2">Digital Wallet</Typography>
+                    </Box>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>${(wallet?.balance || 0).toLocaleString()}</Typography>
+                  </Box>
                 </Box>
               </Paper>
             </motion.div>
