@@ -1,4 +1,7 @@
-require('dotenv').config(); // Loads from .env in server directory on Koyeb, works locally too
+// Only load dotenv in development - production uses environment variables from hosting platform
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
