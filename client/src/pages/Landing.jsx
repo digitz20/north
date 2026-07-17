@@ -431,7 +431,7 @@ const Landing = () => {
                       }}
                       onClick={() => {
                         setActiveSection(item.toLowerCase());
-                        navigateWithSplash(routeMap[item]);
+                        navigate(routeMap[item]);
                       }}
                     >
                       {item}
@@ -461,7 +461,7 @@ const Landing = () => {
               </Tooltip>
               <Button
                 variant="outlined"
-                onClick={() => navigateWithSplash('/login')}
+                onClick={() => navigate('/login')}
                 sx={{
                   borderColor: 'rgba(255,255,255,0.5)',
                   color: 'white',
@@ -474,17 +474,17 @@ const Landing = () => {
               </Button>
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Button
-                  variant="contained"
-                  onClick={() => navigateWithSplash('/register')}
-                  sx={{
-                    background: 'linear-gradient(135deg, #0066FF, #00BFFF)',
-                    color: 'white',
-                    fontWeight: 600,
-                    px: 3,
-                    py: 1,
-                    borderRadius: 2,
-                    boxShadow: '0 4px 20px rgba(0, 102, 255, 0.4)',
-                    '&:hover': { boxShadow: '0 6px 30px rgba(0, 102, 255, 0.6)' },
+                variant="contained"
+                onClick={() => navigate('/register')}
+                sx={{
+                  background: 'linear-gradient(135deg, #0066FF, #00BFFF)',
+                  color: 'white',
+                  fontWeight: 600,
+                  px: 3,
+                  py: 1,
+                  borderRadius: 2,
+                  boxShadow: '0 4px 20px rgba(0, 102, 255, 0.4)',
+                  '&:hover': { boxShadow: '0 6px 30px rgba(0, 102, 255, 0.6)' },
                     display: { xs: 'none', sm: 'flex' }
                   }}
                 >
@@ -577,7 +577,7 @@ const Landing = () => {
                   onClick={() => { 
                     setActiveSection(item.toLowerCase()); 
                     setMobileOpen(false);
-                    navigateWithSplash(routeMap[item]);
+                    navigate(routeMap[item]);
                   }}
                   sx={{ borderRadius: 2, mb: 1, '&:hover': { background: 'rgba(255,255,255,0.1)' } }}
                 >
@@ -591,7 +591,7 @@ const Landing = () => {
             <Button
               fullWidth
               variant="outlined"
-              onClick={() => { navigateWithSplash('/login'); setMobileOpen(false); }}
+              onClick={() => { navigate('/login'); setMobileOpen(false); }}
               sx={{ borderColor: 'rgba(255,255,255,0.5)', color: 'white' }}
             >
               Login
@@ -599,7 +599,7 @@ const Landing = () => {
             <Button
               fullWidth
               variant="contained"
-              onClick={() => { navigateWithSplash('/register'); setMobileOpen(false); }}
+              onClick={() => { navigate('/register'); setMobileOpen(false); }}
               sx={{ background: 'linear-gradient(135deg, #0066FF, #00BFFF)' }}
             >
               Open Account
@@ -741,7 +741,7 @@ const Landing = () => {
                     <Button
                       variant="contained"
                       size="large"
-                      onClick={() => navigateWithSplash('/register')}
+                      onClick={() => navigate('/register')}
                       sx={{
                         background: 'linear-gradient(135deg, #0066FF, #00BFFF)',
                         color: 'white',
@@ -782,9 +782,9 @@ const Landing = () => {
               </motion.div>
             </Grid>
 
-            {/* Hero Right Side - Floating Cards - PROPERLY CENTERED FOR ALL SCREENS */}
+            {/* Hero Right Side - REARRANGED AS REQUESTED: TOP (Balance) -> MIDDLE (Credit Card) -> BOTTOM (Transfer) */}
             <Grid item xs={12} lg={5} sx={{ position: 'relative', minHeight: { xs: 750, lg: 500 }, mt: { xs: 10, lg: 0 } }}>
-              {/* Floating Glass Card 1 - TOP: Always positioned correctly on all devices */}
+              {/* 1. TOTAL BALANCE CARD - TOP (UP) as requested */}
               <motion.div
                 style={{
                   position: 'absolute',
@@ -819,7 +819,7 @@ const Landing = () => {
                 </Box>
               </motion.div>
 
-              {/* Debit Card Mockup - CENTER: Perfectly centered on EVERY screen, massive spacing from other cards */}
+              {/* 2. DEBIT CARD MOCKUP - RECTANGULAR & CENTERED IN THE MIDDLE exactly as requested */}
               <motion.div
                 style={{
                   position: 'absolute',
@@ -857,7 +857,7 @@ const Landing = () => {
                 </Box>
               </motion.div>
 
-              {/* Floating Glass Card 2 - BOTTOM: Always anchored properly, no overlap */}
+              {/* 3. TRANSFER CARD - MOVED TO BOTTOM (BELOW credit card) as requested */}
               <motion.div
                 style={{
                   position: 'absolute',
