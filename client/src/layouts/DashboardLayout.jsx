@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../store/slices/authSlice';
 import {
@@ -62,7 +62,6 @@ const DashboardLayout = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [notificationsAnchorEl, setNotificationsAnchorEl] = useState(null);
   const { navigateWithSplash, NavigationSplash } = useNavigationWithSplash();
-  const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
   
@@ -103,7 +102,7 @@ const DashboardLayout = () => {
           <ListItem
             button
             key={item.text}
-            onClick={() => navigate(item.path)}
+            onClick={() => navigateWithSplash(item.path)}
             selected={location.pathname === item.path}
             sx={{
               mx: 1,
