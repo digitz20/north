@@ -174,6 +174,18 @@ const authSlice = createSlice({
       .addCase(verifyEmail.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      
+      // Resend verification email cases
+      .addCase(resendVerificationEmail.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(resendVerificationEmail.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(resendVerificationEmail.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   }
 });
