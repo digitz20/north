@@ -780,28 +780,26 @@ const Landing = () => {
             </Grid>
 
             {/* Hero Right Side - Floating Cards */}
-            <Grid item xs={12} lg={5} sx={{ position: 'relative', minHeight: { xs: 520, lg: 500 }, mt: { xs: 4, lg: 0 } }}>
+            <Grid item xs={12} lg={5} sx={{ position: 'relative', minHeight: 500 }}>
               {/* Floating Glass Card 1 */}
               <motion.div
                 style={{
                   position: 'absolute',
-                  top: { xs: 10, lg: 30 },
-                  right: { xs: '50%', lg: 'auto' },
-                  left: { xs: 'auto', lg: 0 },
-                  transform: { xs: 'translateX(50%)', lg: 'none' },
-                  width: { xs: 260, lg: 260 },
+                  top: 50,
+                  right: 50,
+                  width: 280,
                   background: 'rgba(255,255,255,0.1)',
                   backdropFilter: 'blur(20px)',
                   borderRadius: 20,
-                  padding: { xs: 20, lg: 24 },
+                  padding: 24,
                   border: '1px solid rgba(255,255,255,0.2)',
                   boxShadow: '0 25px 50px rgba(0,0,0,0.2)'
                 }}
                 animate={{
-                  y: [0, -15, 0],
-                  x: mousePosition.x * 1.5
+                  y: [0, -15, 0], // Reduced movement range
+                  x: mousePosition.x * 1.5 // Reduced parallax intensity
                 }}
-                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }} // Slower animation
               >
                 <Typography sx={{ color: 'rgba(255,255,255,0.7)', mb: 1, fontSize: '0.9rem' }}>Total Balance</Typography>
                 <Typography sx={{ color: 'white', fontSize: '2rem', fontWeight: 800, mb: 2 }}>
@@ -817,26 +815,25 @@ const Landing = () => {
                 </Box>
               </motion.div>
 
-              {/* Debit Card Mockup - Center of container for all screen sizes */}
+              {/* Debit Card Mockup */}
               <motion.div
                 style={{
                   position: 'absolute',
-                  top: { xs: 160, lg: 140 },
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: { xs: 290, lg: 320 },
-                  height: { xs: 190, lg: 200 },
+                  top: 200,
+                  right: 100,
+                  width: 340,
+                  height: 220,
                   background: 'linear-gradient(135deg, #0066FF, #063970)',
                   borderRadius: 20,
-                  padding: { xs: 22, lg: 28 },
+                  padding: 28,
                   boxShadow: '0 30px 60px rgba(0,102,255,0.4)',
                   border: '1px solid rgba(255,255,255,0.2)'
                 }}
                 animate={{
-                  y: [0, 10, 0],
-                  x: mousePosition.x * 1
+                  y: [0, 10, 0], // Reduced movement range
+                  x: mousePosition.x * 1 // Simplified - removed 3D rotation which caused GPU lag
                 }}
-                transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+                transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }} // Slower animation
               >
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 4 }}>
                   <NorthCrestLogo color="white" />
@@ -859,22 +856,20 @@ const Landing = () => {
               <motion.div
                 style={{
                   position: 'absolute',
-                  bottom: { xs: 20, lg: 30 },
-                  right: { xs: '50%', lg: 0 },
-                  left: { xs: 'auto', lg: 'auto' },
-                  transform: { xs: 'translateX(50%)', lg: 'none' },
-                  width: { xs: 220, lg: 240 },
+                  bottom: 50,
+                  right: 30,
+                  width: 240,
                   background: 'rgba(255,255,255,0.1)',
                   backdropFilter: 'blur(20px)',
                   borderRadius: 16,
-                  padding: { xs: 16, lg: 20 },
+                  padding: 20,
                   border: '1px solid rgba(255,255,255,0.2)'
                 }}
                 animate={{
-                  y: [0, 12, 0],
-                  x: mousePosition.x * 1.2
+                  y: [0, 12, 0], // Reduced movement range
+                  x: mousePosition.x * 1.2 // Reduced parallax intensity
                 }}
-                transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut" }}
+                transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut" }} // Slower animation
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
                   <Avatar src={currentTransferAvatar} sx={{ width: 40, height: 40 }} />
@@ -993,10 +988,10 @@ const Landing = () => {
       </Box>
 
       {/* Dashboard Preview Section */}
-      <Box sx={{ py: { xs: 10, lg: 15 }, bgcolor: '#021024', overflow: 'hidden' }} className="animate-section">
+      <Box sx={{ py: 15, bgcolor: '#021024', overflow: 'hidden' }} className="animate-section">
         <Container maxWidth="xl">
           <Grid container spacing={8} alignItems="center">
-            <Grid item xs={12} lg={5} order={{ xs: 2, lg: 1 }}>
+            <Grid item xs={12} lg={5}>
               <Chip label="Live Dashboard" sx={{ background: 'rgba(0, 191, 255, 0.1)', color: '#00BFFF', mb: 3, fontSize: '0.9rem' }} />
               <Typography variant="h2" sx={{ fontSize: { xs: '2.5rem', md: '3.5rem' }, fontWeight: 800, color: 'white', mb: 3 }}>Your Financial Command Center</Typography>
               <Typography sx={{ color: 'rgba(255,255,255,0.7)', fontSize: '1.25rem', lineHeight: 1.7, mb: 6 }}>
@@ -1021,7 +1016,7 @@ const Landing = () => {
                 ))}
               </Grid>
             </Grid>
-            <Grid item xs={12} lg={7} order={{ xs: 1, lg: 2 }} sx={{ mb: { xs: 4, lg: 0 } }}>
+            <Grid item xs={12} lg={7}>
               <motion.div
                 style={{
                   background: 'rgba(255,255,255,0.03)',
@@ -1151,18 +1146,18 @@ const Landing = () => {
       </Box>
 
       {/* Mobile Banking Section */}
-      <Box sx={{ py: { xs: 10, lg: 15 }, bgcolor: 'white' }} className="animate-section">
+      <Box sx={{ py: 15, bgcolor: 'white' }} className="animate-section">
         <Container maxWidth="xl">
-          <Grid container spacing={8} alignItems="center">
-            <Grid item xs={12} lg={6} order={{ xs: 2, lg: 1 }}>
+          <Grid container spacing={12} alignItems="center">
+            <Grid item xs={12} lg={6}>
               <motion.div
                 style={{ position: 'relative' }}
                 animate={{ y: [0, -15, 0] }}
                 transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
               >
                 <Box sx={{
-                  width: { xs: 280, lg: 320 },
-                  height: { xs: 560, lg: 640 },
+                  width: 320,
+                  height: 640,
                   margin: '0 auto',
                   borderRadius: 50,
                   padding: 2,
@@ -1177,7 +1172,7 @@ const Landing = () => {
                 </Box>
               </motion.div>
             </Grid>
-            <Grid item xs={12} lg={6} order={{ xs: 1, lg: 2 }} sx={{ mb: { xs: 4, lg: 0 } }}>
+            <Grid item xs={12} lg={6}>
               <Chip label="Mobile Banking" sx={{ background: 'rgba(0, 200, 150, 0.1)', color: '#00C896', mb: 3, fontSize: '0.9rem' }} />
               <Typography variant="h2" sx={{ fontSize: { xs: '2.5rem', md: '3.5rem' }, fontWeight: 800, color: '#0F172A', mb: 3 }}>Bank From Your Pocket</Typography>
               <Typography sx={{ color: '#64748B', fontSize: '1.25rem', lineHeight: 1.7, mb: 6 }}>
@@ -1483,9 +1478,9 @@ const Landing = () => {
       </Box>
 
       {/* Footer Section */}
-      <Box sx={{ bgcolor: '#021024', py: { xs: 8, lg: 12 }, color: 'white' }}>
+      <Box sx={{ bgcolor: '#021024', py: 12, color: 'white' }}>
         <Container maxWidth="xl">
-          <Grid container spacing={4}>
+          <Grid container spacing={8}>
             <Grid item xs={12} md={4}>
               <NorthCrestLogo color="white" />
               <Typography sx={{ color: 'rgba(255,255,255,0.6)', mt: 3, lineHeight: 1.8, mb: 4 }}>
@@ -1499,7 +1494,7 @@ const Landing = () => {
                 ))}
               </Box>
             </Grid>
-            <Grid item xs={6} sm={3} md={2}>
+            <Grid item xs={6} sm={6} md={2}>
               <Typography sx={{ fontWeight: 700, mb: 4, fontSize: '1.1rem' }}>Products</Typography>
               <List sx={{ p: 0 }}>
                 {['Personal Banking', 'Business Accounts', 'Credit Cards', 'Loans & Mortgages', 'Investments'].map((item, i) => (
@@ -1635,7 +1630,7 @@ const Landing = () => {
       </Dialog>
 
       {/* AI Chat Widget */}
-      <Box sx={{ position: 'fixed', bottom: { xs: 'env(safe-area-inset-bottom, 20px)', sm: 30 }, right: { xs: 'env(safe-area-inset-right, 15px)', sm: 30 }, zIndex: 9999 }}>
+      <Box sx={{ position: 'fixed', bottom: 30, right: 30, zIndex: 9999 }}>
         {/* Chat Window */}
         <AnimatePresence>
           {chatOpen && (
@@ -1647,19 +1642,18 @@ const Landing = () => {
             >
               <Paper
                 sx={{
-                  width: { xs: 'calc(100vw - 20px)', sm: 380 },
-                  height: { xs: 'calc(100vh - 120px)', sm: 550 },
+                  width: { xs: 'calc(100vw - 40px)', sm: 380 },
+                  height: 550,
                   mb: 2,
-                  borderRadius: { xs: 3, sm: 4 },
-                  boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
+                  borderRadius: 4,
+                  boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
                   display: 'flex',
                   flexDirection: 'column',
                   overflow: 'hidden',
-                  position: 'fixed',
-                  bottom: { xs: 90, sm: 100 },
-                  left: { xs: 10, sm: 'auto' },
-                  right: { xs: 10, sm: 30 },
-                  top: { xs: 20, sm: 'auto' }
+                  position: { xs: 'fixed', sm: 'relative' },
+                  bottom: { xs: 80, sm: 0 },
+                  left: { xs: 0, sm: 'auto' },
+                  right: { xs: 20, sm: 0 }
                 }}
               >
                 {/* Chat Header */}
@@ -1667,8 +1661,7 @@ const Landing = () => {
                   sx={{
                     background: 'linear-gradient(135deg, #0066FF, #00BFFF)',
                     color: 'white',
-                    p: { xs: 2, sm: 3 },
-                    pt: { xs: 'calc(12px + env(safe-area-inset-top))', sm: 3 },
+                    p: 3,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between'
@@ -1815,7 +1808,7 @@ const Landing = () => {
                 )}
 
                 {/* Message Input */}
-                <Box sx={{ p: { xs: 2, sm: 3 }, pb: { xs: 'calc(12px + env(safe-area-inset-bottom))', sm: 3 }, bgcolor: 'white', borderTop: '1px solid #E2E8F0' }}>
+                <Box sx={{ p: 3, bgcolor: 'white', borderTop: '1px solid #E2E8F0' }}>
                   <Box sx={{ display: 'flex', gap: 1 }}>
                     <TextField
                       fullWidth
@@ -1865,18 +1858,13 @@ const Landing = () => {
           <IconButton
             onClick={() => setChatOpen(!chatOpen)}
             sx={{
-              width: { xs: 60, sm: 70 },
-              height: { xs: 60, sm: 70 },
+              width: 70,
+              height: 70,
               background: 'linear-gradient(135deg, #0066FF, #00BFFF)',
               color: 'white',
               boxShadow: '0 8px 30px rgba(0, 102, 255, 0.5)',
               '&:hover': {
                 background: 'linear-gradient(135deg, #0052CC, #0099DD)'
-              },
-              '@media (hover: none)': {
-                '&:active': {
-                  background: 'linear-gradient(135deg, #0052CC, #0099DD)'
-                }
               }
             }}
           >
