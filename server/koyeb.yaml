@@ -1,0 +1,14 @@
+name: northcrest-bank-server
+services:
+  - name: api
+    type: web
+    build:
+      command: npm install
+    run:
+      command: npm start
+    ports:
+      - port: 5000
+        http: true
+    env:
+      - key: NODE_ENV
+        value: production
