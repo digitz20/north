@@ -10,8 +10,63 @@ import {
   Alert,
   CircularProgress,
   Grid,
-  Divider
+  Divider,
+  MenuItem,
+  InputAdornment,
+  IconButton
 } from '@mui/material';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
+
+// List of all country codes with +1 (USA) as first/default
+const countryCodes = [
+  { code: '+1', country: 'United States' },
+  { code: '+44', country: 'United Kingdom' },
+  { code: '+1', country: 'Canada' },
+  { code: '+61', country: 'Australia' },
+  { code: '+49', country: 'Germany' },
+  { code: '+33', country: 'France' },
+  { code: '+81', country: 'Japan' },
+  { code: '+86', country: 'China' },
+  { code: '+91', country: 'India' },
+  { code: '+52', country: 'Mexico' },
+  { code: '+55', country: 'Brazil' },
+  { code: '+39', country: 'Italy' },
+  { code: '+34', country: 'Spain' },
+  { code: '+46', country: 'Sweden' },
+  { code: '+47', country: 'Norway' },
+  { code: '+45', country: 'Denmark' },
+  { code: '+31', country: 'Netherlands' },
+  { code: '+65', country: 'Singapore' },
+  { code: '+852', country: 'Hong Kong' },
+  { code: '+971', country: 'United Arab Emirates' },
+  { code: '+27', country: 'South Africa' },
+  { code: '+82', country: 'South Korea' },
+  { code: '+64', country: 'New Zealand' },
+  { code: '+41', country: 'Switzerland' },
+  { code: '+43', country: 'Austria' },
+  { code: '+32', country: 'Belgium' },
+  { code: '+63', country: 'Philippines' },
+  { code: '+66', country: 'Thailand' },
+  { code: '+62', country: 'Indonesia' },
+  { code: '+94', country: 'Sri Lanka' },
+  { code: '+20', country: 'Egypt' },
+  { code: '+972', country: 'Israel' },
+  { code: '+966', country: 'Saudi Arabia' },
+  { code: '+57', country: 'Colombia' },
+  { code: '+54', country: 'Argentina' },
+  { code: '+56', country: 'Chile' },
+  { code: '+51', country: 'Peru' },
+  { code: '+48', country: 'Poland' },
+  { code: '+420', country: 'Czech Republic' },
+  { code: '+36', country: 'Hungary' },
+  { code: '+30', country: 'Greece' },
+  { code: '+351', country: 'Portugal' },
+  { code: '+7', country: 'Russia' },
+  { code: '+90', country: 'Turkey' },
+  { code: '+234', country: 'Nigeria' },
+  { code: '+254', country: 'Kenya' }
+];
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -24,6 +79,9 @@ const Register = () => {
     dateOfBirth: '',
     address: ''
   });
+  const [countryCode, setCountryCode] = useState('+1'); // Default to USA (+1)
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSuccess, setResendSuccess] = useState('');
@@ -73,8 +131,11 @@ const Register = () => {
       return;
     }
     
-    // Validate form fields
-    const { confirmPassword, ...registerData } = formData;
+    // Validate form fields - prepend country code to phone number
+    const fullPhone = `${countryCode} ${formData.phone}`;
+    const { confirmPassword, phone, ...restFormData } = formData;
+    const registerData = { ...restFormData, phone: fullPhone };
+    
     dispatch(register(registerData)).then((result) => {
       // If registration is successful, navigate to verify email page
       if (result.payload?.otpId) {
@@ -152,6 +213,26 @@ const Register = () => {
             autoComplete="tel"
             value={formData.phone}
             onChange={handleChange}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <TextField
+                    select
+                    value={countryCode}
+                    onChange={(e) => setCountryCode(e.target.value)}
+                    sx={{ minWidth: 120, '& .MuiInputBase-input': { py: 1 } }}
+                    variant="standard"
+                    size="small"
+                  >
+                    {countryCodes.map((country, index) => (
+                      <MenuItem key={`${country.code}-${index}`} value={country.code}>
+                        {country.code} ({country.country})
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </InputAdornment>
+              )
+            }}
           />
         </Grid>
         <Grid item xs={12}>
@@ -185,13 +266,26 @@ const Register = () => {
             fullWidth
             name="password"
             label="Password"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             id="password"
             autoComplete="new-password"
             error={!passwordIsValid && formData.password.length > 0}
             helperText={!passwordIsValid && formData.password.length > 0 ? "Password must be at least 8 characters" : ""}
             value={formData.password}
             onChange={handleChange}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    aria-label="toggle password visibility"
+                    onClick={() => setShowPassword(!showPassword)}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              )
+            }}
           />
         </Grid>
         <Grid item xs={12}>
@@ -200,12 +294,25 @@ const Register = () => {
             fullWidth
             name="confirmPassword"
             label="Confirm Password"
-            type="password"
+            type={showConfirmPassword ? 'text' : 'password'}
             id="confirmPassword"
             error={!passwordsMatch && formData.confirmPassword.length > 0}
             helperText={!passwordsMatch && formData.confirmPassword.length > 0 ? "Passwords do not match" : ""}
             value={formData.confirmPassword}
             onChange={handleChange}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    aria-label="toggle confirm password visibility"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    edge="end"
+                  >
+                    {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              )
+            }}
           />
         </Grid>
       </Grid>

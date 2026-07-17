@@ -13,11 +13,12 @@ import {
   FormControlLabel,
   Divider
 } from '@mui/material';
-import { Lock, Person } from '@mui/icons-material';
+import { Lock, Person, Visibility, VisibilityOff } from '@mui/icons-material';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSuccess, setResendSuccess] = useState('');
@@ -96,13 +97,24 @@ const Login = () => {
         fullWidth
         name="password"
         label="Password"
-        type="password"
+        type={showPassword ? 'text' : 'password'}
         id="password"
         autoComplete="current-password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         InputProps={{
-          startAdornment: <Lock color="action" sx={{ mr: 1 }} />
+          startAdornment: <Lock color="action" sx={{ mr: 1 }} />,
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton
+                aria-label="toggle password visibility"
+                onClick={() => setShowPassword(!showPassword)}
+                edge="end"
+              >
+                {showPassword ? <VisibilityOff /> : <Visibility />}
+              </IconButton>
+            </InputAdornment>
+          )
         }}
       />
       
