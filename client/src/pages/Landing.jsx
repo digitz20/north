@@ -780,13 +780,14 @@ const Landing = () => {
             </Grid>
 
             {/* Hero Right Side - Floating Cards */}
-            <Grid item xs={12} lg={5} sx={{ position: 'relative', minHeight: { xs: 350, lg: 500 }, mt: { xs: 4, lg: 0 } }}>
+            <Grid item xs={12} lg={5} sx={{ position: 'relative', minHeight: { xs: 450, lg: 500 }, mt: { xs: 4, lg: 0 } }}>
               {/* Floating Glass Card 1 */}
               <motion.div
                 style={{
                   position: 'absolute',
-                  top: { xs: 20, lg: 50 },
-                  right: { xs: '50%', lg: 50 },
+                  top: { xs: 10, lg: 50 },
+                  right: { xs: '50%', lg: 'auto' },
+                  left: { xs: 'auto', lg: 20 },
                   transform: { xs: 'translateX(50%)', lg: 'none' },
                   width: { xs: 260, lg: 280 },
                   background: 'rgba(255,255,255,0.1)',
@@ -820,9 +821,10 @@ const Landing = () => {
               <motion.div
                 style={{
                   position: 'absolute',
-                  top: { xs: 120, lg: 200 },
-                  right: { xs: '50%', lg: 100 },
-                  transform: { xs: 'translateX(50%)', lg: 'none' },
+                  top: { xs: 180, lg: 150 },
+                  right: { xs: '50%', lg: 'auto' },
+                  left: { xs: 'auto', lg: '50%' },
+                  transform: { xs: 'translateX(50%)', lg: 'translateX(-50%)' },
                   width: { xs: 290, lg: 340 },
                   height: { xs: 190, lg: 220 },
                   background: 'linear-gradient(135deg, #0066FF, #063970)',
@@ -858,8 +860,9 @@ const Landing = () => {
               <motion.div
                 style={{
                   position: 'absolute',
-                  bottom: { xs: 10, lg: 50 },
-                  right: { xs: '50%', lg: 30 },
+                  bottom: { xs: 15, lg: 50 },
+                  right: { xs: '50%', lg: 20 },
+                  left: { xs: 'auto', lg: 'auto' },
                   transform: { xs: 'translateX(50%)', lg: 'none' },
                   width: { xs: 220, lg: 240 },
                   background: 'rgba(255,255,255,0.1)',
