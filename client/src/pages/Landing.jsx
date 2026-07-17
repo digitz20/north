@@ -38,6 +38,137 @@ const Landing = () => {
   const [currentHeroImage, setCurrentHeroImage] = useState(0);
   const heroRef = useRef(null);
   const { scrollYProgress } = useScroll();
+  
+  // Chatbot State
+  const [chatOpen, setChatOpen] = useState(false);
+  const [messages, setMessages] = useState([
+    { id: 1, sender: 'bot', text: '👋 Hi there! Welcome to NorthCrest Bank. How can I help you today? You can ask me anything about our services or chat with a live agent.', time: 'Just now' }
+  ]);
+  const [newMessage, setNewMessage] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [chatMode, setChatMode] = useState('ai'); // 'ai' or 'live'
+  const messagesEndRef = useRef(null);
+
+  // Auto-scroll to bottom of chat
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // AI Responses database
+  const aiResponses = {
+    greetings: [
+      "Hello! Great to hear from you. I'm NorthCrest's AI assistant. What would you like to know about our banking services?",
+      "Hi there! Thanks for reaching out. I'm here to answer any questions you have about NorthCrest Bank. What's on your mind?",
+      "Welcome! I'm happy to help you explore our banking solutions. What would you like to learn more about?"
+    ],
+    accounts: [
+      "Opening an account with NorthCrest is quick and easy! You can get started in just 5 minutes. We offer free checking accounts with no monthly fees, high-yield savings accounts, and premium wealth management options. Would you like me to walk you through the process?",
+      "Great question! Our personal checking accounts have zero monthly maintenance fees, include a free debit card, and come with mobile check deposit. You can open an account online by clicking 'Open Account' and completing our simple application.",
+      "We offer a variety of account types to fit your needs: Personal Checking, High-Yield Savings, Money Market Accounts, and Certificate of Deposits. All accounts come with our mobile app and online banking access."
+    ],
+    loans: [
+      "We offer competitive rates on all types of loans: personal loans starting at 5.99% APR, mortgages starting at 6.25%, and auto loans from 4.5% APR. Our loan application process is completely online with decisions in as little as 24 hours.",
+      "NorthCrest provides comprehensive lending solutions. Whether you're looking for a mortgage, personal loan, business loan, or auto financing, we have options with flexible terms. Would you like to know more about a specific loan type?",
+      "Our loan approval process is designed to be fast and simple. Most applications receive a decision within 1 business day. We work with all credit profiles and offer pre-qualification that doesn't affect your credit score."
+    ],
+    investments: [
+      "Our investment services help you grow your wealth with expert guidance. We offer robo-advisory portfolios starting at just $500, managed retirement accounts, and full-service wealth management for high-net-worth individuals.",
+      "NorthCrest Investments provides access to stocks, bonds, ETFs, mutual funds, and alternative investments. Our AI-powered robo-advisor automatically rebalances your portfolio and optimizes for tax efficiency. The management fee is only 0.25% annually.",
+      "Start investing today with as little as $50. Our platform includes educational resources, risk assessment tools, and professional portfolio recommendations. You can also schedule a free consultation with one of our financial advisors."
+    ],
+    cards: [
+      "Our credit cards come with amazing rewards! The NorthCrest Rewards Card offers 3% cash back on dining, 2% on groceries, and 1% on all other purchases. Plus, you'll get a $200 welcome bonus after your first purchase.",
+      "We have a credit card for every lifestyle: cashback, travel rewards, low-interest balance transfers, and secured cards for building credit. All our cards come with zero fraud liability, contactless payments, and integration with our mobile app.",
+      "Applying for a NorthCrest credit card takes just 2 minutes. Most applicants receive instant decisions. Our cards feature no annual fees for standard accounts and complimentary travel insurance for premium cardholders."
+    ],
+    security: [
+      "Your security is our top priority. We use 256-bit SSL encryption, biometric authentication options, real-time fraud monitoring, and mandatory 2FA for all accounts. Your money is protected by FDIC insurance up to $250,000.",
+      "NorthCrest employs bank-grade security measures: advanced encryption, multi-factor authentication, continuous fraud monitoring with AI, and regular security audits. We also offer instant card locking through our mobile app if your card is ever lost or stolen.",
+      "We take security extremely seriously. All transactions are monitored in real-time by our fraud detection system. You'll receive instant alerts for any suspicious activity, and our zero-liability policy means you're never responsible for unauthorized charges."
+    ],
+    livechat: [
+      "I understand you'd like to speak with a human. I'm connecting you to our live support team. A representative will be with you shortly. Average wait time is less than 2 minutes.",
+      "Switching you to live chat support. Our customer service team is available 24/7 to assist you. Someone will join the conversation very soon!",
+      "You got it! I'm transferring you to one of our live agents. They can help with more complex questions and account-specific issues. Thanks for your patience!"
+    ],
+    hours: [
+      "Our digital banking services are available 24/7! Customer support is also available around the clock - you can reach us by phone, chat, or email anytime. Our physical branches are open Monday-Friday 9AM-5PM local time, and Saturday 9AM-12PM.",
+      "NorthCrest is always open for your banking needs. Our app and website never close. Live support is available 24 hours a day, 7 days a week. For in-person banking, visit any of our branch locations during standard business hours.",
+      "You can bank with us anytime, anywhere! Online and mobile banking are always accessible. Our support team works around the clock to assist you. Branch hours vary by location, but most are open weekdays 9-5."
+    ],
+    default: [
+      "That's a great question! I'd be happy to help you learn more about NorthCrest Bank. Could you specify what you're interested in - accounts, loans, credit cards, investments, or security features?",
+      "I'm here to help! NorthCrest Bank offers a full range of financial services. Would you like information about opening an account, our loan products, credit cards, or investment options?",
+      "Thanks for your question! I can provide details about all our banking services. What would you like to explore first: personal banking, business solutions, or wealth management?"
+    ]
+  };
+
+  // Function to generate AI response based on user input
+  const generateAIResponse = (userText) => {
+    const lowerText = userText.toLowerCase();
+    let responseCategory = 'default';
+    
+    if (lowerText.match(/\b(hi|hello|hey|greetings|howdy)\b/)) {
+      responseCategory = 'greetings';
+    } else if (lowerText.match(/\b(account|checking|saving|open|deposit)\b/)) {
+      responseCategory = 'accounts';
+    } else if (lowerText.match(/\b(loan|mortgage|lending|borrow|credit score)\b/)) {
+      responseCategory = 'loans';
+    } else if (lowerText.match(/\b(invest|stock|trading|portfolio|wealth|retirement)\b/)) {
+      responseCategory = 'investments';
+    } else if (lowerText.match(/\b(card|credit|debit|cashback|reward)\b/)) {
+      responseCategory = 'cards';
+    } else if (lowerText.match(/\b(secure|fraud|hack|safe|protect|privacy)\b/)) {
+      responseCategory = 'security';
+    } else if (lowerText.match(/\b(live|human|agent|person|representative|speak)\b/)) {
+      responseCategory = 'livechat';
+      setChatMode('live');
+    } else if (lowerText.match(/\b(hour|open|close|time|available)\b/)) {
+      responseCategory = 'hours';
+    }
+    
+    const responses = aiResponses[responseCategory];
+    return responses[Math.floor(Math.random() * responses.length)];
+  };
+
+  // Handle sending message
+  const handleSendMessage = () => {
+    if (!newMessage.trim()) return;
+    
+    // Add user message
+    const userMsg = {
+      id: messages.length + 1,
+      sender: 'user',
+      text: newMessage,
+      time: 'Just now'
+    };
+    setMessages(prev => [...prev, userMsg]);
+    setNewMessage('');
+    
+    // Show typing indicator
+    setIsTyping(true);
+    
+    // Simulate response delay
+    setTimeout(() => {
+      const botResponse = generateAIResponse(newMessage);
+      const botMsg = {
+        id: messages.length + 2,
+        sender: 'bot',
+        text: botResponse,
+        time: 'Just now'
+      };
+      setMessages(prev => [...prev, botMsg]);
+      setIsTyping(false);
+    }, 1500 + Math.random() * 1000);
+  };
+
+  // Quick reply options
+  const quickReplies = [
+    "Open an account",
+    "Loan rates",
+    "Investment options",
+    "Talk to human"
+  ];
 
   // Hero section image slideshow - slow, smooth transitions
   useEffect(() => {
@@ -649,18 +780,19 @@ const Landing = () => {
             </Grid>
 
             {/* Hero Right Side - Floating Cards */}
-            <Grid item xs={12} lg={5} sx={{ position: 'relative', minHeight: 500 }}>
+            <Grid item xs={12} lg={5} sx={{ position: 'relative', minHeight: { xs: 350, lg: 500 }, mt: { xs: 4, lg: 0 } }}>
               {/* Floating Glass Card 1 */}
               <motion.div
                 style={{
                   position: 'absolute',
-                  top: 50,
-                  right: 50,
-                  width: 280,
+                  top: { xs: 20, lg: 50 },
+                  right: { xs: '50%', lg: 50 },
+                  transform: { xs: 'translateX(50%)', lg: 'none' },
+                  width: { xs: 260, lg: 280 },
                   background: 'rgba(255,255,255,0.1)',
                   backdropFilter: 'blur(20px)',
                   borderRadius: 20,
-                  padding: 24,
+                  padding: { xs: 20, lg: 24 },
                   border: '1px solid rgba(255,255,255,0.2)',
                   boxShadow: '0 25px 50px rgba(0,0,0,0.2)'
                 }}
@@ -688,13 +820,14 @@ const Landing = () => {
               <motion.div
                 style={{
                   position: 'absolute',
-                  top: 200,
-                  right: 100,
-                  width: 340,
-                  height: 220,
+                  top: { xs: 120, lg: 200 },
+                  right: { xs: '50%', lg: 100 },
+                  transform: { xs: 'translateX(50%)', lg: 'none' },
+                  width: { xs: 290, lg: 340 },
+                  height: { xs: 190, lg: 220 },
                   background: 'linear-gradient(135deg, #0066FF, #063970)',
                   borderRadius: 20,
-                  padding: 28,
+                  padding: { xs: 22, lg: 28 },
                   boxShadow: '0 30px 60px rgba(0,102,255,0.4)',
                   border: '1px solid rgba(255,255,255,0.2)'
                 }}
@@ -725,13 +858,14 @@ const Landing = () => {
               <motion.div
                 style={{
                   position: 'absolute',
-                  bottom: 50,
-                  right: 30,
-                  width: 240,
+                  bottom: { xs: 10, lg: 50 },
+                  right: { xs: '50%', lg: 30 },
+                  transform: { xs: 'translateX(50%)', lg: 'none' },
+                  width: { xs: 220, lg: 240 },
                   background: 'rgba(255,255,255,0.1)',
                   backdropFilter: 'blur(20px)',
                   borderRadius: 16,
-                  padding: 20,
+                  padding: { xs: 16, lg: 20 },
                   border: '1px solid rgba(255,255,255,0.2)'
                 }}
                 animate={{
@@ -857,10 +991,10 @@ const Landing = () => {
       </Box>
 
       {/* Dashboard Preview Section */}
-      <Box sx={{ py: 15, bgcolor: '#021024', overflow: 'hidden' }} className="animate-section">
+      <Box sx={{ py: { xs: 10, lg: 15 }, bgcolor: '#021024', overflow: 'hidden' }} className="animate-section">
         <Container maxWidth="xl">
           <Grid container spacing={8} alignItems="center">
-            <Grid item xs={12} lg={5}>
+            <Grid item xs={12} lg={5} order={{ xs: 2, lg: 1 }}>
               <Chip label="Live Dashboard" sx={{ background: 'rgba(0, 191, 255, 0.1)', color: '#00BFFF', mb: 3, fontSize: '0.9rem' }} />
               <Typography variant="h2" sx={{ fontSize: { xs: '2.5rem', md: '3.5rem' }, fontWeight: 800, color: 'white', mb: 3 }}>Your Financial Command Center</Typography>
               <Typography sx={{ color: 'rgba(255,255,255,0.7)', fontSize: '1.25rem', lineHeight: 1.7, mb: 6 }}>
@@ -885,7 +1019,7 @@ const Landing = () => {
                 ))}
               </Grid>
             </Grid>
-            <Grid item xs={12} lg={7}>
+            <Grid item xs={12} lg={7} order={{ xs: 1, lg: 2 }} sx={{ mb: { xs: 4, lg: 0 } }}>
               <motion.div
                 style={{
                   background: 'rgba(255,255,255,0.03)',
@@ -1015,18 +1149,18 @@ const Landing = () => {
       </Box>
 
       {/* Mobile Banking Section */}
-      <Box sx={{ py: 15, bgcolor: 'white' }} className="animate-section">
+      <Box sx={{ py: { xs: 10, lg: 15 }, bgcolor: 'white' }} className="animate-section">
         <Container maxWidth="xl">
-          <Grid container spacing={12} alignItems="center">
-            <Grid item xs={12} lg={6}>
+          <Grid container spacing={8} alignItems="center">
+            <Grid item xs={12} lg={6} order={{ xs: 2, lg: 1 }}>
               <motion.div
                 style={{ position: 'relative' }}
                 animate={{ y: [0, -15, 0] }}
                 transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
               >
                 <Box sx={{
-                  width: 320,
-                  height: 640,
+                  width: { xs: 280, lg: 320 },
+                  height: { xs: 560, lg: 640 },
                   margin: '0 auto',
                   borderRadius: 50,
                   padding: 2,
@@ -1041,7 +1175,7 @@ const Landing = () => {
                 </Box>
               </motion.div>
             </Grid>
-            <Grid item xs={12} lg={6}>
+            <Grid item xs={12} lg={6} order={{ xs: 1, lg: 2 }} sx={{ mb: { xs: 4, lg: 0 } }}>
               <Chip label="Mobile Banking" sx={{ background: 'rgba(0, 200, 150, 0.1)', color: '#00C896', mb: 3, fontSize: '0.9rem' }} />
               <Typography variant="h2" sx={{ fontSize: { xs: '2.5rem', md: '3.5rem' }, fontWeight: 800, color: '#0F172A', mb: 3 }}>Bank From Your Pocket</Typography>
               <Typography sx={{ color: '#64748B', fontSize: '1.25rem', lineHeight: 1.7, mb: 6 }}>
@@ -1347,9 +1481,9 @@ const Landing = () => {
       </Box>
 
       {/* Footer Section */}
-      <Box sx={{ bgcolor: '#021024', py: 12, color: 'white' }}>
+      <Box sx={{ bgcolor: '#021024', py: { xs: 8, lg: 12 }, color: 'white' }}>
         <Container maxWidth="xl">
-          <Grid container spacing={8}>
+          <Grid container spacing={4}>
             <Grid item xs={12} md={4}>
               <NorthCrestLogo color="white" />
               <Typography sx={{ color: 'rgba(255,255,255,0.6)', mt: 3, lineHeight: 1.8, mb: 4 }}>
@@ -1363,7 +1497,7 @@ const Landing = () => {
                 ))}
               </Box>
             </Grid>
-            <Grid item xs={6} sm={6} md={2}>
+            <Grid item xs={6} sm={3} md={2}>
               <Typography sx={{ fontWeight: 700, mb: 4, fontSize: '1.1rem' }}>Products</Typography>
               <List sx={{ p: 0 }}>
                 {['Personal Banking', 'Business Accounts', 'Credit Cards', 'Loans & Mortgages', 'Investments'].map((item, i) => (
@@ -1497,6 +1631,279 @@ const Landing = () => {
           </video>
         </DialogContent>
       </Dialog>
+
+      {/* AI Chat Widget */}
+      <Box sx={{ position: 'fixed', bottom: { xs: 'env(safe-area-inset-bottom, 20px)', sm: 30 }, right: { xs: 'env(safe-area-inset-right, 15px)', sm: 30 }, zIndex: 9999 }}>
+        {/* Chat Window */}
+        <AnimatePresence>
+          {chatOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.95 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Paper
+                sx={{
+                  width: { xs: 'calc(100vw - 20px)', sm: 380 },
+                  height: { xs: 'calc(100vh - 120px)', sm: 550 },
+                  mb: 2,
+                  borderRadius: { xs: 3, sm: 4 },
+                  boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden',
+                  position: 'fixed',
+                  bottom: { xs: 90, sm: 100 },
+                  left: { xs: 10, sm: 'auto' },
+                  right: { xs: 10, sm: 30 },
+                  top: { xs: 20, sm: 'auto' }
+                }}
+              >
+                {/* Chat Header */}
+                <Box
+                  sx={{
+                    background: 'linear-gradient(135deg, #0066FF, #00BFFF)',
+                    color: 'white',
+                    p: { xs: 2, sm: 3 },
+                    pt: { xs: 'calc(12px + env(safe-area-inset-top))', sm: 3 },
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box sx={{ position: 'relative' }}>
+                      <Avatar
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          background: 'rgba(255,255,255,0.2)',
+                          fontSize: '1.5rem'
+                        }}
+                      >
+                        🤖
+                      </Avatar>
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          bottom: 0,
+                          right: 0,
+                          width: 12,
+                          height: 12,
+                          bgcolor: '#00C896',
+                          borderRadius: '50%',
+                          border: '2px solid white'
+                        }}
+                      />
+                    </Box>
+                    <Box>
+                      <Typography sx={{ fontWeight: 700, fontSize: '1.1rem' }}>
+                        {chatMode === 'ai' ? 'NorthCrest AI Assistant' : 'Live Agent'}
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.85rem', opacity: 0.9 }}>
+                        {isTyping ? 'Typing...' : 'Online • Typically replies instantly'}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <IconButton sx={{ color: 'white' }} onClick={() => setChatOpen(false)}>
+                    <Close />
+                  </IconButton>
+                </Box>
+
+                {/* Chat Messages */}
+                <Box sx={{ flex: 1, overflowY: 'auto', p: 3, bgcolor: '#F8FAFC' }}>
+                  {messages.map((msg) => (
+                    <motion.div
+                      key={msg.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      sx={{
+                        display: 'flex',
+                        justifyContent: msg.sender === 'user' ? 'flex-end' : 'flex-start',
+                        mb: 2
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          maxWidth: '85%',
+                          background: msg.sender === 'user' 
+                            ? 'linear-gradient(135deg, #0066FF, #00BFFF)'
+                            : 'white',
+                          color: msg.sender === 'user' ? 'white' : '#0F172A',
+                          px: 2.5,
+                          py: 1.5,
+                          borderRadius: msg.sender === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                        }}
+                      >
+                        <Typography sx={{ fontSize: '0.95rem', lineHeight: 1.5 }}>
+                          {msg.text}
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontSize: '0.7rem',
+                            opacity: 0.7,
+                            mt: 0.5,
+                            textAlign: msg.sender === 'user' ? 'right' : 'left'
+                          }}
+                        >
+                          {msg.time}
+                        </Typography>
+                      </Box>
+                    </motion.div>
+                  ))}
+                  
+                  {/* Typing Indicator */}
+                  {isTyping && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 2 }}
+                    >
+                      <Box sx={{ background: 'white', px: 2.5, py: 2, borderRadius: '18px 18px 18px 4px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                        <Box sx={{ display: 'flex', gap: 0.5 }}>
+                          <motion.span
+                            animate={{ y: [0, -5, 0] }}
+                            transition={{ duration: 0.6, repeat: Infinity, delay: 0 }}
+                            style={{ width: 8, height: 8, backgroundColor: '#0066FF', borderRadius: '50%', display: 'block' }}
+                          />
+                          <motion.span
+                            animate={{ y: [0, -5, 0] }}
+                            transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }}
+                            style={{ width: 8, height: 8, backgroundColor: '#0066FF', borderRadius: '50%', display: 'block' }}
+                          />
+                          <motion.span
+                            animate={{ y: [0, -5, 0] }}
+                            transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }}
+                            style={{ width: 8, height: 8, backgroundColor: '#0066FF', borderRadius: '50%', display: 'block' }}
+                          />
+                        </Box>
+                      </Box>
+                    </motion.div>
+                  )}
+                  <div ref={messagesEndRef} />
+                </Box>
+
+                {/* Quick Replies */}
+                {messages.length === 1 && !isTyping && (
+                  <Box sx={{ px: 3, py: 2, bgcolor: 'white', borderTop: '1px solid #E2E8F0' }}>
+                    <Typography sx={{ fontSize: '0.8rem', color: '#64748B', mb: 1.5 }}>Quick questions:</Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                      {quickReplies.map((reply, i) => (
+                        <Chip
+                          key={i}
+                          label={reply}
+                          onClick={() => {
+                            setNewMessage(reply);
+                            setTimeout(() => handleSendMessage(), 100);
+                          }}
+                          sx={{
+                            background: 'rgba(0, 102, 255, 0.1)',
+                            color: '#0066FF',
+                            '&:hover': { background: 'rgba(0, 102, 255, 0.2)' },
+                            cursor: 'pointer',
+                            fontSize: '0.8rem'
+                          }}
+                        />
+                      ))}
+                    </Box>
+                  </Box>
+                )}
+
+                {/* Message Input */}
+                <Box sx={{ p: { xs: 2, sm: 3 }, pb: { xs: 'calc(12px + env(safe-area-inset-bottom))', sm: 3 }, bgcolor: 'white', borderTop: '1px solid #E2E8F0' }}>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <TextField
+                      fullWidth
+                      placeholder="Type your message..."
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                      size="small"
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 25,
+                          fontSize: '0.95rem'
+                        }
+                      }}
+                    />
+                    <IconButton
+                      onClick={handleSendMessage}
+                      disabled={!newMessage.trim()}
+                      sx={{
+                        background: 'linear-gradient(135deg, #0066FF, #00BFFF)',
+                        color: 'white',
+                        width: 40,
+                        height: 40,
+                        '&:hover': {
+                          background: 'linear-gradient(135deg, #0052CC, #0099DD)'
+                        },
+                        '&:disabled': {
+                          background: '#E2E8F0',
+                          color: '#94A3B8'
+                        }
+                      }}
+                    >
+                      <ArrowForward sx={{ fontSize: 20 }} />
+                    </IconButton>
+                  </Box>
+                </Box>
+              </Paper>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Chat Toggle Button */}
+        <motion.div
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <IconButton
+            onClick={() => setChatOpen(!chatOpen)}
+            sx={{
+              width: { xs: 60, sm: 70 },
+              height: { xs: 60, sm: 70 },
+              background: 'linear-gradient(135deg, #0066FF, #00BFFF)',
+              color: 'white',
+              boxShadow: '0 8px 30px rgba(0, 102, 255, 0.5)',
+              '&:hover': {
+                background: 'linear-gradient(135deg, #0052CC, #0099DD)'
+              },
+              '@media (hover: none)': {
+                '&:active': {
+                  background: 'linear-gradient(135deg, #0052CC, #0099DD)'
+                }
+              }
+            }}
+          >
+            {chatOpen ? (
+              <Close sx={{ fontSize: 32 }} />
+            ) : (
+              <Box sx={{ position: 'relative' }}>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                </svg>
+                {/* Notification badge */}
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: -5,
+                    right: -5,
+                    width: 18,
+                    height: 18,
+                    bgcolor: '#FF4757',
+                    borderRadius: '50%',
+                    border: '2px solid white'
+                  }}
+                />
+              </Box>
+            )}
+          </IconButton>
+        </motion.div>
+      </Box>
+
     </Box>
     </>
   );
