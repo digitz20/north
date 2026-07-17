@@ -88,13 +88,23 @@ exports.register = async (req, res, next) => {
     });
 
     // Send welcome email
-    await emailService.sendWelcomeEmail(user);
+    try {
+      await emailService.sendWelcomeEmail(user);
+      logger.info(`Welcome email sent to: ${user.email}`);
+    } catch (emailErr) {
+      logger.error(`Failed to send welcome email: ${emailErr.message}`);
+    }
 
     // Generate verification OTP
     const otp = await OTP.generate(user._id, 'email-verification', 60 * 60 * 1000);
     
     // Send verification email
-    await emailService.sendVerificationEmail(user, otp.code);
+    try {
+      await emailService.sendVerificationEmail(user, otp.code);
+      logger.info(`Verification email sent to: ${user.email}`);
+    } catch (emailErr) {
+      logger.error(`Failed to send verification email: ${emailErr.message}`);
+    }
 
     logger.info(`New user registered: ${user.email} (${user._id})`);
 
@@ -411,7 +421,16 @@ exports.resendVerificationEmail = async (req, res, next) => {
     const otp = await OTP.generate(user._id, 'email-verification', 60 * 60 * 1000);
     
     // Send new verification email
-    await emailService.sendVerificationEmail(user, otp.code);
+    try {
+      await emailService.sendVerificationEmail(user, otp.code);
+      logger.info(`Verification email resent to: ${user.email}`);
+    } catch (emailErr) {
+      logger.error(`Failed to resend verification email: ${emailErr.message}`);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to send verification email. Please try again later.'
+      });
+    }
 
     // Create audit log
     await AuditLog.log({
@@ -421,8 +440,6 @@ exports.resendVerificationEmail = async (req, res, next) => {
       description: `Verification email resent to: ${user.email}`,
       entity: { type: 'user', id: user._id, name: user.fullName }
     });
-
-    logger.info(`Verification email resent: ${user.email}`);
 
     res.status(200).json({
       success: true,

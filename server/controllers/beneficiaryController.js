@@ -97,6 +97,7 @@ exports.addBeneficiary = async (req, res, next) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
+    console.log('Received beneficiary data:', req.body);
     const { 
       name, email, phone, nickname, bankName, accountNumber, 
       routingNumber, relationship, isFavorite 
@@ -104,6 +105,7 @@ exports.addBeneficiary = async (req, res, next) => {
 
     // Validate required fields
     if (!name || !bankName || !accountNumber) {
+      console.log('Missing required fields:', { name, bankName, accountNumber });
       await session.abortTransaction();
       session.endSession();
       return res.status(400).json({
