@@ -12,6 +12,9 @@ import {
   MoreHoriz, GetApp, PictureAsPdf, ArrowUpward, ArrowDownward,
   Payment, AccountBalance
 } from '@mui/icons-material';
+// Alias for icon names used in component
+const ArrowUpwardIcon = ArrowUpward;
+const ArrowDownwardIcon = ArrowDownward;
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
   ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, BarChart, Bar

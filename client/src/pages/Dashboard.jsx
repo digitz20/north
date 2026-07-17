@@ -18,6 +18,9 @@ import {
   ShowChart, AccountTree, Security, Speed, AttachMoney, CreditCard,
   ArrowForward, Notifications, Settings, HelpOutline, ChevronRight, PlayCircle
 } from '@mui/icons-material';
+// Alias for icon names used in component
+const ArrowUpwardIcon = ArrowUpward;
+const ArrowDownwardIcon = ArrowDownward;
 import { useNavigate } from 'react-router-dom';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, 
