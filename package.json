@@ -1,0 +1,36 @@
+{
+  "name": "northcrest-bank",
+  "version": "1.0.0",
+  "description": "NorthCrest Bank of USA - Enterprise-grade digital banking and investment platform built with MERN Stack",
+  "main": "server/server.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\" \"npm run admin\"",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm run dev",
+    "admin": "cd admin && npm run dev",
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install && cd ../admin && npm install",
+    "build": "cd client && npm run build && cd ../admin && npm run build",
+    "start": "cd server && npm start"
+  },
+  "keywords": [
+    "banking",
+    "fintech",
+    "mern",
+    "nodejs",
+    "react",
+    "mongodb",
+    "express"
+  ],
+  "author": "NorthCrest Bank",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "@lottiefiles/react-lottie-player": "^3.6.0",
+    "gsap": "^3.15.0",
+    "react-countup": "^6.5.3",
+    "react-icons": "^5.7.0",
+    "react-intersection-observer": "^10.1.0"
+  }
+}

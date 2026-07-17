@@ -1,0 +1,785 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { getUserAccounts, getWallet } from '../store/slices/accountSlice';
+import { getTransactions } from '../store/slices/transactionSlice';
+import { motion, useScroll, useInView, AnimatePresence } from 'framer-motion';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import CountUp from 'react-countup';
+import { useInView as useIntersectionInView } from 'react-intersection-observer';
+import {
+  Grid, Paper, Typography, Box, Button, Card, CardContent, Divider, 
+  CircularProgress, Avatar, Chip, LinearProgress, IconButton,
+  Tooltip, Menu, MenuItem, List, ListItem, ListItemAvatar, ListItemText
+} from '@mui/material';
+import {
+  ArrowUpward, ArrowDownward, SwapHoriz, TrendingUp, AccountBalance, 
+  Payments, MoreHoriz, Person, ShoppingCart, Restaurant, Home,
+  ShowChart, AccountTree, Security, Speed, AttachMoney, CreditCard,
+  ArrowForward, Notifications, Settings, HelpOutline, ChevronRight, PlayCircle
+} from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+import { 
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, 
+  ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, RadialBarChart, 
+  RadialBar, Legend
+} from 'recharts';
+
+gsap.registerPlugin(ScrollTrigger);
+
+const Dashboard = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { accounts, wallet, loading: accountsLoading } = useSelector(state => state.accounts);
+  const { transactions, loading: transactionsLoading } = useSelector(state => state.transactions);
+  const { user } = useSelector(state => state.auth);
+  
+  const dashboardRef = useRef(null);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const { scrollYProgress } = useScroll();
+  const [ref, inView] = useIntersectionInView({ threshold: 0.1 });
+  
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedTimeframe, setSelectedTimeframe] = useState('Today');
+
+  useEffect(() => {
+    dispatch(getUserAccounts());
+    dispatch(getWallet());
+    dispatch(getTransactions({ limit: 5 }));
+  }, [dispatch]);
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      setMousePosition({
+        x: (e.clientX / window.innerWidth - 0.5) * 10,
+        y: (e.clientY / window.innerHeight - 0.5) * 10
+      });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  // Calculate total balance across all accounts
+  const totalBalance = accounts.reduce((sum, account) => sum + account.balance, 0) + (wallet?.balance || 0);
+  
+  // Get recent transactions (max 5)
+  const recentTransactions = transactions.slice(0, 5);
+  
+  // Advanced financial data for charts
+  const monthlyData = [
+    { name: 'Jan', income: 4500, expenses: 3200, savings: 1300 },
+    { name: 'Feb', income: 5100, expenses: 2800, savings: 2300 },
+    { name: 'Mar', income: 4800, expenses: 3500, savings: 1300 },
+    { name: 'Apr', income: 5200, expenses: 3100, savings: 2100 },
+    { name: 'May', income: 4900, expenses: 2900, savings: 2000 },
+    { name: 'Jun', income: 5500, expenses: 3400, savings: 2100 },
+    { name: 'Jul', income: 6200, expenses: 3100, savings: 3100 },
+  ];
+
+  const portfolioData = [
+    { name: 'Stocks', value: 45000, color: '#0066FF' },
+    { name: 'Bonds', value: 25000, color: '#00BFFF' },
+    { name: 'Real Estate', value: 55000, color: '#00C896' },
+    { name: 'Crypto', value: 15000, color: '#FFC857' },
+  ];
+
+  const spendingByCategory = [
+    { name: 'Housing', value: 35, fill: '#0066FF' },
+    { name: 'Food', value: 15, fill: '#00BFFF' },
+    { name: 'Transport', value: 12, fill: '#00C896' },
+    { name: 'Shopping', value: 18, fill: '#FFC857' },
+    { name: 'Utilities', value: 20, fill: '#FF6B6B' },
+  ];
+
+  const realtimeStats = [
+    { title: 'Total Balance', value: totalBalance, prefix: '$', icon: <AccountBalance sx={{ fontSize: 40 }} />, change: '+2.4%', positive: true, color: 'linear-gradient(135deg, #021024 0%, #063970 100%)' },
+    { title: 'Monthly Income', value: 6200, prefix: '$', icon: <AttachMoney sx={{ fontSize: 40 }} />, change: '+5.1%', positive: true, color: 'linear-gradient(135deg, #063970 0%, #0066FF 100%)' },
+    { title: 'Monthly Expenses', value: 3100, prefix: '$', icon: <Payments sx={{ fontSize: 40 }} />, change: '-3.2%', positive: true, color: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)' },
+    { title: 'Net Savings', value: 3100, prefix: '$', icon: <TrendingUp sx={{ fontSize: 40 }} />, change: '+12.5%', positive: true, color: 'linear-gradient(135deg, #00C896 0%, #00BFFF 100%)' },
+  ];
+
+  const quickActions = [
+    { title: 'Transfer', icon: <SwapHoriz sx={{ fontSize: 32 }} />, path: '/transfer', color: '#0066FF', description: 'Send money instantly' },
+    { title: 'Deposit', icon: <ArrowDownward sx={{ fontSize: 32 }} />, path: '/transactions', color: '#00C896', description: 'Add funds to account' },
+    { title: 'Pay Bills', icon: <Payments sx={{ fontSize: 32 }} />, path: '/transactions', color: '#00BFFF', description: 'Settle your bills' },
+    { title: 'Invest', icon: <ShowChart sx={{ fontSize: 32 }} />, path: '/investments', color: '#FFC857', description: 'Grow your wealth' },
+  ];
+
+  const securityCards = [
+    { title: 'Account Protection', status: 'Active', icon: <Security sx={{ fontSize: 28 }} />, color: '#00C896' },
+    { title: '2FA Authentication', status: 'Enabled', icon: <Person sx={{ fontSize: 28 }} />, color: '#0066FF' },
+    { title: 'Fraud Monitor', status: 'Active', icon: <Speed sx={{ fontSize: 28 }} />, color: '#00BFFF' },
+  ];
+
+  const liveTransactions = [
+    { id: 1, name: 'Amazon Purchase', category: 'Shopping', amount: -156.99, time: '2 min ago', avatar: 'https://images.unsplash.com/photo-1523474253046-8cd2748b5fd2?w=100', icon: <ShoppingCart /> },
+    { id: 2, name: 'Salary Deposit', category: 'Income', amount: 6200.00, time: '5 hours ago', avatar: 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=100', icon: <AttachMoney /> },
+    { id: 3, name: 'Netflix Subscription', category: 'Entertainment', amount: -15.99, time: '1 day ago', avatar: 'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=100', icon: <PlayCircle /> },
+    { id: 4, name: 'Whole Foods Market', category: 'Groceries', amount: -89.42, time: '1 day ago', avatar: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=100', icon: <Restaurant /> },
+    { id: 5, name: 'Rent Payment', category: 'Housing', amount: -1800.00, time: '3 days ago', avatar: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=100', icon: <Home /> },
+  ];
+
+  if (accountsLoading && transactionsLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <CircularProgress size={60} sx={{ color: '#0066FF' }} />
+        </motion.div>
+      </Box>
+    );
+  }
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 30, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: { duration: 0.6, ease: "easeOut" }
+    }
+  };
+
+  return (
+    <Box ref={dashboardRef} sx={{ position: 'relative', overflow: 'hidden' }}>
+      {/* Scroll Progress Bar */}
+      <motion.div
+        style={{
+          position: 'fixed',
+          top: 64,
+          left: 0,
+          right: 0,
+          height: 3,
+          background: 'linear-gradient(90deg, #0066FF, #00BFFF, #00C896)',
+          transformOrigin: '0%',
+          scaleX: scrollYProgress,
+          zIndex: 9998
+        }}
+      />
+
+      {/* Animated Background Particles */}
+      {[...Array(15)].map((_, i) => (
+        <motion.div
+          key={i}
+          style={{
+            position: 'fixed',
+            width: Math.random() * 8 + 3,
+            height: Math.random() * 8 + 3,
+            borderRadius: '50%',
+            background: `rgba(${Math.random() * 100 + 155}, ${Math.random() * 100 + 155}, 255, 0.15)`,
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            pointerEvents: 'none',
+            zIndex: 0
+          }}
+          animate={{
+            y: [0, -40, 0],
+            opacity: [0.1, 0.4, 0.1],
+            x: mousePosition.x * (i + 0.5),
+          }}
+          transition={{
+            duration: Math.random() * 4 + 3,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+      ))}
+
+      <motion.div
+        ref={ref}
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        sx={{ position: 'relative', zIndex: 1 }}
+      >
+        {/* Welcome Header */}
+        <motion.div variants={itemVariants}>
+          <Box sx={{ mb: 5 }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', md: 'center' }, mb: 2 }}>
+              <Box>
+                <Typography variant="h3" component="h1" sx={{ mb: 1, fontWeight: 700, background: 'linear-gradient(135deg, #021024 0%, #063970 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                  Welcome back, {user?.firstName || 'User'}!
+                </Typography>
+                <Typography variant="body1" color="text.secondary" sx={{ fontSize: '1.1rem' }}>
+                  Here's your comprehensive financial overview for {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', gap: 2, mt: { xs: 2, md: 0 } }}>
+                {['Today', 'Week', 'Month', 'Year'].map((period) => (
+                  <Button
+                    key={period}
+                    variant={selectedTimeframe === period ? 'contained' : 'outlined'}
+                    size="small"
+                    onClick={() => setSelectedTimeframe(period)}
+                    sx={{
+                      borderRadius: 2,
+                      px: 3,
+                      py: 1,
+                      fontWeight: 600,
+                      background: selectedTimeframe === period ? 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)' : 'transparent',
+                      borderColor: 'rgba(0,102,255,0.5)',
+                      color: selectedTimeframe === period ? 'white' : '#0066FF',
+                      '&:hover': {
+                        background: selectedTimeframe === period ? 'linear-gradient(135deg, #0052cc 0%, #0099cc 100%)' : 'rgba(0,102,255,0.05)',
+                      }
+                    }}
+                  >
+                    {period}
+                  </Button>
+                ))}
+              </Box>
+            </Box>
+          </Box>
+        </motion.div>
+
+        {/* Main Stats Cards */}
+        <motion.div variants={itemVariants}>
+          <Grid container spacing={4} sx={{ mb: 5 }}>
+            {realtimeStats.map((stat, index) => (
+              <Grid item xs={12} sm={6} lg={3} key={stat.title}>
+                <motion.div
+                  whileHover={{ y: -10, scale: 1.02 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 4,
+                      height: '100%',
+                      background: stat.color,
+                      color: 'white',
+                      borderRadius: 4,
+                      position: 'relative',
+                      overflow: 'hidden',
+                      boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: -50,
+                        right: -50,
+                        width: 200,
+                        height: 200,
+                        background: 'rgba(255,255,255,0.1)',
+                        borderRadius: '50%'
+                      },
+                      '&::after': {
+                        content: '""',
+                        position: 'absolute',
+                        bottom: -30,
+                        left: -30,
+                        width: 120,
+                        height: 120,
+                        background: 'rgba(255,255,255,0.08)',
+                        borderRadius: '50%'
+                      }
+                    }}
+                  >
+                    <Box sx={{ position: 'relative', zIndex: 1 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
+                        <Box sx={{ opacity: 0.9 }}>{stat.icon}</Box>
+                        <Chip
+                          label={stat.change}
+                          size="small"
+                          sx={{
+                            bgcolor: 'rgba(255,255,255,0.2)',
+                            color: 'white',
+                            fontWeight: 600,
+                            backdropFilter: 'blur(10px)'
+                          }}
+                          icon={stat.positive ? <ArrowUpwardIcon sx={{ color: '#00ff88 !important', fontSize: '0.9rem' }} /> : <ArrowDownwardIcon sx={{ color: '#ff6b6b !important', fontSize: '0.9rem' }} />}
+                        />
+                      </Box>
+                      <Typography variant="body1" sx={{ mb: 1, opacity: 0.8 }}>{stat.title}</Typography>
+                      <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>
+                        {inView && (
+                          <CountUp
+                            start={0}
+                            end={stat.value}
+                            duration={2.5}
+                            prefix={stat.prefix}
+                            separator=","
+                            decimals={2}
+                          />
+                        )}
+                      </Typography>
+                      <Box sx={{ mt: 2, display: 'flex', alignItems: 'center' }}>
+                        <LinearProgress
+                          variant="determinate"
+                          value={78}
+                          sx={{
+                            flexGrow: 1,
+                            height: 6,
+                            borderRadius: 3,
+                            bgcolor: 'rgba(255,255,255,0.2)',
+                            '& .MuiLinearProgress-bar': {
+                              bgcolor: 'white',
+                              borderRadius: 3
+                            }
+                          }}
+                        />
+                        <Typography variant="caption" sx={{ ml: 2, opacity: 0.8 }}>78%</Typography>
+                      </Box>
+                    </Box>
+                  </Paper>
+                </motion.div>
+              </Grid>
+            ))}
+          </Grid>
+        </motion.div>
+
+        {/* Quick Actions */}
+        <motion.div variants={itemVariants}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 5,
+              mb: 5,
+              background: 'rgba(255,255,255,0.7)',
+              backdropFilter: 'blur(20px)',
+              borderRadius: 4,
+              border: '1px solid rgba(0,102,255,0.1)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.05)'
+            }}
+          >
+            <Typography variant="h5" sx={{ mb: 4, fontWeight: 600, color: '#021024' }}>Quick Actions</Typography>
+            <Grid container spacing={3}>
+              {quickActions.map((action, index) => (
+                <Grid item xs={12} sm={6} md={3} key={action.title}>
+                  <motion.div
+                    whileHover={{ y: -8, scale: 1.03 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Card
+                      elevation={0}
+                      onClick={() => navigate(action.path)}
+                      sx={{
+                        cursor: 'pointer',
+                        p: 4,
+                        height: '100%',
+                        background: 'white',
+                        borderRadius: 3,
+                        border: '1px solid rgba(0,0,0,0.05)',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          boxShadow: `0 20px 40px ${action.color}25`,
+                          borderColor: `${action.color}50`
+                        }
+                      }}
+                    >
+                      <Box sx={{ color: action.color, mb: 2 }}>{action.icon}</Box>
+                      <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>{action.title}</Typography>
+                      <Typography variant="body2" color="text.secondary">{action.description}</Typography>
+                      <Box sx={{ mt: 3, display: 'flex', alignItems: 'center', color: action.color }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>Get Started</Typography>
+                        <ChevronRight sx={{ fontSize: 18, ml: 0.5 }} />
+                      </Box>
+                    </Card>
+                  </motion.div>
+                </Grid>
+              ))}
+            </Grid>
+          </Paper>
+        </motion.div>
+
+        {/* Charts Section */}
+        <Grid container spacing={4} sx={{ mb: 5 }}>
+          <Grid item xs={12} lg={8}>
+            <motion.div variants={itemVariants}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 5,
+                  height: '100%',
+                  background: 'rgba(255,255,255,0.8)',
+                  backdropFilter: 'blur(20px)',
+                  borderRadius: 4,
+                  border: '1px solid rgba(0,102,255,0.1)',
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.05)'
+                }}
+              >
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+                  <Box>
+                    <Typography variant="h5" sx={{ fontWeight: 600, color: '#021024', mb: 1 }}>Financial Overview</Typography>
+                    <Typography variant="body2" color="text.secondary">Track your income, expenses, and savings over time</Typography>
+                  </Box>
+                  <IconButton>
+                    <MoreHoriz />
+                  </IconButton>
+                </Box>
+                <ResponsiveContainer width="100%" height={350}>
+                  <AreaChart data={monthlyData}>
+                    <defs>
+                      <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#00C896" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#00C896" stopOpacity={0}/>
+                      </linearGradient>
+                      <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#FF6B6B" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#FF6B6B" stopOpacity={0}/>
+                      </linearGradient>
+                      <linearGradient id="colorSavings" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#0066FF" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#0066FF" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
+                    <XAxis dataKey="name" stroke="#666" />
+                    <YAxis stroke="#666" />
+                    <RechartsTooltip
+                      contentStyle={{
+                        background: 'rgba(255,255,255,0.95)',
+                        backdropFilter: 'blur(10px)',
+                        borderRadius: 12,
+                        border: '1px solid rgba(0,102,255,0.2)',
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
+                      }}
+                    />
+                    <Area type="monotone" dataKey="income" stroke="#00C896" strokeWidth={3} fillOpacity={1} fill="url(#colorIncome)" />
+                    <Area type="monotone" dataKey="expenses" stroke="#FF6B6B" strokeWidth={3} fillOpacity={1} fill="url(#colorExpenses)" />
+                    <Area type="monotone" dataKey="savings" stroke="#0066FF" strokeWidth={3} fillOpacity={1} fill="url(#colorSavings)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </Paper>
+            </motion.div>
+          </Grid>
+
+          <Grid item xs={12} lg={4}>
+            <motion.div variants={itemVariants}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 5,
+                  mb: 4,
+                  background: 'rgba(255,255,255,0.8)',
+                  backdropFilter: 'blur(20px)',
+                  borderRadius: 4,
+                  border: '1px solid rgba(0,102,255,0.1)',
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.05)'
+                }}
+              >
+                <Typography variant="h5" sx={{ fontWeight: 600, color: '#021024', mb: 1 }}>Portfolio Allocation</Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>Your investment distribution</Typography>
+                <ResponsiveContainer width="100%" height={220}>
+                  <PieChart>
+                    <Pie
+                      data={portfolioData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={90}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {portfolioData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip
+                      contentStyle={{
+                        background: 'rgba(255,255,255,0.95)',
+                        backdropFilter: 'blur(10px)',
+                        borderRadius: 12,
+                        border: '1px solid rgba(0,102,255,0.2)'
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                <Box sx={{ mt: 2 }}>
+                  {portfolioData.map((item, index) => (
+                    <Box key={item.name} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1.5, borderBottom: index < portfolioData.length - 1 ? '1px solid rgba(0,0,0,0.05)' : 'none' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: item.color, mr: 2 }} />
+                        <Typography variant="body2">{item.name}</Typography>
+                      </Box>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>${item.value.toLocaleString()}</Typography>
+                    </Box>
+                  ))}
+                </Box>
+              </Paper>
+            </motion.div>
+
+            <motion.div variants={itemVariants}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 5,
+                  background: 'linear-gradient(135deg, #021024 0%, #063970 100%)',
+                  color: 'white',
+                  borderRadius: 4,
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}
+              >
+                <Box sx={{ position: 'relative', zIndex: 1 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>Security Status</Typography>
+                  <Grid container spacing={2}>
+                    {securityCards.map((security) => (
+                      <Grid item xs={12} key={security.title}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', p: 2, bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 2, backdropFilter: 'blur(10px)' }}>
+                          <Box sx={{ color: security.color, mr: 2 }}>{security.icon}</Box>
+                          <Box sx={{ flexGrow: 1 }}>
+                            <Typography variant="body2" sx={{ fontWeight: 500 }}>{security.title}</Typography>
+                          </Box>
+                          <Chip
+                            label={security.status}
+                            size="small"
+                            sx={{ bgcolor: 'rgba(0,200,150,0.2)', color: '#00ff88', fontSize: '0.7rem' }}
+                          />
+                        </Box>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </Box>
+              </Paper>
+            </motion.div>
+          </Grid>
+        </Grid>
+
+        {/* Live Transactions & Spending */}
+        <Grid container spacing={4} sx={{ mb: 5 }}>
+          <Grid item xs={12} lg={7}>
+            <motion.div variants={itemVariants}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 5,
+                  background: 'rgba(255,255,255,0.8)',
+                  backdropFilter: 'blur(20px)',
+                  borderRadius: 4,
+                  border: '1px solid rgba(0,102,255,0.1)',
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.05)'
+                }}
+              >
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+                  <Box>
+                    <Typography variant="h5" sx={{ fontWeight: 600, color: '#021024', mb: 1 }}>Live Transactions</Typography>
+                    <Typography variant="body2" color="text.secondary">Your recent financial activity</Typography>
+                  </Box>
+                  <Button
+                    variant="outlined"
+                    endIcon={<ArrowForward />}
+                    onClick={() => navigate('/transactions')}
+                    sx={{
+                      borderRadius: 2,
+                      borderColor: '#0066FF',
+                      color: '#0066FF',
+                      fontWeight: 600,
+                      '&:hover': {
+                        borderColor: '#0052cc',
+                        background: 'rgba(0,102,255,0.05)'
+                      }
+                    }}
+                  >
+                    View All
+                  </Button>
+                </Box>
+                <List>
+                  {liveTransactions.map((transaction, index) => (
+                    <motion.div
+                      key={transaction.id}
+                      initial={{ x: -50, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      transition={{ delay: index * 0.1 }}
+                    >
+                      <ListItem
+                        sx={{
+                          px: 0,
+                          py: 2,
+                          borderBottom: index < liveTransactions.length - 1 ? '1px solid rgba(0,0,0,0.05)' : 'none'
+                        }}
+                      >
+                        <ListItemAvatar>
+                          <Avatar src={transaction.avatar} sx={{ width: 50, height: 50 }}>
+                            {transaction.icon}
+                          </Avatar>
+                        </ListItemAvatar>
+                        <ListItemText
+                          primary={
+                            <Typography variant="body1" sx={{ fontWeight: 600 }}>{transaction.name}</Typography>
+                          }
+                          secondary={
+                            <Typography variant="body2" color="text.secondary">{transaction.category} • {transaction.time}</Typography>
+                          }
+                        />
+                        <Typography
+                          variant="h6"
+                          sx={{
+                            fontWeight: 700,
+                            color: transaction.amount > 0 ? '#00C896' : '#FF6B6B'
+                          }}
+                        >
+                          {transaction.amount > 0 ? '+' : ''}${transaction.amount.toFixed(2)}
+                        </Typography>
+                      </ListItem>
+                    </motion.div>
+                  ))}
+                </List>
+              </Paper>
+            </motion.div>
+          </Grid>
+
+          <Grid item xs={12} lg={5}>
+            <motion.div variants={itemVariants}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 5,
+                  height: '100%',
+                  background: 'rgba(255,255,255,0.8)',
+                  backdropFilter: 'blur(20px)',
+                  borderRadius: 4,
+                  border: '1px solid rgba(0,102,255,0.1)',
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.05)'
+                }}
+              >
+                <Typography variant="h5" sx={{ fontWeight: 600, color: '#021024', mb: 1 }}>Spending by Category</Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>Where your money goes this month</Typography>
+                <ResponsiveContainer width="100%" height={250}>
+                  <RadialBarChart
+                    cx="50%"
+                    cy="50%"
+                    innerRadius="30%"
+                    outerRadius="90%"
+                    data={spendingByCategory}
+                    startAngle={180}
+                    endAngle={0}
+                  >
+                    <RadialBar
+                      label={{ fill: '#333', position: 'insideStart' }}
+                      background={{ fill: '#eee' }}
+                      dataKey="value"
+                      cornerRadius={10}
+                    />
+                    <Legend iconSize={10} width={120} height={140} layout="vertical" verticalAlign="middle" align="right" />
+                    <RechartsTooltip />
+                  </RadialBarChart>
+                </ResponsiveContainer>
+                <Box sx={{ mt: 3 }}>
+                  {spendingByCategory.map((category, index) => (
+                    <Box key={category.name} sx={{ mb: 2 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>{category.name}</Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>{category.value}%</Typography>
+                      </Box>
+                      <LinearProgress
+                        variant="determinate"
+                        value={category.value}
+                        sx={{
+                          height: 8,
+                          borderRadius: 4,
+                          bgcolor: 'rgba(0,0,0,0.05)',
+                          '& .MuiLinearProgress-bar': {
+                            bgcolor: category.fill,
+                            borderRadius: 4
+                          }
+                        }}
+                      />
+                    </Box>
+                  ))}
+                </Box>
+              </Paper>
+            </motion.div>
+          </Grid>
+        </Grid>
+
+        {/* Your Accounts Cards */}
+        <motion.div variants={itemVariants}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 5,
+              background: 'rgba(255,255,255,0.8)',
+              backdropFilter: 'blur(20px)',
+              borderRadius: 4,
+              border: '1px solid rgba(0,102,255,0.1)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.05)'
+            }}
+          >
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+              <Box>
+                <Typography variant="h5" sx={{ fontWeight: 600, color: '#021024', mb: 1 }}>Your Accounts</Typography>
+                <Typography variant="body2" color="text.secondary">Manage all your connected accounts</Typography>
+              </Box>
+              <Button
+                variant="contained"
+                onClick={() => navigate('/accounts')}
+                sx={{
+                  borderRadius: 2,
+                  background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
+                  fontWeight: 600,
+                  px: 4,
+                  py: 1.5,
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #0052cc 0%, #0099cc 100%)'
+                  }
+                }}
+              >
+                Manage Accounts
+              </Button>
+            </Box>
+            <Grid container spacing={4}>
+              {accounts.map((account, index) => (
+                <Grid item xs={12} md={6} key={account._id}>
+                  <motion.div
+                    whileHover={{ scale: 1.02, y: -5 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Box
+                      sx={{
+                        p: 4,
+                        background: index % 2 === 0 
+                          ? 'linear-gradient(135deg, #021024 0%, #063970 100%)' 
+                          : 'linear-gradient(135deg, #063970 0%, #0066FF 100%)',
+                        color: 'white',
+                        borderRadius: 4,
+                        position: 'relative',
+                        overflow: 'hidden'
+                      }}
+                    >
+                      <Box sx={{ position: 'relative', zIndex: 1 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 4 }}
+                        >
+                          <Box>
+                            <Typography variant="body2" sx={{ opacity: 0.7, mb: 1 }}>{account.nickname}</Typography>
+                            <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                              ${account.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                            </Typography>
+                          </Box>
+                          <CreditCard sx={{ fontSize: 40, opacity: 0.5 }} />
+                        </Box>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <Typography variant="caption" sx={{ opacity: 0.7, letterSpacing: 2 }}>
+                            **** **** **** {account.accountNumber?.slice(-4) || '0000'}
+                          </Typography>
+                          <Chip
+                            label={account.accountType.charAt(0).toUpperCase() + account.accountType.slice(1)}
+                            size="small"
+                            sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontSize: '0.7rem' }}
+                          />
+                        </Box>
+                      </Box>
+                    </Box>
+                  </motion.div>
+                </Grid>
+              ))}
+            </Grid>
+          </Paper>
+        </motion.div>
+      </motion.div>
+    </Box>
+  );
+};
+
+export default Dashboard;
