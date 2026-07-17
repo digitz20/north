@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { getCurrentUser } from '../store/slices/authSlice';
@@ -7,7 +7,7 @@ import { CircularProgress, Box } from '@mui/material';
 const ProtectedRoute = ({ isAuthenticated }) => {
   const location = useLocation();
   const dispatch = useDispatch();
-  const [loading, setLoading] = React.useState(true);
+  const [loading, setLoading] = useState(true);
   const token = localStorage.getItem('token');
 
   useEffect(() => {
