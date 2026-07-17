@@ -18,6 +18,7 @@ import {
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
+
 // List of all country codes with +1 (USA) as first/default
 const countryCodes = [
   { code: '+1', country: 'United States' },
