@@ -1,6 +1,10 @@
-// Load environment variables: dotenv only for local development
+// Load environment variables: dotenv only for local development, safe in production
 if (typeof process.env.MONGODB_URI === 'undefined') {
-  require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
+  try {
+    require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
+  } catch (err) {
+    // dotenv not available in production, which is fine
+  }
 }
 const express = require('express');
 const cors = require('cors');
