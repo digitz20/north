@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { getCurrentUser } from '../store/slices/authSlice';
 import { CircularProgress, Box } from '@mui/material';
 
-const ProtectedRoute = ({ isAuthenticated, children }) => {
+const ProtectedRoute = ({ isAuthenticated }) => {
   const location = useLocation();
   const dispatch = useDispatch();
   const [loading, setLoading] = React.useState(true);
@@ -43,7 +43,7 @@ const ProtectedRoute = ({ isAuthenticated, children }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  return children;
+  return <Outlet />;
 };
 
 export default ProtectedRoute;
