@@ -780,16 +780,16 @@ const Landing = () => {
             </Grid>
 
             {/* Hero Right Side - Floating Cards */}
-            <Grid item xs={12} lg={5} sx={{ position: 'relative', minHeight: { xs: 520, lg: 500 }, mt: { xs: 4, lg: 0 } }}>
-              {/* Floating Glass Card 1 */}
+            <Grid item xs={12} lg={5} sx={{ position: 'relative', minHeight: { xs: 650, lg: 500 }, mt: { xs: 6, lg: 0 } }}>
+              {/* Floating Glass Card 1 (Top-left on desktop, Top-centered on mobile) */}
               <motion.div
                 style={{
                   position: 'absolute',
-                  top: { xs: 10, lg: 30 },
-                  right: { xs: '50%', lg: 0 },
-                  left: { xs: 'auto', lg: 'auto' },
+                  top: { xs: 20, lg: 30 },
+                  right: { xs: '50%', lg: 'auto' },
+                  left: { xs: 'auto', lg: 0 },
                   transform: { xs: 'translateX(50%)', lg: 'none' },
-                  width: { xs: 260, lg: 280 },
+                  width: { xs: 280, lg: 280 },
                   background: 'rgba(255,255,255,0.1)',
                   backdropFilter: 'blur(20px)',
                   borderRadius: 20,
@@ -798,10 +798,10 @@ const Landing = () => {
                   boxShadow: '0 25px 50px rgba(0,0,0,0.2)'
                 }}
                 animate={{
-                  y: [0, -15, 0], // Reduced movement range
-                  x: mousePosition.x * 1.5 // Reduced parallax intensity
+                  y: [0, -15, 0],
+                  x: mousePosition.x * 1.5
                 }}
-                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }} // Slower animation
+                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
               >
                 <Typography sx={{ color: 'rgba(255,255,255,0.7)', mb: 1, fontSize: '0.9rem' }}>Total Balance</Typography>
                 <Typography sx={{ color: 'white', fontSize: '2rem', fontWeight: 800, mb: 2 }}>
@@ -817,26 +817,26 @@ const Landing = () => {
                 </Box>
               </motion.div>
 
-              {/* Debit Card Mockup - Center of container for all screen sizes */}
+              {/* Debit Card Mockup - CENTERED on ALL screens, perfectly stacked in the middle */}
               <motion.div
                 style={{
                   position: 'absolute',
-                  top: { xs: 160, lg: 140 },
+                  top: { xs: 180, lg: 140 },
                   left: '50%',
                   transform: 'translateX(-50%)',
-                  width: { xs: 290, lg: 320 },
-                  height: { xs: 190, lg: 200 },
+                  width: { xs: 320, lg: 340 },
+                  height: { xs: 200, lg: 220 },
                   background: 'linear-gradient(135deg, #0066FF, #063970)',
                   borderRadius: 20,
-                  padding: { xs: 22, lg: 28 },
+                  padding: 28,
                   boxShadow: '0 30px 60px rgba(0,102,255,0.4)',
                   border: '1px solid rgba(255,255,255,0.2)'
                 }}
                 animate={{
-                  y: [0, 10, 0], // Reduced movement range
-                  x: mousePosition.x * 1 // Simplified - removed 3D rotation which caused GPU lag
+                  y: [0, 10, 0],
+                  x: mousePosition.x * 1
                 }}
-                transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }} // Slower animation
+                transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
               >
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 4 }}>
                   <NorthCrestLogo color="white" />
@@ -855,7 +855,7 @@ const Landing = () => {
                 </Box>
               </motion.div>
 
-              {/* Floating Glass Card 2 */}
+              {/* Floating Glass Card 2 (Bottom-right on desktop, Bottom-centered on mobile) */}
               <motion.div
                 style={{
                   position: 'absolute',
@@ -863,18 +863,18 @@ const Landing = () => {
                   right: { xs: '50%', lg: 0 },
                   left: { xs: 'auto', lg: 'auto' },
                   transform: { xs: 'translateX(50%)', lg: 'none' },
-                  width: { xs: 220, lg: 240 },
+                  width: { xs: 240, lg: 240 },
                   background: 'rgba(255,255,255,0.1)',
                   backdropFilter: 'blur(20px)',
                   borderRadius: 16,
-                  padding: { xs: 16, lg: 20 },
+                  padding: 20,
                   border: '1px solid rgba(255,255,255,0.2)'
                 }}
                 animate={{
-                  y: [0, 12, 0], // Reduced movement range
-                  x: mousePosition.x * 1.2 // Reduced parallax intensity
+                  y: [0, 12, 0],
+                  x: mousePosition.x * 1.2
                 }}
-                transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut" }} // Slower animation
+                transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut" }}
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
                   <Avatar src={currentTransferAvatar} sx={{ width: 40, height: 40 }} />
