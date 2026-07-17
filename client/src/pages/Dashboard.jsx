@@ -38,6 +38,35 @@ const Dashboard = () => {
   const { transactions, loading: transactionsLoading } = useSelector(state => state.transactions);
   const { user } = useSelector(state => state.auth);
   
+  // Helper functions for transaction formatting
+  const getTransactionIcon = (category) => {
+    const iconMap = {
+      shopping: <ShoppingCart />,
+      food: <Restaurant />,
+      housing: <Home />,
+      transportation: <Flight />,
+      healthcare: <LocalHospital />,
+      entertainment: <PlayCircle />,
+      deposit: <AttachMoney />,
+      transfer: <SwapHoriz />,
+      other: <MoreHoriz />
+    };
+    return iconMap[category] || <MoreHoriz />;
+  };
+
+  const getRelativeTime = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.round(diffMs / 60000);
+    const diffHours = Math.round(diffMs / 3600000);
+    const diffDays = Math.round(diffMs / 86400000);
+    
+    if (diffMins < 60) return `${diffMins} min ago`;
+    if (diffHours < 24) return `${diffHours} hours ago`;
+    return `${diffDays} days ago`;
+  };
+  
   const dashboardRef = useRef(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const { scrollYProgress } = useScroll();
@@ -166,34 +195,7 @@ const Dashboard = () => {
     { title: 'Fraud Monitor', status: 'Active', icon: <Speed sx={{ fontSize: 28 }} />, color: '#00BFFF' },
   ];
 
-  // Map real transactions to UI format with correct icons and timestamps
-  const getTransactionIcon = (category) => {
-    const iconMap = {
-      shopping: <ShoppingCart />,
-      food: <Restaurant />,
-      housing: <Home />,
-      transportation: <Flight />,
-      healthcare: <LocalHospital />,
-      entertainment: <PlayCircle />,
-      deposit: <AttachMoney />,
-      transfer: <SwapHoriz />,
-      other: <MoreHoriz />
-    };
-    return iconMap[category] || <MoreHoriz />;
-  };
 
-  const getRelativeTime = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.round(diffMs / 60000);
-    const diffHours = Math.round(diffMs / 3600000);
-    const diffDays = Math.round(diffMs / 86400000);
-    
-    if (diffMins < 60) return `${diffMins} min ago`;
-    if (diffHours < 24) return `${diffHours} hours ago`;
-    return `${diffDays} days ago`;
-  };
 
   // Format real transactions for the recent transactions list
   const liveTransactions = recentTransactions.map(tx => ({
