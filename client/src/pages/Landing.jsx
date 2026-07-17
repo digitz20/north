@@ -780,14 +780,16 @@ const Landing = () => {
             </Grid>
 
             {/* Hero Right Side - Floating Cards */}
-            <Grid item xs={12} lg={5} sx={{ position: 'relative', minHeight: 500 }}>
+            <Grid item xs={12} lg={5} sx={{ position: 'relative', minHeight: { xs: 520, lg: 500 }, mt: { xs: 4, lg: 0 } }}>
               {/* Floating Glass Card 1 */}
               <motion.div
                 style={{
                   position: 'absolute',
-                  top: 50,
-                  right: 50,
-                  width: 280,
+                  top: { xs: 10, lg: 30 },
+                  right: { xs: '50%', lg: 0 },
+                  left: { xs: 'auto', lg: 'auto' },
+                  transform: { xs: 'translateX(50%)', lg: 'none' },
+                  width: { xs: 260, lg: 280 },
                   background: 'rgba(255,255,255,0.1)',
                   backdropFilter: 'blur(20px)',
                   borderRadius: 20,
@@ -815,17 +817,18 @@ const Landing = () => {
                 </Box>
               </motion.div>
 
-              {/* Debit Card Mockup */}
+              {/* Debit Card Mockup - Center of container for all screen sizes */}
               <motion.div
                 style={{
                   position: 'absolute',
-                  top: 200,
-                  right: 100,
-                  width: 340,
-                  height: 220,
+                  top: { xs: 160, lg: 140 },
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: { xs: 290, lg: 320 },
+                  height: { xs: 190, lg: 200 },
                   background: 'linear-gradient(135deg, #0066FF, #063970)',
                   borderRadius: 20,
-                  padding: 28,
+                  padding: { xs: 22, lg: 28 },
                   boxShadow: '0 30px 60px rgba(0,102,255,0.4)',
                   border: '1px solid rgba(255,255,255,0.2)'
                 }}
@@ -856,13 +859,15 @@ const Landing = () => {
               <motion.div
                 style={{
                   position: 'absolute',
-                  bottom: 50,
-                  right: 30,
-                  width: 240,
+                  bottom: { xs: 20, lg: 30 },
+                  right: { xs: '50%', lg: 0 },
+                  left: { xs: 'auto', lg: 'auto' },
+                  transform: { xs: 'translateX(50%)', lg: 'none' },
+                  width: { xs: 220, lg: 240 },
                   background: 'rgba(255,255,255,0.1)',
                   backdropFilter: 'blur(20px)',
                   borderRadius: 16,
-                  padding: 20,
+                  padding: { xs: 16, lg: 20 },
                   border: '1px solid rgba(255,255,255,0.2)'
                 }}
                 animate={{
