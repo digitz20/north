@@ -32,14 +32,11 @@ const AdminLogin = () => {
     setLoading(true);
 
     try {
-      const response = await api.post('/admin/login', { email, password });
-      const { token, user } = response.data;
-      
-      localStorage.setItem('adminToken', token);
-      dispatch(login({ user, token }));
+      // Use the Redux authSlice login thunk which handles everything properly
+      await dispatch(login({ email, password })).unwrap();
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+      setError(err || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
