@@ -456,3 +456,125 @@ exports.getAllInvestments = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Get single investment (admin only)
+// @route   GET /api/v1/admin/investments/:id
+// @access  Private/Admin
+exports.getInvestment = async (req, res, next) => {
+  try {
+    const investment = await UserInvestment.findById(req.params.id)
+      .populate('user', 'firstName lastName email')
+      .populate('plan', 'name type expectedReturn')
+      .populate('transaction', 'amount status');
+    
+    if (!investment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Investment not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: investment
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update investment status (admin only)
+// @route   PUT /api/v1/admin/investments/:id
+// @access  Private/Admin
+exports.updateInvestment = async (req, res, next) => {
+  try {
+    const updateableFields = {
+      status: req.body.status,
+      notes: req.body.notes,
+      processedBy: req.user.id
+    };
+    
+    // Remove undefined fields
+    Object.keys(updateableFields).forEach(key => 
+      updateableFields[key] === undefined && delete updateableFields[key]
+    );
+
+    const investment = await UserInvestment.findByIdAndUpdate(
+      req.params.id, 
+      updateableFields, 
+      {
+        new: true,
+        runValidators: true
+      }
+    ).populate('user', 'firstName lastName email')
+     .populate('plan', 'name type expectedReturn');
+
+    if (!investment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Investment not found'
+      });
+    }
+
+    // Create audit log
+    await AuditLog.create({
+      user: req.user.id,
+      action: `Updated investment: ${investment._id}`,
+      description: `Admin updated investment status to ${investment.status}`,
+      ipAddress: req.ip
+    });
+
+    res.status(200).json({
+      success: true,
+      data: investment
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Delete investment (admin only, super-admin only)
+// @route   DELETE /api/v1/admin/investments/:id
+// @access  Private/Super Admin
+exports.deleteInvestment = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const investment = await UserInvestment.findById(req.params.id).session(session);
+    
+    if (!investment) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({
+        success: false,
+        message: 'Investment not found'
+      });
+    }
+
+    // Delete the investment
+    await UserInvestment.findByIdAndDelete(req.params.id).session(session);
+
+    // Delete associated transaction
+    await Transaction.findByIdAndDelete(investment.transaction).session(session);
+
+    await AuditLog.create({
+      user: req.user.id,
+      action: `Deleted investment: ${investment._id}`,
+      description: `Super admin deleted user investment`,
+      ipAddress: req.ip
+    }, { session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(200).json({
+      success: true,
+      message: 'Investment and all associated data deleted'
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    next(error);
+  }
+};

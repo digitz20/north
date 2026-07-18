@@ -265,4 +265,93 @@ exports.deleteTransfer = async (req, res, next) => {
   }
 };
 
+// ------------------------------
+// ROUTE COMPATIBILITY - add all missing functions that transfers.js expects
+// ------------------------------
+// Alias getUserTransfers to getTransfers for route compatibility
+exports.getTransfers = exports.getUserTransfers;
+// Rename the admin's getTransfer to avoid conflict, and set client-side getTransfer as the main getTransfer
+const adminGetTransfer = exports.getTransfer;
+exports.adminGetTransfer = adminGetTransfer;
+// Client-side getTransfer is what the route expects
+exports.getTransfer = exports.getUserTransfer;
+
+// Add missing createInternationalTransfer function that the route expects
+exports.createInternationalTransfer = async (req, res, next) => {
+  // Reuse the same createTransfer logic for international transfers
+  return exports.createTransfer(req, res, next);
+};
+
+// Add missing admin approve/reject functions that the route expects
+exports.approveTransfer = async (req, res, next) => {
+  try {
+    const transfer = await Transfer.findByIdAndUpdate(
+      req.params.id,
+      { status: 'approved', processedBy: req.user.id },
+      { new: true, runValidators: true }
+    ).populate('initiatedBy', 'firstName lastName email');
+
+    if (!transfer) {
+      return res.status(404).json({
+        success: false,
+        message: 'Transfer not found'
+      });
+    }
+
+    await AuditLog.create({
+      user: req.user.id,
+      action: `Approved transfer: ${transfer._id}`,
+      description: `Admin approved transfer of $${transfer.amount}`,
+      ipAddress: req.ip
+    });
+
+    res.status(200).json({
+      success: true,
+      data: transfer
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.rejectTransfer = async (req, res, next) => {
+  try {
+    const transfer = await Transfer.findById(req.params.id);
+    
+    if (!transfer) {
+      return res.status(404).json({
+        success: false,
+        message: 'Transfer not found'
+      });
+    }
+
+    // Refund the amount to source account
+    const sourceAccount = await Account.findById(transfer.sourceAccount);
+    if (sourceAccount) {
+      sourceAccount.balance += transfer.amount;
+      await sourceAccount.save();
+    }
+
+    await Transfer.findByIdAndUpdate(
+      req.params.id,
+      { status: 'rejected', processedBy: req.user.id, notes: req.body.reason || 'Rejected by admin' },
+      { new: true, runValidators: true }
+    );
+
+    await AuditLog.create({
+      user: req.user.id,
+      action: `Rejected transfer: ${transfer._id}`,
+      description: `Admin rejected transfer`,
+      ipAddress: req.ip
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Transfer rejected and funds refunded'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // All functions already exported with exports.* syntax above, no need for redundant module.exports

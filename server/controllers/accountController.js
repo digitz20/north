@@ -146,8 +146,6 @@ exports.updateAccount = async (req, res, next) => {
 // @route   DELETE /api/v1/accounts/:id
 // @access  Private
 exports.deleteAccount = async (req, res, next) => {
-// Alias for route compatibility (route uses closeAccount)
-exports.closeAccount = exports.deleteAccount;
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -318,6 +316,9 @@ exports.deleteAdminAccount = async (req, res, next) => {
     next(error);
   }
 };
+
+// Alias for route compatibility - the accounts.js route uses 'closeAccount'
+exports.closeAccount = exports.deleteAccount;
 
 // @desc    Freeze account (admin only)
 // @route   PUT /api/v1/accounts/admin/:id/freeze

@@ -292,6 +292,130 @@ exports.applyForLoan = async (req, res, next) => {
   }
 };
 
+// @desc    Get single loan (admin only)
+// @route   GET /api/v1/admin/loans/:id
+// @access  Private/Admin
+exports.getLoan = async (req, res, next) => {
+  try {
+    const loan = await UserLoan.findById(req.params.id)
+      .populate('user', 'firstName lastName email')
+      .populate('loanProduct', 'name type interestRate')
+      .populate('approvedBy', 'firstName lastName email');
+    
+    if (!loan) {
+      return res.status(404).json({
+        success: false,
+        message: 'Loan not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: loan
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update loan (admin only)
+// @route   PUT /api/v1/admin/loans/:id
+// @access  Private/Admin
+exports.updateLoan = async (req, res, next) => {
+  try {
+    const updateableFields = {
+      status: req.body.status,
+      notes: req.body.notes,
+      processedBy: req.user.id
+    };
+    
+    // Remove undefined fields
+    Object.keys(updateableFields).forEach(key => 
+      updateableFields[key] === undefined && delete updateableFields[key]
+    );
+
+    const loan = await UserLoan.findByIdAndUpdate(
+      req.params.id, 
+      updateableFields, 
+      {
+        new: true,
+        runValidators: true
+      }
+    ).populate('user', 'firstName lastName email')
+     .populate('loanProduct', 'name type interestRate');
+
+    if (!loan) {
+      return res.status(404).json({
+        success: false,
+        message: 'Loan not found'
+      });
+    }
+
+    // Create audit log
+    await AuditLog.create({
+      user: req.user.id,
+      action: `Updated loan: ${loan._id}`,
+      description: `Admin updated loan status to ${loan.status}`,
+      ipAddress: req.ip
+    });
+
+    res.status(200).json({
+      success: true,
+      data: loan
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Delete loan (admin only, super-admin only)
+// @route   DELETE /api/v1/admin/loans/:id
+// @access  Private/Super Admin
+exports.deleteLoan = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const loan = await UserLoan.findById(req.params.id).session(session);
+    
+    if (!loan) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({
+        success: false,
+        message: 'Loan not found'
+      });
+    }
+
+    // Delete the loan
+    await UserLoan.findByIdAndDelete(req.params.id).session(session);
+
+    // Delete associated transaction if it exists
+    if (loan.transaction) {
+      await Transaction.findByIdAndDelete(loan.transaction).session(session);
+    }
+
+    await AuditLog.create({
+      user: req.user.id,
+      action: `Deleted loan: ${loan._id}`,
+      description: `Super admin deleted user loan`,
+      ipAddress: req.ip
+    }, { session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(200).json({
+      success: true,
+      message: 'Loan and all associated data deleted'
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    next(error);
+  }
+};
+
 // @desc    Get all tax refund requests (admin only)
 // @route   GET /api/v1/loans/admin/tax-refunds
 // @access  Private/Admin
