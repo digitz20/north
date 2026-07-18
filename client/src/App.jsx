@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import LoadingSpinner from './components/LoadingSpinner';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -31,14 +31,14 @@ function App() {
   return (
     <Suspense fallback={<LoadingSpinner fullPage size={60} />}>
       <Routes>
-        {/* Public landing page - only accessible if not authenticated */}
-        <Route path="/" element={!isAuthenticated ? <Landing /> : <Dashboard />} />
+        {/* Public landing page */}
+        <Route path="/" element={!isAuthenticated ? <Landing /> : <Navigate to="/dashboard" replace />} />
         
-        {/* Auth routes (public) */}
+        {/* Auth routes (public) - redirect to dashboard if already authenticated */}
         <Route element={<AuthLayout />}>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/dashboard" replace />} />
+          <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/dashboard" replace />} />
+          <Route path="/verify-email" element={!isAuthenticated ? <VerifyEmail /> : <Navigate to="/dashboard" replace />} />
         </Route>
 
         {/* Protected dashboard routes */}
@@ -61,7 +61,7 @@ function App() {
         </Route>
 
         {/* Catch-all redirect */}
-        <Route path="*" element={isAuthenticated ? <Dashboard /> : <Landing />} />
+        <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/"} replace />} />
       </Routes>
     </Suspense>
   );

@@ -1,16 +1,18 @@
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { useLocation } from 'react-router-dom';
 import { Box, Typography, Paper, List, ListItem, ListItemText, ListItemIcon, Chip, Divider, CircularProgress, Alert, Button } from '@mui/material';
 import { Notifications as NotificationsIcon, Payment, Security, AccountBalance } from '@mui/icons-material';
 import { getNotifications, markAsRead, markAllAsRead } from '../store/slices/notificationSlice';
 
 const Notifications = () => {
   const dispatch = useDispatch();
+  const location = useLocation();
   const { notifications, unreadCount, loading, error } = useSelector((state) => state.notifications);
 
   useEffect(() => {
     dispatch(getNotifications());
-  }, [dispatch]);
+  }, [dispatch, location.pathname]);
 
   const getIcon = (type) => {
     switch(type) {

@@ -6,6 +6,7 @@ import {
   TextField, Stack
 } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
+import { useLocation } from 'react-router-dom';
 import { Add } from '@mui/icons-material';
 import { 
   getUserInvestments, getInvestmentTypes, createInvestment, sellInvestment 
@@ -13,6 +14,7 @@ import {
 
 const Investments = () => {
   const dispatch = useDispatch();
+  const location = useLocation();
   const { investments, loading, error, investmentTypes } = useSelector(state => state.investments);
   const [open, setOpen] = useState(false);
   const [newInvestmentData, setNewInvestmentData] = useState({
@@ -21,11 +23,10 @@ const Investments = () => {
   });
 
   useEffect(() => {
-    if (investments.length === 0) {
-      dispatch(getUserInvestments());
-      dispatch(getInvestmentTypes());
-    }
-  }, [dispatch, investments.length]);
+    // Always refetch investment data when navigating to investments page
+    dispatch(getUserInvestments());
+    dispatch(getInvestmentTypes());
+  }, [dispatch, location.pathname]);
 
   useEffect(() => {
     // Set default investment type when types load

@@ -11,13 +11,14 @@ import {
   CreditCard, Add, Visibility, Lock, Delete, Refresh, Security,
   Payment, ConfirmationNumber, CardGiftcard, ArrowForward, Person
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { getUserCards, createCard, freezeCard, unfreezeCard, deleteCard } from '../store/slices/cardSlice';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 const Cards = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
   const { cards, loading, error } = useSelector(state => state.cards);
   const { user } = useSelector(state => state.auth);
@@ -41,10 +42,9 @@ const Cards = () => {
   }, [accounts, newCardData.accountId]);
 
   useEffect(() => {
-    if (cards.length === 0) {
-      dispatch(getUserCards());
-    }
-  }, [dispatch, cards.length]);
+    // Always refetch cards data when navigating to cards page
+    dispatch(getUserCards());
+  }, [dispatch, location.pathname]);
 
   const handleCreateCard = async () => {
     try {

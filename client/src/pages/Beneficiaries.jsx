@@ -5,6 +5,7 @@ import AddIcon from '@mui/icons-material/Add';
 import PersonIcon from '@mui/icons-material/Person';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLocation } from 'react-router-dom';
 import api from '../services/api';
 
 const containerVariants = {
@@ -27,6 +28,7 @@ const itemVariants = {
 };
 
 const Beneficiaries = () => {
+  const location = useLocation();
   const [open, setOpen] = useState(false);
   const [beneficiaries, setBeneficiaries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -39,8 +41,9 @@ const Beneficiaries = () => {
     routingNumber: '021000021' // Default routing number
   });
 
-  // Fetch beneficiaries on component mount
+  // Fetch beneficiaries when navigating to this page
   useEffect(() => {
+    setLoading(true);
     const fetchBeneficiaries = async () => {
       try {
         const response = await api.get('/beneficiaries');
@@ -52,7 +55,7 @@ const Beneficiaries = () => {
       }
     };
     fetchBeneficiaries();
-  }, []);
+  }, [location.pathname]);
 
   const handleClickOpen = () => {
     setOpen(true);
