@@ -302,9 +302,9 @@ const Investments = () => {
       </Box>
 
       {/* Error State */}
-      {error && (
+      {investmentsError && (
         <Alert severity="error" sx={{ mb: 4, borderRadius: 2 }}>
-          {error}
+          {investmentsError}
         </Alert>
       )}
 

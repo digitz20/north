@@ -22,6 +22,10 @@ router.route('/')
 router.route('/eligibility')
   .post(protect, calculateEligibility);
 
+// Get all available loan types/products
+router.route('/types')
+  .get(protect, require('../controllers/loanController').getLoanTypes);
+
 router.route('/:id')
   .get(protect, getLoan);
 

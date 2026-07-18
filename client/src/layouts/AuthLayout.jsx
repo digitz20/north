@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Box, Container, Paper, IconButton, Tooltip, AppBar, Toolbar } from '@mui/material';
 import { ArrowBack as ArrowBackIcon, ArrowForward as ArrowForwardIcon, Home as HomeIcon } from '@mui/icons-material';
 import NorthCrestLogo from '../components/common/NorthCrestLogo';
@@ -7,6 +7,7 @@ import { useNavigationWithSplash } from '../hooks/useNavigationWithSplash';
 
 const AuthLayout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { navigateWithSplash, NavigationSplash } = useNavigationWithSplash();
   
   return (
@@ -65,7 +66,7 @@ const AuthLayout = () => {
             <NorthCrestLogo />
           </Box>
           <Paper elevation={6} sx={{ p: 4, borderRadius: 2 }}>
-            <Outlet />
+            <Outlet key={location.pathname} />
           </Paper>
           <Box sx={{ mt: 4, textAlign: 'center', color: 'white' }}>
             <p>© 2026 NorthCrest Bank of USA. All rights reserved.</p>

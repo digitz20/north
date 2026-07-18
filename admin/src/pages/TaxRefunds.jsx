@@ -21,6 +21,7 @@ import {
   MenuItem
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import CancelIcon from '@mui/icons-material/Cancel';
 import api from '../services/api';
 
 const TaxRefunds = () => {

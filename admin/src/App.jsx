@@ -15,6 +15,7 @@ import Loans from './pages/Loans';
 import Investments from './pages/Investments';
 import SupportTickets from './pages/SupportTickets';
 import Reports from './pages/Reports';
+import TaxRefunds from './pages/TaxRefunds';
 import Settings from './pages/Settings';
 import AuditLogs from './pages/AuditLogs';
 
@@ -43,6 +44,7 @@ function App() {
           <Route path="/investments" element={<Investments />} />
           <Route path="/support" element={<SupportTickets />} />
           <Route path="/reports" element={<Reports />} />
+          <Route path="/tax-refunds" element={<TaxRefunds />} />
           <Route path="/audit-logs" element={<AuditLogs />} />
           <Route path="/settings" element={<Settings />} />
         </Route>

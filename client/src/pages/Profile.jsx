@@ -85,7 +85,10 @@ const Profile = () => {
               </Grid>
               <Grid item xs={12}>
                 <Typography variant="body2" color="text.secondary">Address</Typography>
-                <Typography variant="body1">{user.address || 'Not provided'}</Typography>
+                <Typography variant="body1">
+                  {typeof user.address === 'string' ? user.address : 
+                   user.address?.street ? `${user.address.street}, ${user.address.city}, ${user.address.state} ${user.address.zipCode}` : 'Not provided'}
+                </Typography>
               </Grid>
             </Grid>
 

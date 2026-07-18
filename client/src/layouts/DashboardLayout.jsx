@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../store/slices/authSlice';
 import {
@@ -67,6 +67,7 @@ const DashboardLayout = () => {
   const [notificationsAnchorEl, setNotificationsAnchorEl] = useState(null);
   const { navigateWithSplash, NavigationSplash } = useNavigationWithSplash();
   const location = useLocation();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   
   const { user } = useSelector(state => state.auth);
@@ -266,7 +267,7 @@ const DashboardLayout = () => {
         }}
       >
         <Toolbar />
-        <Outlet />
+        <Outlet key={location.pathname} />
       </Box>
     </Box>
   );
