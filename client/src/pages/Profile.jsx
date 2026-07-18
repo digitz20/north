@@ -1,21 +1,22 @@
 import React, { useEffect } from 'react';
 import { Box, Typography, Paper, Grid, Avatar, Button, Divider, Chip, CircularProgress, Alert } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
+import { useLocation } from 'react-router-dom';
 import { getCurrentUser } from '../store/slices/authSlice';
 import { fetchAccounts } from '../store/slices/accountSlice';
 import CountUp from 'react-countup';
 
 const Profile = () => {
   const dispatch = useDispatch();
+  const location = useLocation();
   const { user, loading: authLoading } = useSelector((state) => state.auth);
   const { accounts, loading: accountsLoading } = useSelector((state) => state.accounts);
   
   useEffect(() => {
-    if (!user) {
-      dispatch(getCurrentUser());
-    }
+    // Always refetch fresh data when navigating to profile page
+    dispatch(getCurrentUser());
     dispatch(fetchAccounts());
-  }, [dispatch, user]);
+  }, [dispatch, location.pathname]);
 
   const totalBalance = accounts.reduce((sum, account) => sum + account.balance, 0);
   const totalAccounts = accounts.length;

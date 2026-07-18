@@ -14,11 +14,12 @@ import {
   CreditCard, AttachMoney, ArrowForward, Visibility, SwapHoriz,
   TrendingUp, Security, MonitorHeart
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Accounts = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { accounts, loading } = useSelector((state) => state.accounts);
   const [ref, inView] = useIntersectionInView({ threshold: 0.1 });
   const containerRef = useRef(null);
@@ -60,7 +61,7 @@ const Accounts = () => {
 
   useEffect(() => {
     dispatch(fetchAccounts());
-  }, [dispatch]);
+  }, [dispatch, location.pathname]);
 
   if (loading) return <LoadingSpinner />;
 

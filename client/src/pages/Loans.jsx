@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { useLocation } from 'react-router-dom';
 import { Box, Typography, Paper, Grid, Button, Card, CardContent, CircularProgress, Alert, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Tab, Tabs, MenuItem } from '@mui/material';
 import { getUserLoans, getAvailableLoanTypes, applyForLoan, makeLoanPayment, submitTaxRefundRequest } from '../store/slices/loanSlice';
 
 const Loans = () => {
   const dispatch = useDispatch();
+  const location = useLocation();
   const { loans, loading, error, availableLoanTypes } = useSelector((state) => state.loans);
   const [openPaymentDialog, setOpenPaymentDialog] = useState(false);
   const [openApplyDialog, setOpenApplyDialog] = useState(false);
@@ -53,7 +55,7 @@ const Loans = () => {
   useEffect(() => {
     dispatch(getUserLoans());
     dispatch(getAvailableLoanTypes());
-  }, [dispatch]);
+  }, [dispatch, location.pathname]);
 
   const handlePaymentClick = (loan) => {
     setSelectedLoan(loan);

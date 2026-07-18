@@ -31,8 +31,8 @@ function App() {
   return (
     <Suspense fallback={<LoadingSpinner fullPage size={60} />}>
       <Routes>
-        {/* Public landing page */}
-        <Route path="/" element={<Landing />} />
+        {/* Public landing page - only accessible if not authenticated */}
+        <Route path="/" element={!isAuthenticated ? <Landing /> : <Dashboard />} />
         
         {/* Auth routes (public) */}
         <Route element={<AuthLayout />}>
@@ -44,7 +44,6 @@ function App() {
         {/* Protected dashboard routes */}
         <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} />}>
           <Route element={<DashboardLayout />}>
-            <Route path="/" element={<Dashboard />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/accounts" element={<Accounts />} />
             <Route path="/transactions" element={<Transactions />} />
@@ -61,8 +60,8 @@ function App() {
           </Route>
         </Route>
 
-        {/* Catch-all redirect to landing page */}
-        <Route path="*" element={<Landing />} />
+        {/* Catch-all redirect */}
+        <Route path="*" element={isAuthenticated ? <Dashboard /> : <Landing />} />
       </Routes>
     </Suspense>
   );

@@ -22,7 +22,7 @@ import {
 // Alias for icon names used in component
 const ArrowUpwardIcon = ArrowUpward;
 const ArrowDownwardIcon = ArrowDownward;
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, 
   ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, RadialBarChart, 
@@ -34,6 +34,7 @@ gsap.registerPlugin(ScrollTrigger);
 const Dashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { accounts, wallet, loading: accountsLoading } = useSelector(state => state.accounts);
   const { transactions, loading: transactionsLoading } = useSelector(state => state.transactions);
   const { user } = useSelector(state => state.auth);
@@ -47,18 +48,11 @@ const Dashboard = () => {
   const [selectedTimeframe, setSelectedTimeframe] = useState('Today');
 
   useEffect(() => {
-    // Only fetch accounts/wallet if they're not already populated from getCurrentUser
-    if (accounts.length === 0) {
-      dispatch(getUserAccounts());
-    }
-    if (!wallet) {
-      dispatch(getWallet());
-    }
-    // Only fetch transactions if we don't have any
-    if (transactions.length === 0) {
-      dispatch(getTransactions({ limit: 5 }));
-    }
-  }, [dispatch, accounts.length, wallet, transactions.length]);
+    // Always refetch data when navigating to dashboard to ensure fresh data
+    dispatch(getUserAccounts());
+    dispatch(getWallet());
+    dispatch(getTransactions({ limit: 5 }));
+  }, [dispatch, location.pathname]);
 
   useEffect(() => {
     const handleMouseMove = (e) => {

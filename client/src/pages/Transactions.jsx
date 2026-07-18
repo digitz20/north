@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Box, Typography, Paper, Grid, Chip, Avatar, Divider, TextField, MenuItem, InputAdornment, Button, LinearProgress } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
+import { useLocation } from 'react-router-dom';
 import { fetchTransactions } from '../store/slices/transactionSlice';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { motion } from 'framer-motion';
@@ -22,6 +23,7 @@ import {
 
 const Transactions = () => {
   const dispatch = useDispatch();
+  const location = useLocation();
   const { transactions, loading } = useSelector((state) => state.transactions);
   const [ref, inView] = useInView({ threshold: 0.1 });
   const containerRef = useRef(null);
@@ -30,7 +32,7 @@ const Transactions = () => {
 
   useEffect(() => {
     dispatch(fetchTransactions());
-  }, [dispatch]);
+  }, [dispatch, location.pathname]);
 
   // Calculate statistics
   const totalIncome = transactions
