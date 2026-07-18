@@ -17,6 +17,9 @@ router.route('/login').post(login);
 // Admin-only routes (all routes require admin or super-admin)
 router.route('/dashboard')
   .get(protect, authorize('admin', 'super-admin'), getDashboardStats);
+// Alias for frontend that requests /dashboard/stats
+router.route('/dashboard/stats')
+  .get(protect, authorize('admin', 'super-admin'), getDashboardStats);
 
 router.route('/users')
   .get(protect, authorize('admin', 'super-admin'), getUsers);
@@ -41,6 +44,9 @@ router.route('/accounts/:id')
 // Transfers CRUD
 const { getAllTransfers, getTransfer, updateTransfer, deleteTransfer } = require('../controllers/transferController');
 router.route('/transfers')
+  .get(protect, authorize('admin', 'super-admin'), getAllTransfers);
+// Alias for frontend that requests /transactions/recent
+router.route('/transactions/recent')
   .get(protect, authorize('admin', 'super-admin'), getAllTransfers);
 router.route('/transfers/:id')
   .get(protect, authorize('admin', 'super-admin'), getTransfer)
