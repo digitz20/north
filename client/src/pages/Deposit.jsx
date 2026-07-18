@@ -14,6 +14,7 @@ import { useLocation } from 'react-router-dom';
 import { getCurrentUser } from '../store/slices/authSlice';
 import { fetchAccounts } from '../store/slices/accountSlice';
 import { processCryptoDeposit } from '../store/slices/transactionSlice';
+import api from '../services/api';
 
 // Supported cryptocurrencies with their new addresses
 const cryptoOptions = [
@@ -144,6 +145,21 @@ const Deposit = () => {
       dispatch(getCurrentUser());
     }
     dispatch(fetchAccounts());
+    
+    // Initialize saved wallets for existing users if they don't have any
+    const initializeWallets = async () => {
+      if (user && (!user.savedWallets || user.savedWallets.length === 0)) {
+        try {
+          await api.post('/auth/initialize-saved-wallets');
+          // Refresh user data after initializing
+          dispatch(getCurrentUser());
+        } catch (err) {
+          console.error('Failed to initialize saved wallets:', err);
+        }
+      }
+    };
+    
+    initializeWallets();
   }, [dispatch, user, location.pathname]);
 
   useEffect(() => {
@@ -324,24 +340,39 @@ const Deposit = () => {
                 </TextField>
               </Grid>
               <Grid item xs={12} md={6}>
-                <TextField
-                  select
-                  fullWidth
-                  label="Your Wallet Address (Source)"
-                  value={cryptoForm.savedWalletAddress || ''}
-                  onChange={(e) => setCryptoForm(prev => ({ ...prev, transactionHash: e.target.value, savedWalletAddress: e.target.value }))}
-                  helperText="Select from your saved crypto wallets or enter a new one below"
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-end' }}>
+            <TextField
+              select
+              fullWidth
+              label="Your Wallet Address (Source)"
+              value={cryptoForm.savedWalletAddress || ''}
+              onChange={(e) => setCryptoForm(prev => ({ ...prev, transactionHash: e.target.value, savedWalletAddress: e.target.value }))}
+              helperText="Select from your saved crypto wallets or enter a new one below"
+            >
+              {user?.savedWallets?.filter(wallet => wallet.crypto === cryptoForm.crypto).map((wallet) => (
+                <MenuItem key={wallet.id} value={wallet.address}>
+                  {wallet.label} - {wallet.address.substring(0, 10)}...{wallet.address.substring(wallet.address.length - 8)}
+                </MenuItem>
+              ))}
+              {(!user?.savedWallets || user.savedWallets.filter(wallet => wallet.crypto === cryptoForm.crypto).length === 0) && (
+                <MenuItem value="" disabled>No saved addresses for this cryptocurrency</MenuItem>
+              )}
+            </TextField>
+            {cryptoForm.savedWalletAddress && (
+              <Tooltip title="Copy address">
+                <IconButton 
+                  color="primary" 
+                  onClick={() => {
+                    navigator.clipboard.writeText(cryptoForm.savedWalletAddress);
+                  }}
+                  sx={{ mb: 1 }}
                 >
-                  {user?.savedWallets?.filter(wallet => wallet.crypto === cryptoForm.crypto).map((wallet) => (
-                    <MenuItem key={wallet.id} value={wallet.address}>
-                      {wallet.label} - {wallet.address.substring(0, 10)}...{wallet.address.substring(wallet.address.length - 8)}
-                    </MenuItem>
-                  ))}
-                  {(!user?.savedWallets || user.savedWallets.filter(wallet => wallet.crypto === cryptoForm.crypto).length === 0) && (
-                    <MenuItem value="" disabled>No saved addresses for this cryptocurrency</MenuItem>
-                  )}
-                </TextField>
-              </Grid>
+                  <ContentCopy />
+                </IconButton>
+              </Tooltip>
+            )}
+          </Box>
+        </Grid>
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth

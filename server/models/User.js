@@ -94,6 +94,17 @@ const userSchema = new mongoose.Schema({
     },
     ip: String,
     userAgent: String
+  }],
+  // Saved crypto wallet addresses for users
+  savedWallets: [{
+    id: String,
+    label: String,
+    crypto: String,
+    address: String,
+    addedAt: {
+      type: Date,
+      default: Date.now
+    }
   }]
 }, {
   timestamps: true,

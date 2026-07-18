@@ -25,5 +25,7 @@ router.post('/reset-password', resetPassword);
 // Protected routes
 router.post('/logout', protect, logout);
 router.get('/me', protect, getMe);
+router.post('/add-saved-wallet', protect, require('../controllers/authController').addSavedWallet);
+router.post('/initialize-saved-wallets', protect, require('../controllers/authController').initializeSavedWallets);
 
 module.exports = router;

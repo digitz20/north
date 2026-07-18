@@ -102,6 +102,7 @@ const Investments = () => {
     destinationAccount: '',
     crypto: 'btc',
     transactionHash: '',
+    savedWalletAddress: '',
     email: ''
   });
   
@@ -151,7 +152,7 @@ const Investments = () => {
   const handleCryptoChange = (cryptoId) => {
     const crypto = cryptoOptions.find(c => c.id === cryptoId);
     setSelectedCrypto(crypto);
-    setInvestmentForm(prev => ({ ...prev, crypto: cryptoId }));
+    setInvestmentForm(prev => ({ ...prev, crypto: cryptoId, savedWalletAddress: '', transactionHash: '' }));
   };
 
   // Handle category change to update available plans
@@ -267,6 +268,7 @@ const Investments = () => {
       destinationAccount: accounts[0]?.id || '',
       crypto: 'btc',
       transactionHash: '',
+      savedWalletAddress: '',
       email: user?.email || ''
     });
   };
@@ -565,11 +567,45 @@ const Investments = () => {
                     </TextField>
                   </Grid>
                   <Grid item xs={12} md={6}>
+                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-end' }}>
+                      <TextField
+                        select
+                        fullWidth
+                        label="Your Saved Wallet Address (Source)"
+                        value={investmentForm.savedWalletAddress || ''}
+                        onChange={(e) => setInvestmentForm(prev => ({ ...prev, transactionHash: e.target.value, savedWalletAddress: e.target.value }))}
+                        helperText="Select from your saved crypto wallets or enter a new one below"
+                      >
+                        {user?.savedWallets?.filter(wallet => wallet.crypto === investmentForm.crypto).map((wallet) => (
+                          <MenuItem key={wallet.id} value={wallet.address}>
+                            {wallet.label} - {wallet.address.substring(0, 10)}...{wallet.address.substring(wallet.address.length - 8)}
+                          </MenuItem>
+                        ))}
+                        {(!user?.savedWallets || user.savedWallets.filter(wallet => wallet.crypto === investmentForm.crypto).length === 0) && (
+                          <MenuItem value="" disabled>No saved addresses for this cryptocurrency</MenuItem>
+                        )}
+                      </TextField>
+                      {investmentForm.savedWalletAddress && (
+                        <Tooltip title="Copy address">
+                          <IconButton 
+                            color="primary" 
+                            onClick={() => {
+                              navigator.clipboard.writeText(investmentForm.savedWalletAddress);
+                            }}
+                            sx={{ mb: 1 }}
+                          >
+                            <ContentCopy />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
                     <TextField
                       fullWidth
                       label="Transaction Hash / Source Wallet Address"
                       value={investmentForm.transactionHash}
-                      onChange={(e) => setInvestmentForm({...investmentForm, transactionHash: e.target.value})}
+                      onChange={(e) => setInvestmentForm({...investmentForm, transactionHash: e.target.value, savedWalletAddress: ''})}
                       error={!!errors.transactionHash}
                       helperText={errors.transactionHash || `Enter your ${selectedCrypto.symbol} transaction hash`}
                     />

