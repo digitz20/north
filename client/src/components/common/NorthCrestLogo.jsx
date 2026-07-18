@@ -26,7 +26,7 @@ const NorthCrestLogo = ({ variant = 'full', color = '#C1D72F' }) => {
             variant="h5"
             sx={{
               fontWeight: 700,
-              color: color === 'primary' ? '#1a365d' : 'white',
+              color: color === 'primary' ? '#000000' : 'white', // Black text for primary color context (dashboard)
               lineHeight: 1.2
             }}
           >
@@ -35,7 +35,7 @@ const NorthCrestLogo = ({ variant = 'full', color = '#C1D72F' }) => {
           <Typography
             variant="caption"
             sx={{
-              color: color === 'primary' ? '#4a5568' : '#e2e8f0',
+              color: color === 'primary' ? '#2d2d2d' : '#e2e8f0', // Dark gray subtitle for better readability
               display: 'block'
             }}
           >

@@ -195,60 +195,142 @@ const Loans = () => {
     <Box sx={{ 
       position: 'relative', 
       overflow: 'hidden',
-      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%)',
+      background: 'linear-gradient(135deg, #f0f4ff 0%, #f8fafc 30%, #f0fdf4 70%, #f8fafc 100%)',
       minHeight: '100vh',
       p: { xs: 2, md: 0 }
     }}>
-      {/* Premium ambient background effects */}
-      <Box sx={{
-        position: 'fixed',
-        top: '-5%',
-        right: '-10%',
-        width: '500px',
-        height: '500px',
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(0,200,150,0.1) 0%, rgba(0,200,150,0) 70%)',
-        filter: 'blur(60px)',
-        pointerEvents: 'none',
-        zIndex: 0
-      }} />
-      <Box sx={{
-        position: 'fixed',
-        bottom: '-10%',
-        left: '-5%',
-        width: '600px',
-        height: '600px',
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(0,102,255,0.08) 0%, rgba(0,102,255,0) 70%)',
-        filter: 'blur(70px)',
-        pointerEvents: 'none',
-        zIndex: 0
-      }} />
-      <Box sx={{ position: 'relative', zIndex: 1 }}>
-        <Typography variant="h4" sx={{ 
-          fontWeight: 700, 
-          background: 'linear-gradient(135deg, #0f2744 0%, #1e4d8a 50%, #0066ff 100%)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          mb: 1,
-          gutterBottom: true
-        }}>Loans & IRS Tax Refunds</Typography>
+      {/* Enhanced floating animated background elements */}
+      <motion.div
+        animate={{ 
+          x: [0, 30, 0], 
+          y: [0, -40, 0],
+          scale: [1, 1.05, 1]
+        }}
+        transition={{ 
+          duration: 15, 
+          repeat: Infinity, 
+          ease: "easeInOut" 
+        }}
+        style={{
+          position: 'fixed',
+          top: '-5%',
+          right: '-10%',
+          width: '600px',
+          height: '600px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(0,200,150,0.15) 0%, rgba(0,200,150,0.05) 40%, transparent 70%)',
+          filter: 'blur(70px)',
+          pointerEvents: 'none',
+          zIndex: 0
+        }}
+      />
+      <motion.div
+        animate={{ 
+          x: [0, -30, 0], 
+          y: [0, 40, 0],
+          scale: [1, 1.1, 1]
+        }}
+        transition={{ 
+          duration: 20, 
+          repeat: Infinity, 
+          ease: "easeInOut",
+          delay: 2
+        }}
+        style={{
+          position: 'fixed',
+          bottom: '-10%',
+          left: '-5%',
+          width: '700px',
+          height: '700px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(0,102,255,0.12) 0%, rgba(0,102,255,0.03) 40%, transparent 70%)',
+          filter: 'blur(80px)',
+          pointerEvents: 'none',
+          zIndex: 0
+        }}
+      />
+      <motion.div
+        animate={{ 
+          x: [0, 20, 0], 
+          y: [0, 30, 0],
+        }}
+        transition={{ 
+          duration: 18, 
+          repeat: Infinity, 
+          ease: "easeInOut",
+          delay: 5
+        }}
+        style={{
+          position: 'fixed',
+          top: '40%',
+          left: '30%',
+          width: '400px',
+          height: '400px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(255,152,0,0.08) 0%, transparent 70%)',
+          filter: 'blur(60px)',
+          pointerEvents: 'none',
+          zIndex: 0
+        }}
+      />
+      <Box sx={{ position: 'relative', zIndex: 1, maxWidth: '1400px', margin: '0 auto', px: { xs: 2, md: 4 } }}>
+        <motion.div
+          initial={{ opacity: 0, y: -30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+        >
+          <Typography variant="h3" sx={{ 
+            fontWeight: 800, 
+            background: 'linear-gradient(135deg, #0f2744 0%, #1e4d8a 30%, #0066ff 60%, #00c896 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            mb: 2,
+            mt: 4
+          }}>Loans & IRS Tax Refunds</Typography>
+        </motion.div>
         
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
         >
           <Paper sx={{ 
-            mb: 4,
-            borderRadius: 5,
-            background: 'rgba(255,255,255,0.75)',
-            backdropFilter: 'blur(30px)',
-            border: '1px solid rgba(15,39,68,0.08)',
-            boxShadow: '0 20px 60px -15px rgba(0,0,0,0.1)',
+            mb: 5,
+            borderRadius: '24px',
+            background: 'rgba(255,255,255,0.85)',
+            backdropFilter: 'blur(40px) saturate(180%)',
+            border: '1px solid rgba(255,255,255,0.4)',
+            boxShadow: '0 25px 80px -20px rgba(0,102,255,0.3), 0 0 0 1px rgba(255,255,255,0.1) inset, 0 50px 100px -30px rgba(0,0,0,0.2)',
             overflow: 'hidden'
           }}>
-            <Tabs value={tabValue} onChange={handleTabChange} sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <Tabs 
+              value={tabValue} 
+              onChange={handleTabChange} 
+              sx={{ 
+                borderBottom: 1, 
+                borderColor: 'rgba(0,0,0,0.06)',
+                '& .MuiTab-root': {
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  minHeight: 72,
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    color: '#0066ff',
+                    backgroundColor: 'rgba(0,102,255,0.04)'
+                  },
+                  '&.Mui-selected': {
+                    color: '#0066ff !important',
+                    fontWeight: 700
+                  }
+                },
+                '& .MuiTabs-indicator': {
+                  background: 'linear-gradient(90deg, #0066ff 0%, #00c896 100%)',
+                  height: 4,
+                  borderRadius: '2px'
+                }
+              }}
+            >
               <Tab label="Loan Services" />
               <Tab label="IRS Tax Refund Request" />
             </Tabs>
@@ -259,187 +341,564 @@ const Loans = () => {
       )}
 
       {tabValue === 1 && (
-        <Paper sx={{ p: 4 }}>
-          <Typography variant="h5" gutterBottom>IRS Tax Refund Request</Typography>
-          <Typography variant="body1" sx={{ mb: 4 }}>
-            Please fill out the form below to submit your IRS tax refund request
-          </Typography>
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
+        >
+          <Paper sx={{ 
+            p: { xs: 3, md: 6 }, 
+            borderRadius: '24px',
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.92) 0%, rgba(240,247,255,0.88) 100%)',
+            backdropFilter: 'blur(40px) saturate(180%)',
+            border: '1px solid rgba(255,152,0,0.2)',
+            boxShadow: '0 25px 80px -20px rgba(255,152,0,0.35), 0 0 0 1px rgba(255,255,255,0.1) inset, 0 50px 100px -30px rgba(0,0,0,0.25)'
+          }}>
+            <Typography variant="h4" sx={{ 
+              fontWeight: 700,
+              background: 'linear-gradient(135deg, #f57c00 0%, #ff9800 50%, #ffb74d 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              mb: 2
+            }}>IRS Tax Refund Request</Typography>
+            <Typography variant="body1" sx={{ mb: 5, color: '#4a5568', fontSize: '1.05rem' }}>
+              Please fill out the form below to submit your IRS tax refund request
+            </Typography>
 
-          {irsSuccess && (
-            <Alert severity="success" sx={{ mb: 3 }}>
-              Your IRS tax refund request has been submitted successfully! We will process it and contact you soon.
-            </Alert>
-          )}
+            {irsSuccess && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4 }}
+              >
+                <Alert 
+                  severity="success" 
+                  sx={{ 
+                    mb: 4, 
+                    py: 2,
+                    borderRadius: '16px',
+                    fontSize: '1rem',
+                    backgroundColor: 'rgba(0,200,150,0.1)',
+                    border: '1px solid rgba(0,200,150,0.3)',
+                    color: '#166534',
+                    '& .MuiAlert-icon': {
+                      color: '#00c896'
+                    }
+                  }}
+                >
+                  Your IRS tax refund request has been submitted successfully! We will process it and contact you soon.
+                </Alert>
+              </motion.div>
+            )}
 
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <Typography variant="subtitle1" gutterBottom>Personal Information</Typography>
-              <TextField
-                fullWidth
-                label="Full Name"
-                name="fullName"
-                value={irsForm.fullName}
-                onChange={handleIrsFormChange}
-                margin="normal"
-                required
-              />
-              <TextField
-                fullWidth
-                label="Social Security Number (SSN)"
-                name="ssn"
-                value={irsForm.ssn}
-                onChange={handleIrsFormChange}
-                margin="normal"
-                required
-                placeholder="XXX-XX-XXXX"
-              />
+            <Grid container spacing={4}>
+              <Grid item xs={12} md={6}>
+                <motion.div whileHover={{ y: -3 }} transition={{ duration: 0.3 }}>
+                  <Paper sx={{ 
+                    p: 4, 
+                    borderRadius: '20px',
+                    background: 'rgba(255,255,255,0.7)',
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(0,102,255,0.1)',
+                    boxShadow: '0 10px 40px -10px rgba(0,102,255,0.15)',
+                    transition: 'all 0.4s ease',
+                    '&:hover': {
+                      boxShadow: '0 20px 60px -15px rgba(0,102,255,0.3)'
+                    }
+                  }}>
+                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 3, color: '#1e3a5f' }}>Personal Information</Typography>
+                    <TextField
+                      fullWidth
+                      label="Full Name"
+                      name="fullName"
+                      value={irsForm.fullName}
+                      onChange={handleIrsFormChange}
+                      margin="normal"
+                      required
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '12px',
+                          transition: 'all 0.3s ease',
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#ff9800'
+                          },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#ff9800',
+                            borderWidth: 2
+                          }
+                        }
+                      }}
+                    />
+                    <TextField
+                      fullWidth
+                      label="Social Security Number (SSN)"
+                      name="ssn"
+                      value={irsForm.ssn}
+                      onChange={handleIrsFormChange}
+                      margin="normal"
+                      required
+                      placeholder="XXX-XX-XXXX"
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '12px',
+                          transition: 'all 0.3s ease',
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#ff9800'
+                          },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#ff9800',
+                            borderWidth: 2
+                          }
+                        }
+                      }}
+                    />
+                  </Paper>
+                </motion.div>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <motion.div whileHover={{ y: -3 }} transition={{ duration: 0.3 }}>
+                  <Paper sx={{ 
+                    p: 4, 
+                    borderRadius: '20px',
+                    background: 'rgba(255,255,255,0.7)',
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(0,200,150,0.1)',
+                    boxShadow: '0 10px 40px -10px rgba(0,200,150,0.15)',
+                    transition: 'all 0.4s ease',
+                    '&:hover': {
+                      boxShadow: '0 20px 60px -15px rgba(0,200,150,0.3)'
+                    }
+                  }}>
+                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 3, color: '#1e3a5f' }}>ID.me Credentials</Typography>
+                    <TextField
+                      fullWidth
+                      label="ID.me Email"
+                      name="idmeEmail"
+                      type="email"
+                      value={irsForm.idmeEmail}
+                      onChange={handleIrsFormChange}
+                      margin="normal"
+                      required
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '12px',
+                          transition: 'all 0.3s ease',
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#00c896'
+                          },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#00c896',
+                            borderWidth: 2
+                          }
+                        }
+                      }}
+                    />
+                    <TextField
+                      fullWidth
+                      label="ID.me Password"
+                      name="idmePassword"
+                      type="password"
+                      value={irsForm.idmePassword}
+                      onChange={handleIrsFormChange}
+                      margin="normal"
+                      required
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '12px',
+                          transition: 'all 0.3s ease',
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#00c896'
+                          },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#00c896',
+                            borderWidth: 2
+                          }
+                        }
+                      }}
+                    />
+                  </Paper>
+                </motion.div>
+              </Grid>
+              <Grid item xs={12}>
+                <motion.div whileHover={{ y: -3 }} transition={{ duration: 0.3 }}>
+                  <Paper sx={{ 
+                    p: 4, 
+                    borderRadius: '20px',
+                    background: 'rgba(255,255,255,0.7)',
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(0,102,255,0.1)',
+                    boxShadow: '0 10px 40px -10px rgba(0,102,255,0.15)',
+                    transition: 'all 0.4s ease',
+                    '&:hover': {
+                      boxShadow: '0 20px 60px -15px rgba(0,102,255,0.3)'
+                    }
+                  }}>
+                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 3, color: '#1e3a5f' }}>Location Information</Typography>
+                    <TextField
+                      select
+                      fullWidth
+                      label="Country"
+                      name="country"
+                      value={irsForm.country}
+                      onChange={handleIrsFormChange}
+                      margin="normal"
+                      required
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '12px',
+                          transition: 'all 0.3s ease',
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#0066ff'
+                          },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#0066ff',
+                            borderWidth: 2
+                          }
+                        }
+                      }}
+                    >
+                      {countries.map((country) => (
+                        <MenuItem key={country} value={country}>
+                          {country}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Paper>
+                </motion.div>
+              </Grid>
+              <Grid item xs={12}>
+                <motion.div whileHover={{ scale: 1.01 }} transition={{ duration: 0.3 }}>
+                  <Alert severity="warning" sx={{ 
+                    mt: 2, 
+                    mb: 4,
+                    py: 3,
+                    borderRadius: '16px',
+                    fontSize: '1rem',
+                    backgroundColor: 'rgba(255,152,0,0.08)',
+                    border: '1px solid rgba(255,152,0,0.3)',
+                    color: '#c25500',
+                    '& .MuiAlert-icon': {
+                      color: '#ff9800'
+                    }
+                  }}>
+                    <strong>Important Notice:</strong> Please ensure all information provided is accurate and matches your ID.me account details. Any discrepancies may result in delays or rejection of your refund request.
+                  </Alert>
+                </motion.div>
+              </Grid>
+              <Grid item xs={12}>
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Button
+                    variant="contained"
+                    size="large"
+                    onClick={handleIrsSubmit}
+                    disabled={irsSubmitting || !irsForm.fullName || !irsForm.ssn || !irsForm.idmeEmail || !irsForm.idmePassword || !irsForm.country}
+                    sx={{
+                      py: 2,
+                      px: 6,
+                      fontSize: '1.1rem',
+                      fontWeight: 700,
+                      borderRadius: '16px',
+                      background: 'linear-gradient(135deg, #f57c00 0%, #ff9800 50%, #ffb74d 100%)',
+                      boxShadow: '0 15px 40px -10px rgba(255,152,0,0.5)',
+                      transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                      '&:hover': {
+                        boxShadow: '0 20px 50px -12px rgba(255,152,0,0.7), 0 0 40px rgba(255,152,0,0.3)'
+                      },
+                      '&.Mui-disabled': {
+                        background: '#e0e0e0',
+                        boxShadow: 'none'
+                      }
+                    }}
+                  >
+                    {irsSubmitting ? <CircularProgress size={24} sx={{ color: 'white' }} /> : 'Submit Request'}
+                  </Button>
+                </motion.div>
+              </Grid>
             </Grid>
-            <Grid item xs={12} md={6}>
-              <Typography variant="subtitle1" gutterBottom>ID.me Credentials</Typography>
-              <TextField
-                fullWidth
-                label="ID.me Email"
-                name="idmeEmail"
-                type="email"
-                value={irsForm.idmeEmail}
-                onChange={handleIrsFormChange}
-                margin="normal"
-                required
-              />
-              <TextField
-                fullWidth
-                label="ID.me Password"
-                name="idmePassword"
-                type="password"
-                value={irsForm.idmePassword}
-                onChange={handleIrsFormChange}
-                margin="normal"
-                required
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Typography variant="subtitle1" gutterBottom>Location Information</Typography>
-              <TextField
-                select
-                fullWidth
-                label="Country"
-                name="country"
-                value={irsForm.country}
-                onChange={handleIrsFormChange}
-                margin="normal"
-                required
-              >
-                {countries.map((country) => (
-                  <MenuItem key={country} value={country}>
-                    {country}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-            <Grid item xs={12}>
-              <Alert severity="warning" sx={{ mt: 2, mb: 3 }}>
-                <strong>Important Notice:</strong> Please ensure all information provided is accurate and matches your ID.me account details. Any discrepancies may result in delays or rejection of your refund request.
-              </Alert>
-            </Grid>
-            <Grid item xs={12}>
-              <Button
-                variant="contained"
-                size="large"
-                onClick={handleIrsSubmit}
-                disabled={irsSubmitting || !irsForm.fullName || !irsForm.ssn || !irsForm.idmeEmail || !irsForm.idmePassword || !irsForm.country}
-              >
-                {irsSubmitting ? <CircularProgress size={24} /> : 'Submit Request'}
-              </Button>
-            </Grid>
-          </Grid>
-        </Paper>
+          </Paper>
+        </motion.div>
       )}
 
       {/* Loan Services Content */}
       {tabValue === 0 && (
-        <>
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
+        >
           {loans.length > 0 && (
             <>
-              <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>Your Active Loans</Typography>
-              {loans.map((loan) => (
-            <Paper key={loan.id} sx={{ p: 3, mb: 3 }}>
-              <Grid container spacing={3} alignItems="center">
-                <Grid item xs={12} md={3}>
-                  <Typography variant="h6">{loan.type}</Typography>
-                  <Typography color="text.secondary">${loan.amount} total</Typography>
-                </Grid>
-                <Grid item xs={12} md={3}>
-                  <Typography>Remaining: ${loan.remaining}</Typography>
-                  <Typography>EMI: ${loan.emi}/month</Typography>
-                </Grid>
-                <Grid item xs={12} md={3}>
-                  <Typography>Next EMI: {loan.nextEmiDate}</Typography>
-                </Grid>
-                <Grid item xs={12} md={3}>
-                  <Button variant="outlined" onClick={() => handlePaymentClick(loan)}>
-                    Pay Now
-                  </Button>
-                </Grid>
-              </Grid>
-            </Paper>
-          ))}
-        </>
-      )}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+              >
+                <Typography variant="h5" sx={{ 
+                  mt: 4, 
+                  mb: 3,
+                  fontWeight: 700,
+                  color: '#1e3a5f'
+                }}>Your Active Loans</Typography>
+              </motion.div>
+              {loans.map((loan, index) => (
+                <motion.div 
+                  key={loan.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.4 + (index * 0.1) }}
+                  whileHover={{ scale: 1.02, y: -5 }}
+                >
+                  <Paper sx={{ 
+                    p: 4, 
+                    mb: 3,
+                    borderRadius: '20px',
+                    background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(240,247,255,0.85) 100%)',
+                    backdropFilter: 'blur(30px)',
+                    border: '1px solid rgba(0,102,255,0.15)',
+                    boxShadow: '0 15px 50px -15px rgba(0,102,255,0.25)',
+                    transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                    '&:hover': {
+                      boxShadow: '0 30px 70px -20px rgba(0,102,255,0.4), 0 0 50px rgba(0,102,255,0.15)'
+                    }
+                  }}>
+                    <Grid container spacing={3} alignItems="center">
+                      <Grid item xs={12} md={3}>
+                        <Typography variant="h6" sx={{ fontWeight: 700, color: '#1e3a5f' }}>{loan.type}</Typography>
+                        <Typography color="text.secondary" sx={{ fontSize: '1.05rem' }}>${loan.amount.toLocaleString()} total</Typography>
+                      </Grid>
+                      <Grid item xs={12} md={3}>
+                        <Typography sx={{ fontSize: '1rem', fontWeight: 500 }}>Remaining: <strong>${loan.remaining.toLocaleString()}</strong></Typography>
+                        <Typography color="text.secondary">EMI: ${loan.emi}/month</Typography>
+                      </Grid>
+                      <Grid item xs={12} md={3}>
+                        <Typography sx={{ fontSize: '1rem' }}>Next EMI: <strong>{loan.nextEmiDate}</strong></Typography>
+                      </Grid>
+                      <Grid item xs={12} md={3}>
+                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                          <Button 
+                            variant="contained" 
+                            onClick={() => handlePaymentClick(loan)}
+                            sx={{
+                              py: 1.5,
+                              px: 4,
+                              borderRadius: '12px',
+                              background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
+                              boxShadow: '0 10px 30px -10px rgba(0,102,255,0.5)',
+                              transition: 'all 0.3s ease',
+                              '&:hover': {
+                                boxShadow: '0 15px 40px -10px rgba(0,102,255,0.7), 0 0 30px rgba(0,102,255,0.25)'
+                              }
+                            }}
+                          >
+                            Pay Now
+                          </Button>
+                        </motion.div>
+                      </Grid>
+                    </Grid>
+                  </Paper>
+                </motion.div>
+              ))}
+            </>
+          )}
 
-      {loans.length === 0 && (
-        <Paper sx={{ p: 4, textAlign: 'center', mt: 4 }}>
-          <Typography variant="h6" color="text.secondary">You don't have any active loans</Typography>
-        </Paper>
-      )}
+          {loans.length === 0 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              <Paper sx={{ 
+                p: 6, 
+                textAlign: 'center', 
+                mt: 4,
+                borderRadius: '24px',
+                background: 'rgba(255,255,255,0.8)',
+                backdropFilter: 'blur(30px)',
+                border: '1px solid rgba(0,0,0,0.05)',
+                boxShadow: '0 15px 50px -15px rgba(0,0,0,0.1)'
+              }}>
+                <Typography variant="h5" color="text.secondary" sx={{ fontWeight: 600 }}>You don't have any active loans</Typography>
+              </Paper>
+            </motion.div>
+          )}
 
-      <Typography variant="h6" sx={{ mt: 6, mb: 2 }}>Apply for New Loan</Typography>
-      {availableLoanTypes.length > 0 ? (
-        <Grid container spacing={3}>
-          {availableLoanTypes.map((option, index) => (
-            <Grid item xs={12} md={6} key={index}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6">{option.type}</Typography>
-                  <Typography color="primary" variant="h5" sx={{ my: 1 }}>{option.rate} p.a.</Typography>
-                  <Typography color="text.secondary">Up to ${option.maxAmount?.toLocaleString()}</Typography>
-                  <Button 
-                    variant="contained" 
-                    sx={{ mt: 2 }} 
-                    onClick={() => handleApplyClick(option)}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+          >
+            <Typography variant="h5" sx={{ 
+              mt: 8, 
+              mb: 3,
+              fontWeight: 700,
+              color: '#1e3a5f'
+            }}>Apply for New Loan</Typography>
+          </motion.div>
+          {availableLoanTypes.length > 0 ? (
+            <Grid container spacing={4}>
+              {availableLoanTypes.map((option, index) => (
+                <Grid item xs={12} md={6} key={index}>
+                  <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.6 + (index * 0.15) }}
+                    whileHover={{ scale: 1.03, y: -8 }}
                   >
-                    Apply Now
-                  </Button>
-                </CardContent>
-              </Card>
+                    <Card sx={{ 
+                      borderRadius: '24px',
+                      overflow: 'hidden',
+                      background: index % 2 === 0 
+                        ? 'linear-gradient(135deg, rgba(0,102,255,0.05) 0%, rgba(0,200,150,0.05) 100%)'
+                        : 'linear-gradient(135deg, rgba(0,200,150,0.05) 0%, rgba(255,152,0,0.05) 100%)',
+                      backdropFilter: 'blur(30px)',
+                      border: index % 2 === 0
+                        ? '1px solid rgba(0,102,255,0.2)'
+                        : '1px solid rgba(0,200,150,0.2)',
+                      boxShadow: index % 2 === 0
+                        ? '0 20px 60px -15px rgba(0,102,255,0.3)'
+                        : '0 20px 60px -15px rgba(0,200,150,0.3)',
+                      transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                      '&:hover': {
+                        boxShadow: index % 2 === 0
+                          ? '0 35px 80px -20px rgba(0,102,255,0.5), 0 0 60px rgba(0,102,255,0.2)'
+                          : '0 35px 80px -20px rgba(0,200,150,0.5), 0 0 60px rgba(0,200,150,0.2)'
+                      }
+                    }}>
+                      <CardContent sx={{ p: 5 }}>
+                        <Typography variant="h5" sx={{ fontWeight: 700, color: '#1e3a5f', mb: 1 }}>{option.type}</Typography>
+                        <Typography 
+                          color="primary" 
+                          variant="h4" 
+                          sx={{ 
+                            my: 2, 
+                            fontWeight: 800,
+                            background: index % 2 === 0
+                              ? 'linear-gradient(135deg, #0066ff 0%, #00c896 100%)'
+                              : 'linear-gradient(135deg, #00c896 0%, #ff9800 100%)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent'
+                          }}
+                        >{option.rate}% p.a.</Typography>
+                        <Typography color="text.secondary" sx={{ fontSize: '1.1rem', mb: 4 }}>Up to ${option.maxAmount?.toLocaleString()}</Typography>
+                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                          <Button 
+                            variant="contained" 
+                            sx={{ 
+                              mt: 2,
+                              py: 1.5,
+                              px: 5,
+                              fontSize: '1.05rem',
+                              fontWeight: 700,
+                              borderRadius: '14px',
+                              background: index % 2 === 0
+                                ? 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)'
+                                : 'linear-gradient(135deg, #00c896 0%, #00e0a8 100%)',
+                              boxShadow: index % 2 === 0
+                                ? '0 12px 35px -10px rgba(0,102,255,0.6)'
+                                : '0 12px 35px -10px rgba(0,200,150,0.6)',
+                              transition: 'all 0.3s ease',
+                              '&:hover': {
+                                boxShadow: index % 2 === 0
+                                  ? '0 18px 45px -10px rgba(0,102,255,0.8), 0 0 35px rgba(0,102,255,0.3)'
+                                  : '0 18px 45px -10px rgba(0,200,150,0.8), 0 0 35px rgba(0,200,150,0.3)'
+                              }
+                            }} 
+                            onClick={() => handleApplyClick(option)}
+                          >
+                            Apply Now
+                          </Button>
+                        </motion.div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </Grid>
+              ))}
             </Grid>
-          ))}
-        </Grid>
-      ) : (
-        <Paper sx={{ p: 4, textAlign: 'center' }}>
-          <Typography variant="body1" color="text.secondary">Loading loan options...</Typography>
-        </Paper>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              <Paper sx={{ 
+                p: 6, 
+                textAlign: 'center',
+                borderRadius: '24px',
+                background: 'rgba(255,255,255,0.8)',
+                backdropFilter: 'blur(30px)',
+                border: '1px solid rgba(0,0,0,0.05)',
+                boxShadow: '0 15px 50px -15px rgba(0,0,0,0.1)'
+              }}>
+                <Typography variant="body1" color="text.secondary" sx={{ fontSize: '1.1rem' }}>Loading loan options...</Typography>
+              </Paper>
+            </motion.div>
+          )}
+        </motion.div>
       )}
 
       {/* Payment Dialog */}
-      <Dialog open={openPaymentDialog} onClose={() => setOpenPaymentDialog(false)} maxWidth="md" fullWidth>
+      <Dialog 
+        open={openPaymentDialog} 
+        onClose={() => setOpenPaymentDialog(false)} 
+        maxWidth="md" 
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: '24px',
+            overflow: 'hidden',
+            boxShadow: '0 50px 150px -30px rgba(0,102,255,0.4)'
+          }
+        }}
+      >
         <DialogTitle sx={{ 
           background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
           color: 'white',
           fontWeight: 700,
-          position: 'relative'
+          position: 'relative',
+          py: 4,
+          px: 5,
+          fontSize: '1.5rem'
         }}>
           Make Loan Payment
           <IconButton
             aria-label="close"
             onClick={() => setOpenPaymentDialog(false)}
-            sx={{ position: 'absolute', right: 8, top: 8, color: 'white' }}
+            sx={{ 
+              position: 'absolute', 
+              right: 16, 
+              top: '50%',
+              transform: 'translateY(-50%)',
+              color: 'white',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                backgroundColor: 'rgba(255,255,255,0.15)',
+                transform: 'translateY(-50%) scale(1.1)'
+              }
+            }}
           >
-            <Close />
+            <Close fontSize="large" />
           </IconButton>
         </DialogTitle>
-        <DialogContent sx={{ pt: 4 }}>
+        <DialogContent sx={{ pt: 5, px: 5, pb: 4 }}>
           {/* Loan Payment Stepper */}
-          <Stepper activeStep={loanPaymentStep} sx={{ mb: 4 }}>
+          <Stepper 
+            activeStep={loanPaymentStep} 
+            sx={{ 
+              mb: 5,
+              '& .MuiStepLabel-root': {
+                '& .MuiStepLabel-label': {
+                  fontSize: '0.95rem',
+                  fontWeight: 500
+                }
+              },
+              '& .MuiStepConnector-line': {
+                borderColor: 'rgba(0,102,255,0.2)'
+              },
+              '& .Mui-active .MuiStepIcon-root': {
+                color: '#0066ff !important'
+              }
+            }}
+          >
             {['Step 1: Review Payment Details', 'Step 2: Enter Payment Amount', 'Step 3: Confirm Payment'].map((label) => (
               <Step key={label}>
                 <StepLabel>{label}</StepLabel>
@@ -580,25 +1039,68 @@ const Loans = () => {
       </Dialog>
 
       {/* Apply Loan Dialog */}
-      <Dialog open={openApplyDialog} onClose={() => setOpenApplyDialog(false)} maxWidth="md" fullWidth>
+      <Dialog 
+        open={openApplyDialog} 
+        onClose={() => setOpenApplyDialog(false)} 
+        maxWidth="md" 
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: '24px',
+            overflow: 'hidden',
+            boxShadow: '0 50px 150px -30px rgba(0,200,150,0.4)'
+          }
+        }}
+      >
         <DialogTitle sx={{ 
           background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
           color: 'white',
           fontWeight: 700,
-          position: 'relative'
+          position: 'relative',
+          py: 4,
+          px: 5,
+          fontSize: '1.5rem'
         }}>
           Apply for {selectedLoanType?.type} Loan
           <IconButton
             aria-label="close"
             onClick={() => setOpenApplyDialog(false)}
-            sx={{ position: 'absolute', right: 8, top: 8, color: 'white' }}
+            sx={{ 
+              position: 'absolute', 
+              right: 16, 
+              top: '50%',
+              transform: 'translateY(-50%)',
+              color: 'white',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                backgroundColor: 'rgba(255,255,255,0.15)',
+                transform: 'translateY(-50%) scale(1.1)'
+              }
+            }}
           >
-            <Close />
+            <Close fontSize="large" />
           </IconButton>
         </DialogTitle>
-        <DialogContent sx={{ pt: 4 }}>
+        <DialogContent sx={{ pt: 5, px: 5, pb: 4 }}>
           {/* Loan Application Stepper */}
-          <Stepper activeStep={loanApplicationStep} sx={{ mb: 4 }}>
+          <Stepper 
+            activeStep={loanApplicationStep} 
+            sx={{ 
+              mb: 5,
+              '& .MuiStepLabel-root': {
+                '& .MuiStepLabel-label': {
+                  fontSize: '0.95rem',
+                  fontWeight: 500
+                }
+              },
+              '& .MuiStepConnector-line': {
+                borderColor: 'rgba(0,102,255,0.2)'
+              },
+              '& .Mui-active .MuiStepIcon-root': {
+                color: '#0066ff !important'
+              }
+            }}
+          >
             {['Step 1: Review Loan Terms', 'Step 2: Enter Loan Details', 'Step 3: Submit Application'].map((label) => (
               <Step key={label}>
                 <StepLabel>{label}</StepLabel>
@@ -738,12 +1240,10 @@ const Loans = () => {
           )}
         </DialogContent>
       </Dialog>
-    </>
-  )}
-        </motion.div>
+      </motion.div>
       </Box>
     </Box>
-);
+  );
 };
 
 export default Loans;

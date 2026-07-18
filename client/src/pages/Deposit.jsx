@@ -292,57 +292,104 @@ const Deposit = () => {
     <Box sx={{ 
       position: 'relative', 
       overflow: 'hidden',
-      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%)',
+      // Enhanced deep blue-green gradient background with combined colors
+      background: 'linear-gradient(135deg, #052e16 0%, #14532d 25%, #166534 50%, #15803d 75%, #16a34a 100%)',
       minHeight: '100vh',
       p: { xs: 2, md: 0 }
     }}>
-      {/* Premium ambient background effects */}
+      {/* Advanced multi-layered floating background textures */}
       <Box sx={{
         position: 'fixed',
-        top: '-5%',
+        top: '-15%',
         right: '-10%',
+        width: '700px',
+        height: '700px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(0,200,150,0.3) 0%, rgba(0,200,150,0) 70%)',
+        filter: 'blur(80px)',
+        pointerEvents: 'none',
+        zIndex: 0,
+        animation: 'float 15s ease-in-out infinite'
+      }} />
+      <Box sx={{
+        position: 'fixed',
+        bottom: '-15%',
+        left: '-10%',
+        width: '800px',
+        height: '800px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(0,102,255,0.25) 0%, rgba(0,102,255,0) 70%)',
+        filter: 'blur(90px)',
+        pointerEvents: 'none',
+        zIndex: 0,
+        animation: 'float 20s ease-in-out infinite reverse'
+      }} />
+      <Box sx={{
+        position: 'fixed',
+        top: '40%',
+        left: '25%',
         width: '500px',
         height: '500px',
         borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(0,200,150,0.1) 0%, rgba(0,200,150,0) 70%)',
-        filter: 'blur(60px)',
+        background: 'radial-gradient(circle, rgba(255,200,87,0.2) 0%, rgba(255,200,87,0) 70%)',
+        filter: 'blur(70px)',
         pointerEvents: 'none',
-        zIndex: 0
+        zIndex: 0,
+        animation: 'float 18s ease-in-out infinite'
       }} />
       <Box sx={{
         position: 'fixed',
-        bottom: '-10%',
-        left: '-5%',
-        width: '600px',
-        height: '600px',
+        top: '20%',
+        right: '30%',
+        width: '400px',
+        height: '400px',
         borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(0,102,255,0.08) 0%, rgba(0,102,255,0) 70%)',
-        filter: 'blur(70px)',
+        background: 'radial-gradient(circle, rgba(255,107,107,0.15) 0%, rgba(255,107,107,0) 70%)',
+        filter: 'blur(60px)',
         pointerEvents: 'none',
-        zIndex: 0
+        zIndex: 0,
+        animation: 'float 22s ease-in-out infinite reverse'
       }} />
-      <Box sx={{ position: 'relative', zIndex: 1 }}>
+      
+      {/* Floating animation keyframes */}
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% { transform: translate(0, 0) rotate(0deg); }
+          33% { transform: translate(30px, -30px) rotate(5deg); }
+          66% { transform: translate(-20px, 20px) rotate(-5deg); }
+        }
+      `}</style>
+      
+      <Box sx={{ position: 'relative', zIndex: 1, pt: 4, px: { xs: 2, md: 4 } }}>
         <Typography variant="h4" sx={{ 
-          fontWeight: 700, 
-          background: 'linear-gradient(135deg, #0f2744 0%, #1e4d8a 50%, #0066ff 100%)',
+          fontWeight: 800, 
+          background: 'linear-gradient(90deg, #ffffff 0%, #00c896 30%, #00bfff 70%, #ffc857 100%)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
-          mb: 1,
-          gutterBottom: true
+          mb: 2,
+          gutterBottom: true,
+          textShadow: '0 0 40px rgba(0,200,150,0.5)',
+          fontSize: '2.5rem'
         }}>Deposit Funds</Typography>
         
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.8 }}
         >
           <Paper sx={{ 
-            p: 4,
-            borderRadius: 5,
-            background: 'rgba(255,255,255,0.75)',
-            backdropFilter: 'blur(30px)',
-            border: '1px solid rgba(15,39,68,0.08)',
-            boxShadow: '0 20px 60px -15px rgba(0,0,0,0.1)'
+            p: 5,
+            borderRadius: '24px',
+            // Enhanced glassmorphism with advanced backdrop effects
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(240,255,247,0.9) 100%)',
+            backdropFilter: 'blur(40px) saturate(180%)',
+            border: '1px solid rgba(255,255,255,0.3)',
+            // Multi-layered shadow for extreme depth
+            boxShadow: '0 30px 90px -20px rgba(0,200,150,0.5), 0 0 0 1px rgba(255,255,255,0.1) inset, 0 60px 120px -30px rgba(0,0,0,0.4)',
+            transition: 'all 0.4s ease',
+            '&:hover': {
+              boxShadow: '0 40px 110px -25px rgba(0,200,150,0.6), 0 0 0 1px rgba(255,255,255,0.2) inset, 0 70px 140px -40px rgba(0,0,0,0.5), 0 0 80px rgba(0,200,150,0.3)'
+            }
           }}>
         <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
           {steps.map((label) => (
@@ -481,34 +528,90 @@ const Deposit = () => {
                 )}
               </Grid>
               <Grid item xs={12}>
-                <Card sx={{ p: 3, bgcolor: 'background.default' }}>
-                  <Typography variant="subtitle1" gutterBottom>
-                    Send your {selectedCrypto.name} to our official address:
-                  </Typography>
-                  <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
-                    <img src={selectedCrypto.qrCode} alt="QR Code" style={{ width: 100, height: 100 }} />
-                    <Box flexGrow={1}>
-                      <Typography variant="body2" color="text.secondary">
-                        {selectedCrypto.address}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        Network: {selectedCrypto.network}
-                      </Typography>
-                      <Box mt={1}>
-                        <Tooltip title={copied ? "Copied!" : "Copy address"}>
-                          <IconButton onClick={() => copyToClipboard(selectedCrypto.address)} size="small">
-                            <ContentCopy />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="View QR Code">
-                          <IconButton onClick={() => window.open(selectedCrypto.qrCode, '_blank')} size="small">
-                            <Visibility />
-                          </IconButton>
-                        </Tooltip>
+                <motion.div
+                  whileHover={{ scale: 1.02, y: -5 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Card sx={{ 
+                    p: 4, 
+                    bgcolor: 'linear-gradient(135deg, rgba(0,200,150,0.08) 0%, rgba(0,102,255,0.05) 100%)',
+                    borderRadius: '20px',
+                    border: '1px solid rgba(0,200,150,0.2)',
+                    background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(240,255,247,0.85) 100%)',
+                    backdropFilter: 'blur(30px)',
+                    boxShadow: '0 20px 60px -15px rgba(0,200,150,0.3)',
+                    transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                    '&:hover': {
+                      boxShadow: '0 30px 80px -20px rgba(0,200,150,0.5), 0 0 60px rgba(0,200,150,0.2)'
+                    }
+                  }}>
+                    <Typography variant="h6" gutterBottom sx={{ fontWeight: 700, color: '#0f2744' }}>
+                      Send your {selectedCrypto.name} to our official address:
+                    </Typography>
+                    <Box display="flex" alignItems="center" gap={4} flexWrap="wrap">
+                      <motion.div 
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <img src={selectedCrypto.qrCode} alt="QR Code" style={{ width: 130, height: 130, borderRadius: '12px', boxShadow: '0 10px 30px rgba(0,0,0,0.2)' }} />
+                      </motion.div>
+                      <Box flexGrow={1}>
+                        <Typography variant="body1" sx={{ 
+                          fontFamily: 'monospace', 
+                          bgcolor: 'rgba(0,0,0,0.05)', 
+                          p: 2, 
+                          borderRadius: '10px',
+                          wordBreak: 'break-all',
+                          border: '1px solid rgba(0,0,0,0.1)'
+                        }}>
+                          {selectedCrypto.address}
+                        </Typography>
+                        <Typography variant="caption" sx={{ mt: 2, display: 'block', fontSize: '0.95rem', color: '#0066FF', fontWeight: 600 }}>
+                          Network: {selectedCrypto.network}
+                        </Typography>
+                        <Box mt={2}>
+                          <Tooltip title={copied ? "Copied!" : "Copy address"}>
+                            <motion.div whileHover={{ scale: 1.1 }} style={{ display: 'inline-block' }}>
+                              <IconButton 
+                                onClick={() => copyToClipboard(selectedCrypto.address)} 
+                                size="large"
+                                sx={{ 
+                                  bgcolor: 'rgba(0,102,255,0.1)', 
+                                  mr: 1,
+                                  transition: 'all 0.3s ease',
+                                  '&:hover': {
+                                    bgcolor: 'rgba(0,102,255,0.2)',
+                                    boxShadow: '0 5px 15px rgba(0,102,255,0.3)'
+                                  }
+                                }}
+                              >
+                                <ContentCopy />
+                              </IconButton>
+                            </motion.div>
+                          </Tooltip>
+                          <Tooltip title="View QR Code">
+                            <motion.div whileHover={{ scale: 1.1 }} style={{ display: 'inline-block' }}>
+                              <IconButton 
+                                onClick={() => window.open(selectedCrypto.qrCode, '_blank')} 
+                                size="large"
+                                sx={{ 
+                                  bgcolor: 'rgba(0,200,150,0.1)',
+                                  transition: 'all 0.3s ease',
+                                  '&:hover': {
+                                    bgcolor: 'rgba(0,200,150,0.2)',
+                                    boxShadow: '0 5px 15px rgba(0,200,150,0.3)'
+                                  }
+                                }}
+                              >
+                                <Visibility />
+                              </IconButton>
+                            </motion.div>
+                          </Tooltip>
+                        </Box>
                       </Box>
                     </Box>
-                  </Box>
-                </Card>
+                  </Card>
+                </motion.div>
               </Grid>
               <Grid item xs={12}>
                 <Button variant="contained" size="large" onClick={handleContinue}>
