@@ -30,6 +30,17 @@ exports.register = async (req, res, next) => {
       });
     }
 
+    // Validate password strength
+    const validatePassword = require('../utils/passwordValidator');
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid password',
+        errors: passwordValidation.errors
+      });
+    }
+
     // Create user
     const user = await User.create({
       firstName,
@@ -541,6 +552,17 @@ exports.resetPassword = async (req, res, next) => {
       return res.status(400).json({
         success: false,
         message: verification.message
+      });
+    }
+
+    // Validate new password strength
+    const validatePassword = require('../utils/passwordValidator');
+    const passwordValidation = validatePassword(newPassword);
+    if (!passwordValidation.isValid) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid password',
+        errors: passwordValidation.errors
       });
     }
 

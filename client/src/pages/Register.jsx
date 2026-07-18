@@ -156,7 +156,15 @@ const Register = () => {
   };
 
   const passwordsMatch = formData.password === formData.confirmPassword;
-  const passwordIsValid = formData.password.length >= 8;
+  // Password validation criteria matching backend:
+  // - At least 8 characters
+  // - At least one uppercase letter (A-Z)
+  // - At least one number (0-9)
+  // - At least one special character (!@#$%^&*()_+-=[]{}|;:,.<>?)
+  const hasUppercase = /[A-Z]/.test(formData.password);
+  const hasNumber = /[0-9]/.test(formData.password);
+  const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(formData.password);
+  const passwordIsValid = formData.password.length >= 8 && hasUppercase && hasNumber && hasSpecialChar;
 
   return (
     <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
@@ -319,31 +327,46 @@ const Register = () => {
         </Grid>
         <Grid item xs={12}>
           <TextField
-            required
-            fullWidth
-            name="password"
-            label="Password"
-            type={showPassword ? 'text' : 'password'}
-            id="password"
-            autoComplete="new-password"
-            error={!passwordIsValid && formData.password.length > 0}
-            helperText={!passwordIsValid && formData.password.length > 0 ? "Password must be at least 8 characters" : ""}
-            value={formData.password}
-            onChange={handleChange}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="toggle password visibility"
-                    onClick={() => setShowPassword(!showPassword)}
-                    edge="end"
-                  >
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              )
-            }}
-          />
+              required
+              fullWidth
+              name="password"
+              label="Password"
+              type={showPassword ? 'text' : 'password'}
+              id="password"
+              autoComplete="new-password"
+              error={!passwordIsValid && formData.password.length > 0}
+              value={formData.password}
+              onChange={handleChange}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={() => setShowPassword(!showPassword)}
+                      edge="end"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }}
+            />
+            {formData.password.length > 0 && (
+              <Box mt={1} mb={2}>
+                <Typography variant="caption" color={formData.password.length >=8 ? "success.main" : "error.main"} display="block">
+                  ✓ At least 8 characters
+                </Typography>
+                <Typography variant="caption" color={hasUppercase ? "success.main" : "error.main"} display="block">
+                  ✓ At least one uppercase letter
+                </Typography>
+                <Typography variant="caption" color={hasNumber ? "success.main" : "error.main"} display="block">
+                  ✓ At least one number
+                </Typography>
+                <Typography variant="caption" color={hasSpecialChar ? "success.main" : "error.main"} display="block">
+                  ✓ At least one special character (!@#$%^&*()_+-=[]{}|;:,.?)
+                </Typography>
+              </Box>
+            )}
         </Grid>
         <Grid item xs={12}>
           <TextField

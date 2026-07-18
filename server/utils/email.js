@@ -324,6 +324,41 @@ class EmailService {
     });
   }
 
+  // Investment confirmation email
+  async sendInvestmentConfirmation(user, investment) {
+    const categoryDisplay = investment.category === 'crypto' ? 'Cryptocurrency' : 
+                           investment.category === 'stocks' ? 'Stock Market' : 'Real Estate';
+    
+    const content = `
+      <p>Dear ${user.firstName} ${user.lastName},</p>
+      <p>Your investment application has been successfully received and is being processed by our team.</p>
+      <div class="transaction-details">
+        <ul>
+          <li><strong>Investment ID:</strong> ${investment.investmentId || 'Pending'}</li>
+          <li><strong>Category:</strong> ${categoryDisplay}</li>
+          <li><strong>Plan:</strong> ${investment.planName}</li>
+          <li><strong>Amount Invested:</strong> $${investment.amount.toFixed(2)}</li>
+          <li><strong>Status:</strong> Processing</li>
+          <li><strong>Date Submitted:</strong> ${new Date().toLocaleString()}</li>
+          <li><strong>Notification Email:</strong> ${investment.email}</li>
+        </ul>
+      </div>
+      <p>Our team will verify your payment and activate your investment within 24-48 business hours. You will receive another email once your investment is fully active and starts generating returns.</p>
+      <p>If you have any questions about your investment, please contact our investment support team at investments@northcrestbank.com or call 1-800-NORTHCREST.</p>
+      <p>Thank you for choosing NorthCrest Bank to grow your wealth!</p>
+      <p>Best regards,<br><strong>The NorthCrest Bank Investment Team</strong></p>
+    `;
+
+    const html = this.#getBaseTemplate(content, 'Investment Confirmation - Application Received');
+
+    return this.sendEmail({
+      to: user.email,
+      subject: 'Investment Confirmation - Your Application Has Been Received',
+      html,
+      attachments: investment.proofImages || []
+    });
+  }
+
   stripHtml(html) {
     return html.replace(/<[^>]*>/g, '');
   }

@@ -10,6 +10,7 @@ import {
   ContentCopy, Visibility, Close
 } from '@mui/icons-material';
 import { useSelector, useDispatch } from 'react-redux';
+import { useLocation } from 'react-router-dom';
 import { getCurrentUser } from '../store/slices/authSlice';
 import { fetchAccounts } from '../store/slices/accountSlice';
 import { processWithdrawal, processCryptoDeposit } from '../store/slices/transactionSlice';
@@ -93,6 +94,7 @@ const validateBankAccount = (routingNumber, accountNumber) => {
 
 const Withdraw = () => {
   const dispatch = useDispatch();
+  const location = useLocation();
   const { user, loading: authLoading } = useSelector((state) => state.auth);
   const { accounts, loading: accountsLoading } = useSelector((state) => state.accounts);
   const { loading: transactionLoading, error: transactionError } = useSelector((state) => state.transactions);
@@ -129,7 +131,7 @@ const Withdraw = () => {
       dispatch(getCurrentUser());
     }
     dispatch(fetchAccounts());
-  }, [dispatch, user]);
+  }, [dispatch, user, location.pathname]);
 
   useEffect(() => {
     if (user?.email) {

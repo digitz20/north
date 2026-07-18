@@ -3,7 +3,10 @@ const Account = require('../models/Account');
 const Transaction = require('../models/Transaction');
 const AuditLog = require('../models/AuditLog');
 const Notification = require('../models/Notification');
+const User = require('../models/User');
 const mongoose = require('mongoose');
+const emailService = require('../utils/email');
+const logger = require('../utils/logger');
 
 // Helper function to calculate current investment value based on returns
 const calculateCurrentValue = (investment, plan) => {
@@ -233,6 +236,24 @@ exports.createInvestment = async (req, res, next) => {
 
     await session.commitTransaction();
     session.endSession();
+
+    // Send investment confirmation email
+    try {
+      const user = await User.findById(req.user.id);
+      if (user) {
+        const investmentData = {
+          ...investment[0].toObject(),
+          planName: plan.name,
+          category: plan.type || 'general',
+          email: user.email,
+          proofImages: req.body.proofImages || []
+        };
+        await emailService.sendInvestmentConfirmation(user, investmentData);
+        logger.info(`Investment confirmation email sent to: ${user.email}`);
+      }
+    } catch (emailErr) {
+      logger.error(`Failed to send investment confirmation email: ${emailErr.message}`);
+    }
 
     res.status(201).json({
       success: true,

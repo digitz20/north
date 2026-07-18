@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Paper, Grid, TextField, Button, Switch, FormControlLabel, Divider, Alert, MenuItem, InputAdornment, CircularProgress } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
+import { useLocation } from 'react-router-dom';
 import { getCurrentUser } from '../store/slices/authSlice';
 
 // Same country codes list
@@ -55,6 +56,7 @@ const countryCodes = [
 
 const Settings = () => {
   const dispatch = useDispatch();
+  const location = useLocation();
   const { user, loading: authLoading } = useSelector((state) => state.auth);
   
   const [formData, setFormData] = useState({
@@ -96,7 +98,7 @@ const Settings = () => {
         });
       }
     }
-  }, [dispatch, user]);
+  }, [dispatch, user, location.pathname]);
 
   const handleToggle = (setting) => {
     setSettings({

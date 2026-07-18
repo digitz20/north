@@ -3,50 +3,272 @@ import {
   Box, Typography, Paper, Grid, Table, TableBody, TableCell, 
   TableContainer, TableHead, TableRow, CircularProgress, Alert,
   Button, Dialog, DialogTitle, DialogContent, DialogActions,
-  TextField, Stack
+  TextField, Stack, Stepper, Step, StepLabel, Card, CardContent,
+  Avatar, IconButton, Tooltip, Divider, MenuItem
 } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
-import { useLocation } from 'react-router-dom';
-import { Add } from '@mui/icons-material';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Add, ContentCopy, Visibility, UploadFile, CheckCircle, Close, Email } from '@mui/icons-material';
 import { 
   getUserInvestments, getInvestmentTypes, createInvestment, sellInvestment 
 } from '../store/slices/investmentSlice';
+import { processCryptoDeposit } from '../store/slices/transactionSlice';
+import { getCurrentUser } from '../store/slices/authSlice';
+import { fetchAccounts } from '../store/slices/accountSlice';
+
+// New supported cryptocurrencies with your specified addresses
+const cryptoOptions = [
+  { 
+    id: 'btc', 
+    name: 'Bitcoin', 
+    symbol: 'BTC',
+    address: 'bc1qcxturvvyrjqnj3vkundmt5kaukqw28qe7z0l4y',
+    qrCode: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=bc1qcxturvvyrjqnj3vkundmt5kaukqw28qe7z0l4y',
+    network: 'Bitcoin (BTC)'
+  },
+  { 
+    id: 'eth', 
+    name: 'Ethereum', 
+    symbol: 'ETH',
+    address: '0x87d04fc72ae68086eab7662b2ca27823f8b42eb8',
+    qrCode: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=0x87d04fc72ae68086eab7662b2ca27823f8b42eb8',
+    network: 'Ethereum (ERC20)'
+  },
+  { 
+    id: 'trx', 
+    name: 'TRON', 
+    symbol: 'TRX',
+    address: 'TCYjqLQFCfyRzrZ5nFSAYRh259we2VqRdg',
+    qrCode: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=TCYjqLQFCfyRzrZ5nFSAYRh259we2VqRdg',
+    network: 'TRON (TRX)'
+  },
+  { 
+    id: 'sol', 
+    name: 'Solana', 
+    symbol: 'SOL',
+    address: '36rAEqtck9UfSx8WJTVLvsZkQ6htUfcUXBUrbJjb73JA',
+    qrCode: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=36rAEqtck9UfSx8WJTVLvsZkQ6htUfcUXBUrbJjb73JA',
+    network: 'Solana'
+  },
+  { 
+    id: 'bnb', 
+    name: 'BNB Chain', 
+    symbol: 'BNB',
+    address: '0x87d04fc72ae68086eab7662b2ca27823f8b42eb8',
+    qrCode: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=0x87d04fc72ae68086eab7662b2ca27823f8b42eb8',
+    network: 'BNB Smart Chain'
+  },
+  { 
+    id: 'ltc', 
+    name: 'Litecoin', 
+    symbol: 'LTC',
+    address: 'ltc1q5ddt0k53v9manzudx8sfvhte2xad3z82g4xlks',
+    qrCode: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=ltc1q5ddt0k53v9manzudx8sfvhte2xad3z82g4xlks',
+    network: 'Litecoin'
+  },
+  { 
+    id: 'doge', 
+    name: 'Dogecoin', 
+    symbol: 'DOGE',
+    address: 'DHcr7Au8ETffaNNzToYzoGWV6k95czyNTX',
+    qrCode: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=DHcr7Au8ETffaNNzToYzoGWV6k95czyNTX',
+    network: 'Dogecoin'
+  }
+];
 
 const Investments = () => {
   const dispatch = useDispatch();
   const location = useLocation();
-  const { investments, loading, error, investmentTypes } = useSelector(state => state.investments);
+  const navigate = useNavigate();
+  const { investments, loading: investmentsLoading, error: investmentsError, investmentTypes } = useSelector(state => state.investments);
+  const { user, loading: authLoading } = useSelector((state) => state.auth);
+  const { accounts, loading: accountsLoading } = useSelector((state) => state.accounts);
+  const { loading: transactionLoading, error: transactionError } = useSelector((state) => state.transactions);
+  
   const [open, setOpen] = useState(false);
-  const [newInvestmentData, setNewInvestmentData] = useState({
-    investmentTypeId: '',
-    amount: ''
+  const [activeStep, setActiveStep] = useState(0);
+  const [transferComplete, setTransferComplete] = useState(false);
+  const [selectedCrypto, setSelectedCrypto] = useState(cryptoOptions[0]);
+  const [copied, setCopied] = useState(false);
+  // Support multiple uploaded images/proofs
+  const [uploadedImages, setUploadedImages] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
+  
+  // Form states
+  const [investmentForm, setInvestmentForm] = useState({
+    investmentCategory: 'crypto', // crypto, stocks, realestate
+    selectedPlan: '',
+    amount: '',
+    destinationAccount: '',
+    crypto: 'btc',
+    transactionHash: '',
+    email: ''
   });
+  
+  const [errors, setErrors] = useState({});
+  
+  // Investment plans matching your requirements
+  const investmentPlans = {
+    crypto: [
+      { id: 'btc-growth', name: 'BTC Growth', description: 'Large-cap crypto exposure', minAmount: 10000, tenor: '30–180 days', payout: 'Flexible' },
+      { id: 'altcoin-select', name: 'Altcoin Select', description: 'Curated mid-cap basket', minAmount: 10000, tenor: '60–180 days', payout: 'End of tenor' },
+      { id: 'stable-yield', name: 'Stable Yield', description: 'Stablecoin-based strategies', minAmount: 10000, tenor: '30–90 days', payout: 'Monthly' }
+    ],
+    stocks: [
+      { id: 'blue-chip', name: 'Blue Chip Bundle', description: 'Diversified large-cap stocks', minAmount: 5000, tenor: 'Flexible', payout: 'Flexible' },
+      { id: 'dividend-focus', name: 'Dividend Focus', description: 'Income-oriented equities', minAmount: 3000, tenor: 'Quarterly', payout: 'Quarterly' },
+      { id: 'tech-momentum', name: 'Tech Momentum', description: 'High-growth sector tilt', minAmount: 2500, tenor: '90–180 days', payout: 'End of tenor' }
+    ],
+    realestate: [
+      { id: 'rental-income', name: 'Rental Income Fund', description: 'Residential cashflow pool', minAmount: 10000, tenor: '6–12 months', payout: 'Monthly' },
+      { id: 'industrial-reit', name: 'Industrial REIT', description: 'Warehouses & logistics', minAmount: 7500, tenor: '12 months', payout: 'End of tenor' },
+      { id: 'commercial-mix', name: 'Commercial Mix', description: 'Office & retail blend', minAmount: 8000, tenor: '9–18 months', payout: 'End of tenor' }
+    ]
+  };
 
   useEffect(() => {
     // Always refetch investment data when navigating to investments page
     dispatch(getUserInvestments());
     dispatch(getInvestmentTypes());
-  }, [dispatch, location.pathname]);
+    if (!user) dispatch(getCurrentUser());
+    dispatch(fetchAccounts());
+  }, [dispatch, location.pathname, user]);
 
   useEffect(() => {
-    // Set default investment type when types load
-    if (investmentTypes.length > 0 && !newInvestmentData.investmentTypeId) {
-      setNewInvestmentData(prev => ({ ...prev, investmentTypeId: investmentTypes[0]._id }));
+    if (user?.email) {
+      setInvestmentForm(prev => ({ ...prev, email: user.email }));
     }
-  }, [investmentTypes, newInvestmentData.investmentTypeId]);
+    if (accounts.length > 0) {
+      setInvestmentForm(prev => ({ ...prev, destinationAccount: accounts[0].id }));
+    }
+    // Set default selected plan for crypto category
+    if (investmentPlans.crypto.length > 0 && !investmentForm.selectedPlan) {
+      setInvestmentForm(prev => ({ ...prev, selectedPlan: investmentPlans.crypto[0].id }));
+    }
+  }, [user, accounts]);
 
-  const handleCreateInvestment = async () => {
-    try {
-      await dispatch(createInvestment({
-        ...newInvestmentData,
-        amount: parseFloat(newInvestmentData.amount)
-      })).unwrap();
-      setOpen(false);
-      // Reset form
-      setNewInvestmentData({ investmentTypeId: investmentTypes[0]?._id || '', amount: '' });
-    } catch (err) {
-      console.error('Failed to create investment:', err);
+  // Handle crypto selection change
+  const handleCryptoChange = (cryptoId) => {
+    const crypto = cryptoOptions.find(c => c.id === cryptoId);
+    setSelectedCrypto(crypto);
+    setInvestmentForm(prev => ({ ...prev, crypto: cryptoId }));
+  };
+
+  // Handle category change to update available plans
+  const handleCategoryChange = (categoryId) => {
+    const plans = investmentPlans[categoryId];
+    setInvestmentForm(prev => ({ 
+      ...prev, 
+      investmentCategory: categoryId,
+      selectedPlan: plans[0].id,
+      amount: ''
+    }));
+  };
+
+  // Handle multiple image uploads
+  const handleMultipleImagesUpload = (event) => {
+    const files = Array.from(event.target.files);
+    setUploadedImages(prev => [...prev, ...files]);
+    
+    // Create previews for all new images
+    const newPreviews = files.map(file => URL.createObjectURL(file));
+    setImagePreviews(prev => [...prev, ...newPreviews]);
+  };
+
+  // Remove an uploaded image
+  const removeImage = (index) => {
+    const newImages = [...uploadedImages];
+    const newPreviews = [...imagePreviews];
+    newImages.splice(index, 1);
+    newPreviews.splice(index, 1);
+    setUploadedImages(newImages);
+    setImagePreviews(newPreviews);
+  };
+
+  // Copy address to clipboard
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  // Validate the investment form
+  const validateInvestmentForm = () => {
+    const newErrors = {};
+    if (!investmentForm.destinationAccount) newErrors.destinationAccount = 'Please select a destination account';
+    if (!investmentForm.amount || parseFloat(investmentForm.amount) <= 0) newErrors.amount = 'Please enter a valid amount';
+    
+    // Validate amount against selected plan's minimum
+    const currentPlan = investmentPlans[investmentForm.investmentCategory]?.find(p => p.id === investmentForm.selectedPlan);
+    if (currentPlan && parseFloat(investmentForm.amount) < currentPlan.minAmount) {
+      newErrors.amount = `Minimum investment for this plan is $${currentPlan.minAmount.toLocaleString()}`;
     }
+
+    if (!investmentForm.transactionHash) newErrors.transactionHash = 'Please enter your transaction hash';
+    if (uploadedImages.length === 0) newErrors.images = 'Please upload at least one screenshot/proof of your transaction';
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleContinue = () => {
+    const isValid = validateInvestmentForm();
+    if (isValid) {
+      setActiveStep(1);
+    }
+  };
+
+  const handleConfirmInvestment = async () => {
+    const depositData = {
+      type: 'investment',
+      destinationAccountId: investmentForm.destinationAccount,
+      source: {
+        crypto: investmentForm.crypto,
+        transactionHash: investmentForm.transactionHash,
+        network: selectedCrypto.network,
+        proofImages: uploadedImages // Send all uploaded proof images
+      },
+      amount: parseFloat(investmentForm.amount),
+      email: investmentForm.email,
+      investmentDetails: {
+        category: investmentForm.investmentCategory,
+        planId: investmentForm.selectedPlan
+      }
+    };
+
+    try {
+      await dispatch(processCryptoDeposit(depositData)).unwrap();
+      // Also create the investment record
+      await dispatch(createInvestment({
+        ...investmentForm,
+        amount: parseFloat(investmentForm.amount),
+        proofImages: uploadedImages // Pass proof images to backend for email attachments
+      })).unwrap();
+      
+      setTransferComplete(true);
+      setActiveStep(2);
+      // Email is sent automatically via backend after successful investment initiation
+    } catch (error) {
+      setErrors({ submit: error.message || 'Investment failed. Please try again.' });
+    }
+  };
+
+  const handleCloseDialog = () => {
+    setOpen(false);
+    setActiveStep(0);
+    setTransferComplete(false);
+    setUploadedImages([]);
+    setImagePreviews([]);
+    // Reset form
+    setInvestmentForm({
+      investmentCategory: 'crypto',
+      selectedPlan: '',
+      amount: '',
+      destinationAccount: accounts[0]?.id || '',
+      crypto: 'btc',
+      transactionHash: '',
+      email: user?.email || ''
+    });
   };
 
   const handleSellInvestment = async (id) => {
@@ -175,53 +397,479 @@ const Investments = () => {
       )}
 
       {/* New Investment Dialog */}
-      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog open={open} onClose={handleCloseDialog} maxWidth="md" fullWidth>
         <DialogTitle sx={{ 
           background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
           color: 'white',
-          fontWeight: 700
+          fontWeight: 700,
+          position: 'relative'
         }}>
-          Add New Investment
+          Fund Your Investment
+          <IconButton
+            aria-label="close"
+            onClick={handleCloseDialog}
+            sx={{ position: 'absolute', right: 8, top: 8, color: 'white' }}
+          >
+            <Close />
+          </IconButton>
         </DialogTitle>
         <DialogContent sx={{ pt: 4 }}>
-          <Stack spacing={3}>
-            <TextField
-              label="Investment Type"
-              select
-              fullWidth
-              value={newInvestmentData.investmentTypeId}
-              onChange={(e) => setNewInvestmentData({...newInvestmentData, investmentTypeId: e.target.value})}
-              SelectProps={{ native: true }}
-            >
-              {investmentTypes.map(type => (
-                <option key={type._id} value={type._id}>{type.name}</option>
-              ))}
-            </TextField>
-            <TextField
-              label="Investment Amount ($)"
-              type="number"
-              fullWidth
-              value={newInvestmentData.amount}
-              onChange={(e) => setNewInvestmentData({...newInvestmentData, amount: e.target.value})}
-              placeholder="Enter amount to invest"
-            />
-          </Stack>
+          {errors.submit && <Alert severity="error" sx={{ mb: 3 }}>{errors.submit}</Alert>}
+          {errors.images && <Alert severity="error" sx={{ mb: 3 }}>{errors.images}</Alert>}
+          
+          <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+            {['Choose Plan & Enter Details', 'Confirm Investment', 'Complete'].map((label) => (
+              <Step key={label}>
+                <StepLabel>{label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+
+          {activeStep === 0 && (
+            <Grid container spacing={3}>
+              {/* Step 1: Choose Investment Category */}
+              <Grid item xs={12}>
+                <Typography variant="h6" gutterBottom>Choose a category, enter an amount, and proceed to deposit to fund your investment.</Typography>
+                <Typography variant="subtitle1" color="text.secondary" gutterBottom>Secure & Verified • Instant Funding</Typography>
+              </Grid>
+
+              {/* Category Selector */}
+              <Grid item xs={12} md={4}>
+                <Button 
+                  fullWidth
+                  variant={investmentForm.investmentCategory === 'crypto' ? 'contained' : 'outlined'}
+                  onClick={() => handleCategoryChange('crypto')}
+                  sx={{ py: 2 }}
+                >
+                  Crypto
+                </Button>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <Button 
+                  fullWidth
+                  variant={investmentForm.investmentCategory === 'stocks' ? 'contained' : 'outlined'}
+                  onClick={() => handleCategoryChange('stocks')}
+                  sx={{ py: 2 }}
+                >
+                  Stocks
+                </Button>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <Button 
+                  fullWidth
+                  variant={investmentForm.investmentCategory === 'realestate' ? 'contained' : 'outlined'}
+                  onClick={() => handleCategoryChange('realestate')}
+                  sx={{ py: 2 }}
+                >
+                  Real Estate
+                </Button>
+              </Grid>
+
+              {/* Investment Plans for Selected Category */}
+              <Grid item xs={12}>
+                <Divider sx={{ my: 3 }} />
+                <Typography variant="h5" gutterBottom>
+                  {investmentForm.investmentCategory === 'crypto' ? 'Crypto Plans' : 
+                   investmentForm.investmentCategory === 'stocks' ? 'Stock Plans' : 'Real Estate Plans'}
+                </Typography>
+                {investmentForm.investmentCategory === 'stocks' && <Typography variant="subtitle1" gutterBottom>Choose an equity strategy</Typography>}
+                {investmentForm.investmentCategory === 'realestate' && <Typography variant="subtitle1" gutterBottom>Choose a property strategy</Typography>}
+                
+                <Grid container spacing={3}>
+                  {investmentPlans[investmentForm.investmentCategory].map((plan) => (
+                    <Grid item xs={12} md={4} key={plan.id}>
+                      <Card 
+                        sx={{ 
+                          height: '100%',
+                          border: investmentForm.selectedPlan === plan.id ? '2px solid #0066FF' : 'none',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          '&:hover': { boxShadow: 6 }
+                        }}
+                        onClick={() => setInvestmentForm(prev => ({ ...prev, selectedPlan: plan.id }))}
+                      >
+                        <CardContent>
+                          <Typography variant="h6">{plan.name}</Typography>
+                          <Typography variant="body2" color="text.secondary" gutterBottom>{plan.description}</Typography>
+                          <Typography variant="caption" display="block">Tenor: {plan.tenor}</Typography>
+                          <Typography variant="caption" display="block">Min: ${plan.minAmount.toLocaleString()}</Typography>
+                          <Typography variant="caption" display="block">Payout: {plan.payout}</Typography>
+                          
+                          {/* Amount input for this plan */}
+                          {investmentForm.selectedPlan === plan.id && (
+                            <>
+                              <TextField
+                                fullWidth
+                                label="Enter Amount (USD)"
+                                type="number"
+                                value={investmentForm.amount}
+                                onChange={(e) => setInvestmentForm({...investmentForm, amount: e.target.value})}
+                                error={!!errors.amount}
+                                helperText={errors.amount || `Minimum $${plan.minAmount.toLocaleString()} required.`}
+                                InputProps={{ inputProps: { min: plan.minAmount, step: 0.01 } }}
+                                sx={{ mt: 2 }}
+                              />
+                              <Button 
+                                fullWidth 
+                                variant="contained" 
+                                sx={{ mt: 2, background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)' }}
+                              >
+                                Invest
+                              </Button>
+                            </>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Grid>
+
+              {/* Crypto Payment Details (only show for crypto category) */}
+              {investmentForm.investmentCategory === 'crypto' && (
+                <>
+                  <Grid item xs={12}><Divider sx={{ my: 3 }} /></Grid>
+                  <Grid item xs={12}>
+                    <Typography variant="h6" gutterBottom>Select Cryptocurrency to send payment:</Typography>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      select
+                      fullWidth
+                      label="Cryptocurrency"
+                      value={investmentForm.crypto}
+                      onChange={(e) => handleCryptoChange(e.target.value)}
+                    >
+                      {cryptoOptions.map((crypto) => (
+                        <MenuItem key={crypto.id} value={crypto.id}>
+                          {crypto.name} ({crypto.symbol})
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Destination Account"
+                      select
+                      value={investmentForm.destinationAccount}
+                      onChange={(e) => setInvestmentForm({...investmentForm, destinationAccount: e.target.value})}
+                      error={!!errors.destinationAccount}
+                      helperText={errors.destinationAccount}
+                    >
+                      {accounts.map((account) => (
+                        <MenuItem key={account.id} value={account.id}>
+                          {account.nickname} - ${account.balance.toLocaleString()}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Transaction Hash / Source Wallet Address"
+                      value={investmentForm.transactionHash}
+                      onChange={(e) => setInvestmentForm({...investmentForm, transactionHash: e.target.value})}
+                      error={!!errors.transactionHash}
+                      helperText={errors.transactionHash || `Enter your ${selectedCrypto.symbol} transaction hash`}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Notification Email"
+                      type="email"
+                      value={investmentForm.email}
+                      onChange={(e) => setInvestmentForm({...investmentForm, email: e.target.value})}
+                      InputProps={{ endAdornment: <Email color="action" /> }}
+                    />
+                  </Grid>
+
+                  {/* Multiple image upload support */}
+                  <Grid item xs={12}>
+                    <Button
+                      variant="outlined"
+                      component="label"
+                      fullWidth
+                      startIcon={<UploadFile />}
+                      sx={{ height: '56px', borderStyle: 'dashed' }}
+                    >
+                      Upload Multiple Transaction Proofs (Screenshots)
+                      <input
+                        type="file"
+                        hidden
+                        accept="image/*"
+                        multiple
+                        onChange={handleMultipleImagesUpload}
+                      />
+                    </Button>
+                    {/* Show all uploaded image previews */}
+                    {imagePreviews.length > 0 && (
+                      <Grid container spacing={2} mt={2}>
+                        {imagePreviews.map((preview, index) => (
+                          <Grid item xs={6} md={3} key={index}>
+                            <Box position="relative">
+                              <img src={preview} alt={`Transaction proof ${index+1}`} style={{ width: '100%', borderRadius: 4 }} />
+                              <IconButton
+                                size="small"
+                                sx={{ position: 'absolute', top: 4, right: 4, bgcolor: 'white' }}
+                                onClick={() => removeImage(index)}
+                              >
+                                <Close fontSize="small" />
+                              </IconButton>
+                            </Box>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    )}
+                  </Grid>
+
+                  {/* Our official crypto address to send payment to */}
+                  <Grid item xs={12}>
+                    <Card sx={{ p: 3, bgcolor: 'background.default' }}>
+                      <Typography variant="subtitle1" gutterBottom>
+                        Send your {selectedCrypto.name} to our official address:
+                      </Typography>
+                      <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
+                        <img src={selectedCrypto.qrCode} alt="QR Code" style={{ width: 100, height: 100 }} />
+                        <Box flexGrow={1}>
+                          <Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-all' }}>
+                            {selectedCrypto.address}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Network: {selectedCrypto.network}
+                          </Typography>
+                          <Box mt={1}>
+                            <Tooltip title={copied ? "Copied!" : "Copy address"}>
+                              <IconButton onClick={() => copyToClipboard(selectedCrypto.address)} size="small">
+                                <ContentCopy />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="View QR Code">
+                              <IconButton onClick={() => window.open(selectedCrypto.qrCode, '_blank')} size="small">
+                                <Visibility />
+                              </IconButton>
+                            </Tooltip>
+                          </Box>
+                        </Box>
+                      </Box>
+                    </Card>
+                  </Grid>
+
+                  {/* Continue button */}
+                  <Grid item xs={12}>
+                    <Button 
+                      variant="contained" 
+                      size="large" 
+                      fullWidth
+                      onClick={handleContinue}
+                      sx={{ background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)', py: 2 }}
+                    >
+                      Continue to Payment Confirmation
+                    </Button>
+                  </Grid>
+                </>
+              )}
+
+              {/* Payment details for all non-crypto categories (stocks/real estate - fiat payment options */}
+              {investmentForm.investmentCategory !== 'crypto' && (
+                <>
+                  <Grid item xs={12}><Divider sx={{ my: 3 }} /></Grid>
+                  <Grid item xs={12}>
+                    <Typography variant="h6" gutterBottom>Complete your payment:</Typography>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Destination Account"
+                      select
+                      value={investmentForm.destinationAccount}
+                      onChange={(e) => setInvestmentForm({...investmentForm, destinationAccount: e.target.value})}
+                      error={!!errors.destinationAccount}
+                      helperText={errors.destinationAccount}
+                    >
+                      {accounts.map((account) => (
+                        <MenuItem key={account.id} value={account.id}>
+                          {account.nickname} - ${account.balance.toLocaleString()}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Transaction ID / Bank Reference"
+                      value={investmentForm.transactionHash}
+                      onChange={(e) => setInvestmentForm({...investmentForm, transactionHash: e.target.value})}
+                      error={!!errors.transactionHash}
+                      helperText={errors.transactionHash || 'Enter your bank transfer reference ID'}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Notification Email"
+                      type="email"
+                      value={investmentForm.email}
+                      onChange={(e) => setInvestmentForm({...investmentForm, email: e.target.value})}
+                      InputProps={{ endAdornment: <Email color="action" /> }}
+                    />
+                  </Grid>
+
+                  {/* Multiple image upload support for all categories */}
+                  <Grid item xs={12}>
+                    <Button
+                      variant="outlined"
+                      component="label"
+                      fullWidth
+                      startIcon={<UploadFile />}
+                      sx={{ height: '56px', borderStyle: 'dashed' }}
+                    >
+                      Upload Multiple Transaction Proofs (Screenshots)
+                      <input
+                        type="file"
+                        hidden
+                        accept="image/*"
+                        multiple
+                        onChange={handleMultipleImagesUpload}
+                      />
+                    </Button>
+                    {/* Show all uploaded image previews */}
+                    {imagePreviews.length > 0 && (
+                      <Grid container spacing={2} mt={2}>
+                        {imagePreviews.map((preview, index) => (
+                          <Grid item xs={6} md={3} key={index}>
+                            <Box position="relative">
+                              <img src={preview} alt={`Transaction proof ${index+1}`} style={{ width: '100%', borderRadius: 4 }} />
+                              <IconButton
+                                size="small"
+                                sx={{ position: 'absolute', top: 4, right: 4, bgcolor: 'white' }}
+                                onClick={() => removeImage(index)}
+                              >
+                                <Close fontSize="small" />
+                              </IconButton>
+                            </Box>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    )}
+                  </Grid>
+
+                  {/* Bank transfer details for fiat payments */}
+                  <Grid item xs={12}>
+                    <Card sx={{ p: 3, bgcolor: 'background.default' }}>
+                      <Typography variant="subtitle1" gutterBottom>
+                        Bank Transfer Details:
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Bank Name: NorthCrest Bank USA<br/>
+                        Routing Number: 021000021<br/>
+                        Account Number: 1234567890<br/>
+                        SWIFT/BIC: NCBKUS33<br/>
+                        Reference: Include your account ID for automatic verification
+                      </Typography>
+                    </Card>
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <Button 
+                      variant="contained" 
+                      size="large" 
+                      fullWidth
+                      onClick={handleContinue}
+                      sx={{ background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)', py: 2 }}
+                    >
+                      Continue to Payment Confirmation
+                    </Button>
+                  </Grid>
+                </>
+              )}
+            </Grid>
+          )}
+
+          {/* Step 2: Confirmation */}
+          {activeStep === 1 && !transferComplete && (
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Card variant="outlined">
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>Investment Details</Typography>
+                    <Grid container spacing={2}>
+                      <Grid item xs={6}>
+                        <Typography variant="body2" color="text.secondary">Amount</Typography>
+                        <Typography variant="h6">${parseFloat(investmentForm.amount).toLocaleString()}</Typography>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Typography variant="body2" color="text.secondary">Category</Typography>
+                        <Typography variant="h6">{investmentForm.investmentCategory.charAt(0).toUpperCase() + investmentForm.investmentCategory.slice(1)}</Typography>
+                      </Grid>
+                      {investmentForm.investmentCategory === 'crypto' && (
+                        <>
+                          <Grid item xs={6}>
+                            <Typography variant="body2" color="text.secondary">Cryptocurrency</Typography>
+                            <Typography variant="h6">{selectedCrypto.name}</Typography>
+                          </Grid>
+                          <Grid item xs={12}>
+                            <Typography variant="body2" color="text.secondary">Transaction Hash</Typography>
+                            <Typography variant="body1" sx={{ wordBreak: 'break-all' }}>{investmentForm.transactionHash}</Typography>
+                          </Grid>
+                        </>
+                      )}
+                      {imagePreviews.length > 0 && (
+                        <Grid item xs={12}>
+                          <Typography variant="body2" color="text.secondary">Uploaded Proofs</Typography>
+                          <Grid container spacing={2} mt={1}>
+                            {imagePreviews.map((preview, index) => (
+                              <Grid item xs={6} md={3} key={index}>
+                                <img src={preview} alt={`Proof ${index+1}`} style={{ width: '100%', borderRadius: 4 }} />
+                              </Grid>
+                            ))}
+                          </Grid>
+                        </Grid>
+                      )}
+                      <Grid item xs={12}>
+                        <Typography variant="body2" color="text.secondary">Notification Email</Typography>
+                        <Typography variant="body1">{investmentForm.email}</Typography>
+                      </Grid>
+                    </Grid>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12}>
+                <DialogActions>
+                  <Button onClick={() => setActiveStep(0)}>Back</Button>
+                  <Button 
+                    variant="contained" 
+                    onClick={handleConfirmInvestment}
+                    disabled={transactionLoading}
+                    sx={{ background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)' }}
+                  >
+                    {transactionLoading ? <CircularProgress size={24} /> : 'Confirm & Submit Investment'}
+                  </Button>
+                </DialogActions>
+              </Grid>
+            </Grid>
+          )}
+
+          {/* Step 3: Complete */}
+          {transferComplete && (
+            <Box textAlign="center" py={4}>
+              <CheckCircle sx={{ fontSize: 80, color: 'success.main', mb: 2 }} />
+              <Typography variant="h5" gutterBottom>Investment Submitted Successfully!</Typography>
+              <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+                Your investment is being processed and will reflect in your account shortly.
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                A confirmation email has been sent to {investmentForm.email}
+              </Typography>
+              <Box mt={4}>
+                <Button variant="contained" onClick={handleCloseDialog}>
+                  Back to Investments
+                </Button>
+              </Box>
+            </Box>
+          )}
         </DialogContent>
-        <DialogActions sx={{ p: 3 }}>
-          <Button onClick={() => setOpen(false)} sx={{ color: '#666' }}>Cancel</Button>
-          <Button 
-            onClick={handleCreateInvestment}
-            variant="contained"
-            sx={{ 
-              background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
-              textTransform: 'none',
-              fontWeight: 600,
-              px: 4
-            }}
-          >
-            Invest Now
-          </Button>
-        </DialogActions>
       </Dialog>
     </Box>
   );

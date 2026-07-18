@@ -11,10 +11,15 @@ import {
   CircularProgress
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
+import { useLocation } from 'react-router-dom';
 import { createTransfer } from '../store/slices/transactionSlice';
+import { fetchAccounts } from '../store/slices/accountSlice';
+import { getCurrentUser } from '../store/slices/authSlice';
 
 const TransferMoney = () => {
   const dispatch = useDispatch();
+  const location = useLocation();
+  const { user } = useSelector((state) => state.auth);
   const { accounts, loading } = useSelector((state) => state.accounts);
   const [formData, setFormData] = useState({
     fromAccount: '',
@@ -25,6 +30,13 @@ const TransferMoney = () => {
   });
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!user) {
+      dispatch(getCurrentUser());
+    }
+    dispatch(fetchAccounts());
+  }, [dispatch, user, location.pathname]);
 
   const handleChange = (e) => {
     setFormData({
