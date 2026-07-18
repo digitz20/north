@@ -5,6 +5,7 @@ import { useLocation } from 'react-router-dom';
 import { getCurrentUser } from '../store/slices/authSlice';
 import { fetchAccounts } from '../store/slices/accountSlice';
 import CountUp from 'react-countup';
+import api from '../services/api';
 
 const Profile = () => {
   const dispatch = useDispatch();
@@ -49,19 +50,11 @@ const Profile = () => {
       // In a production app, you would upload to cloudinary first and get a URL
       const imageUrl = URL.createObjectURL(file);
       
-      // Send to our backend API
-      const response = await fetch('/api/v1/auth/profile-picture', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ profilePicture: imageUrl })
-      });
+      // Send to our backend API using the configured axios instance
+      const response = await api.put('/auth/profile-picture', { profilePicture: imageUrl });
 
-      if (!response.ok) {
-        throw new Error('Failed to upload profile picture');
-      }
+      // axios automatically throws errors for non-2xx status codes,
+      // so if we reach here, the request was successful
 
       setUploadSuccess('Profile picture updated successfully!');
       dispatch(getCurrentUser()); // Refresh user data
