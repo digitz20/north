@@ -42,19 +42,6 @@ const Transfer = () => {
         zIndex: 0,
         animation: 'float 20s ease-in-out infinite reverse'
       }} />
-      <Box sx={{ 
-        position: 'fixed', 
-        top: '50%', 
-        left: '30%', 
-        width: '400px', 
-        height: '400px', 
-        borderRadius: '50%', 
-        background: 'radial-gradient(circle, rgba(255,200,87,0.15) 0%, rgba(255,200,87,0) 70%)', 
-        filter: 'blur(60px)', 
-        pointerEvents: 'none', 
-        zIndex: 0,
-        animation: 'float 18s ease-in-out infinite'
-      }} />
       
       {/* Add floating animation keyframes */}
       <style jsx>{`
@@ -90,9 +77,8 @@ const Transfer = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.1 }}
               whileHover={{ 
-                y: -12, 
-                scale: 1.03,
-                transition: { duration: 0.3 }
+                y: -5,
+                transition: { duration: 0.2 }
               }}
             >
               <Paper 
@@ -101,14 +87,12 @@ const Transfer = () => {
                   p: 6, 
                   height: '100%', 
                   borderRadius: '24px', 
-                  // Enhanced glassmorphism with multiple texture layers
                   background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(240,247,255,0.9) 100%)',
-                  backdropFilter: 'blur(40px) saturate(180%)', 
+                  backdropFilter: 'blur(20px) saturate(120%)', 
                   border: '1px solid rgba(255,255,255,0.3)',
-                  // Advanced multi-layered shadow for depth
-                  boxShadow: '0 25px 80px -20px rgba(0,102,255,0.5), 0 0 0 1px rgba(255,255,255,0.1) inset, 0 50px 100px -30px rgba(0,0,0,0.3)',
+                  boxShadow: '0 15px 50px -15px rgba(0,102,255,0.4), 0 0 0 1px rgba(255,255,255,0.1) inset',
                   cursor: 'pointer', 
-                  transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                  transition: 'all 0.2s ease',
                   position: 'relative',
                   overflow: 'hidden',
                   '&::before': {
@@ -118,27 +102,22 @@ const Transfer = () => {
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    background: 'linear-gradient(135deg, rgba(0,102,255,0.08) 0%, rgba(0,191,255,0.05) 100%)',
+                    background: 'linear-gradient(135deg, rgba(0,102,255,0.05) 0%, rgba(0,191,255,0.03) 100%)',
                     opacity: 0,
-                    transition: 'opacity 0.4s ease',
+                    transition: 'opacity 0.2s ease',
                     pointerEvents: 'none'
                   },
                   '&:hover::before': {
                     opacity: 1
                   },
                   '&:hover': {
-                    boxShadow: '0 35px 100px -20px rgba(0,102,255,0.6), 0 0 0 1px rgba(255,255,255,0.2) inset, 0 60px 120px -40px rgba(0,0,0,0.4), 0 0 80px rgba(0,102,255,0.3)'
+                    boxShadow: '0 25px 70px -15px rgba(0,102,255,0.5), 0 0 0 1px rgba(255,255,255,0.2) inset'
                   }
                 }}
                 onClick={() => navigate('/transfer/local')}
               >
                 <Box sx={{ textAlign: 'center', position: 'relative', zIndex: 1 }}>
-                  <motion.div
-                    whileHover={{ scale: 1.1, rotate: 5 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <Typography variant="h1" sx={{ mb: 3, filter: 'drop-shadow(0 10px 20px rgba(0,102,255,0.3))' }}>🏠</Typography>
-                  </motion.div>
+                  <Typography variant="h1" sx={{ mb: 3, filter: 'drop-shadow(0 5px 15px rgba(0,102,255,0.3))' }}>🏠</Typography>
                   <Typography variant="h5" sx={{ fontWeight: 800, mb: 2, color: '#0f2744', fontSize: '1.5rem' }}>
                     Local Transfer
                   </Typography>
@@ -180,9 +159,8 @@ const Transfer = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
               whileHover={{ 
-                y: -12, 
-                scale: 1.03,
-                transition: { duration: 0.3 }
+                y: -5,
+                transition: { duration: 0.2 }
               }}
             >
               <Paper 
@@ -191,14 +169,12 @@ const Transfer = () => {
                   p: 6, 
                   height: '100%', 
                   borderRadius: '24px', 
-                  // Enhanced glassmorphism with green-blue gradient texture
                   background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(240,255,247,0.9) 100%)',
-                  backdropFilter: 'blur(40px) saturate(180%)', 
+                  backdropFilter: 'blur(20px) saturate(120%)', 
                   border: '1px solid rgba(255,255,255,0.3)',
-                  // Advanced multi-layered shadow for depth
-                  boxShadow: '0 25px 80px -20px rgba(0,200,150,0.5), 0 0 0 1px rgba(255,255,255,0.1) inset, 0 50px 100px -30px rgba(0,0,0,0.3)',
+                  boxShadow: '0 15px 50px -15px rgba(0,200,150,0.4), 0 0 0 1px rgba(255,255,255,0.1) inset',
                   cursor: 'pointer', 
-                  transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                  transition: 'all 0.2s ease',
                   position: 'relative',
                   overflow: 'hidden',
                   '&::before': {
@@ -208,27 +184,22 @@ const Transfer = () => {
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    background: 'linear-gradient(135deg, rgba(0,200,150,0.08) 0%, rgba(0,191,255,0.05) 100%)',
+                    background: 'linear-gradient(135deg, rgba(0,200,150,0.05) 0%, rgba(0,191,255,0.03) 100%)',
                     opacity: 0,
-                    transition: 'opacity 0.4s ease',
+                    transition: 'opacity 0.2s ease',
                     pointerEvents: 'none'
                   },
                   '&:hover::before': {
                     opacity: 1
                   },
                   '&:hover': {
-                    boxShadow: '0 35px 100px -20px rgba(0,200,150,0.6), 0 0 0 1px rgba(255,255,255,0.2) inset, 0 60px 120px -40px rgba(0,0,0,0.4), 0 0 80px rgba(0,200,150,0.3)'
+                    boxShadow: '0 25px 70px -15px rgba(0,200,150,0.5), 0 0 0 1px rgba(255,255,255,0.2) inset'
                   }
                 }}
                 onClick={() => navigate('/transfer/international')}
               >
                 <Box sx={{ textAlign: 'center', position: 'relative', zIndex: 1 }}>
-                  <motion.div
-                    whileHover={{ scale: 1.1, rotate: -5 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <Typography variant="h1" sx={{ mb: 3, filter: 'drop-shadow(0 10px 20px rgba(0,200,150,0.3))' }}>🌍</Typography>
-                  </motion.div>
+                  <Typography variant="h1" sx={{ mb: 3, filter: 'drop-shadow(0 5px 15px rgba(0,200,150,0.3))' }}>🌍</Typography>
                   <Typography variant="h5" sx={{ fontWeight: 800, mb: 2, color: '#0f2744', fontSize: '1.5rem' }}>
                     International Transfer
                   </Typography>
@@ -269,21 +240,16 @@ const Transfer = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3 }}
-          whileHover={{ scale: 1.02 }}
         >
           <Paper sx={{ 
             mt: 6, 
             p: 4, 
             borderRadius: '20px', 
             background: 'linear-gradient(135deg, rgba(0,102,255,0.15) 0%, rgba(0,191,255,0.1) 100%)',
-            backdropFilter: 'blur(30px)',
+            backdropFilter: 'blur(15px)',
             border: '1px solid rgba(0,102,255,0.3)', 
             textAlign: 'center',
-            boxShadow: '0 15px 50px -15px rgba(0,102,255,0.3)',
-            transition: 'all 0.3s ease',
-            '&:hover': {
-              boxShadow: '0 20px 60px -15px rgba(0,102,255,0.4)'
-            }
+            boxShadow: '0 10px 40px -10px rgba(0,102,255,0.3)'
           }}>
             <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.9)', fontWeight: 500, fontSize: '1.05rem' }}>
               🔒 Secure Transaction - All transfers are encrypted and processed securely. Never share your PIN with anyone.

@@ -281,8 +281,8 @@ const Cards = () => {
               <Grid item xs={12} md={6} lg={6} key={card.id}>
                 <motion.div
                   variants={itemVariants}
-                  whileHover={{ y: -15, scale: 1.02 }}
-                  transition={{ duration: 0.4 }}
+                  whileHover={{ y: -3 }}
+                  transition={{ duration: 0.2 }}
                   style={{ perspective: 1000 }}
                 >
                   <Box
@@ -493,8 +493,8 @@ const Cards = () => {
             {cardActions.map((action, index) => (
               <Grid item xs={12} sm={6} md={3} key={index}>
                 <motion.div
-                  whileHover={{ y: -8, scale: 1.03 }}
-                  transition={{ duration: 0.3 }}
+                  whileHover={{ y: -3 }}
+                  transition={{ duration: 0.2 }}
                 >
                   <Paper
                     elevation={0}

@@ -267,64 +267,7 @@ const Dashboard = () => {
         pointerEvents: 'none',
         zIndex: 0
       }} />
-      <Box sx={{
-        position: 'fixed',
-        top: '40%',
-        left: '30%',
-        width: '500px',
-        height: '500px',
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(255,200,87,0.08) 0%, rgba(255,200,87,0) 70%)',
-        filter: 'blur(70px)',
-        pointerEvents: 'none',
-        zIndex: 0
-      }} />
-
-      {/* Scroll Progress Bar */}
-      <motion.div
-        style={{
-          position: 'fixed',
-          top: 64,
-          left: 0,
-          right: 0,
-          height: 4,
-          background: 'linear-gradient(90deg, #0066ff, #00c896, #ffc857)',
-          transformOrigin: '0%',
-          scaleX: scrollYProgress,
-          zIndex: 9998,
-          boxShadow: '0 2px 10px rgba(0,102,255,0.5)'
-        }}
-      />
-
-      {/* Enhanced Animated Background Particles */}
-      {[...Array(20)].map((_, i) => (
-        <motion.div
-          key={i}
-          style={{
-            position: 'fixed',
-            width: Math.random() * 10 + 4,
-            height: Math.random() * 10 + 4,
-            borderRadius: '50%',
-            background: `rgba(${100 + Math.random() * 100}, ${150 + Math.random() * 80}, 255, ${0.1 + Math.random() * 0.2})`,
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            pointerEvents: 'none',
-            zIndex: 0,
-            boxShadow: `0 0 ${Math.random() * 20 + 10}px rgba(0,102,255,0.3)`
-          }}
-          animate={{
-            y: [0, -60, 0],
-            x: mousePosition.x * (i + 0.8),
-            opacity: [0.05, 0.3, 0.05],
-            scale: [1, 1.3, 1]
-          }}
-          transition={{
-            duration: Math.random() * 6 + 4,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-      ))}
+      {/* Scroll Progress Bar removed to reduce GPU usage */}
 
       <motion.div
         ref={ref}
@@ -397,8 +340,8 @@ const Dashboard = () => {
             {realtimeStats.map((stat, index) => (
               <Grid item xs={12} sm={6} lg={3} key={stat.title}>
                 <motion.div
-                  whileHover={{ y: -10, scale: 1.02 }}
-                  transition={{ duration: 0.3 }}
+                  whileHover={{ y: -3 }}
+                  transition={{ duration: 0.2 }}
                 >
                   <Paper
                     elevation={0}
@@ -410,9 +353,9 @@ const Dashboard = () => {
                       borderRadius: 5,
                       position: 'relative',
                       overflow: 'hidden',
-                      boxShadow: `0 25px 50px -12px ${stat.glowColor}, 0 20px 40px rgba(0,0,0,0.2)`,
+                      boxShadow: `0 15px 35px -8px ${stat.glowColor}, 0 10px 25px rgba(0,0,0,0.15)`,
                       transform: 'translateZ(0)',
-                      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                      transition: 'all 0.2s ease',
                       '&::before': {
                         content: '""',
                         position: 'absolute',
@@ -423,17 +366,6 @@ const Dashboard = () => {
                         background: 'rgba(255,255,255,0.15)',
                         borderRadius: '50%',
                         filter: 'blur(20px)'
-                      },
-                      '&::after': {
-                        content: '""',
-                        position: 'absolute',
-                        bottom: -40,
-                        left: -40,
-                        width: 150,
-                        height: 150,
-                        background: 'rgba(255,255,255,0.1)',
-                        borderRadius: '50%',
-                        filter: 'blur(15px)'
                       }
                     }}
                   >

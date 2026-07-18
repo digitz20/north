@@ -147,8 +147,8 @@ const Accounts = () => {
           <Grid item xs={12} md={6} lg={6} key={account.id}>
             <motion.div
               variants={itemVariants}
-              whileHover={{ y: -10, scale: 1.02 }}
-              transition={{ duration: 0.3 }}
+              whileHover={{ y: -3 }}
+              transition={{ duration: 0.2 }}
             >
               <Paper
                 elevation={0}
@@ -157,7 +157,8 @@ const Accounts = () => {
                   height: '100%',
                   borderRadius: 4,
                   overflow: 'hidden',
-                  boxShadow: '0 20px 40px rgba(0,0,0,0.12)'
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
+                  transition: 'all 0.2s ease'
                 }}
               >
                 <Box sx={{ 
@@ -309,8 +310,8 @@ const Accounts = () => {
             ].map((action, index) => (
               <Grid item xs={12} sm={6} md={3} key={index}>
                 <motion.div
-                  whileHover={{ y: -8, scale: 1.03 }}
-                  transition={{ duration: 0.3 }}
+                  whileHover={{ y: -3 }}
+                  transition={{ duration: 0.2 }}
                 >
                   <Paper
                     elevation={0}

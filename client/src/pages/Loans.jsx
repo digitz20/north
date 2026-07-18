@@ -250,30 +250,7 @@ const Loans = () => {
           zIndex: 0
         }}
       />
-      <motion.div
-        animate={{ 
-          x: [0, 20, 0], 
-          y: [0, 30, 0],
-        }}
-        transition={{ 
-          duration: 18, 
-          repeat: Infinity, 
-          ease: "easeInOut",
-          delay: 5
-        }}
-        style={{
-          position: 'fixed',
-          top: '40%',
-          left: '30%',
-          width: '400px',
-          height: '400px',
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(255,152,0,0.08) 0%, transparent 70%)',
-          filter: 'blur(60px)',
-          pointerEvents: 'none',
-          zIndex: 0
-        }}
-      />
+
       <Box sx={{ position: 'relative', zIndex: 1, maxWidth: '1400px', margin: '0 auto', px: { xs: 2, md: 4 } }}>
         <motion.div
           initial={{ opacity: 0, y: -30 }}
@@ -591,7 +568,7 @@ const Loans = () => {
                 </motion.div>
               </Grid>
               <Grid item xs={12}>
-                <motion.div whileHover={{ scale: 1.01 }} transition={{ duration: 0.3 }}>
+                <motion.div transition={{ duration: 0.2 }}>
                   <Alert severity="warning" sx={{ 
                     mt: 2, 
                     mb: 4,
@@ -610,7 +587,7 @@ const Loans = () => {
                 </motion.div>
               </Grid>
               <Grid item xs={12}>
-                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <motion.div>
                   <Button
                     variant="contained"
                     size="large"

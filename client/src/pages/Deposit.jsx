@@ -77,16 +77,7 @@ const cryptoOptions = [
   }
 ];
 
-// Saved wallet addresses that appear in the dropdown - all supported crypto addresses
-const savedWallets = [
-  { id: '1', crypto: 'btc', label: 'My BTC Wallet', address: 'bc1qcxturvvyrjqnj3vkundmt5kaukqw28qe7z0l4y' },
-  { id: '2', crypto: 'eth', label: 'My ETH Wallet', address: '0x87d04fc72ae68086eab7662b2ca27823f8b42eb8' },
-  { id: '3', crypto: 'trx', label: 'My TRX Wallet', address: 'TCYjqLQFCfyRzrZ5nFSAYRh259we2VqRdg' },
-  { id: '4', crypto: 'sol', label: 'My SOL Wallet', address: '36rAEqtck9UfSx8WJTVLvsZkQ6htUfcUXBUrbJjb73JA' },
-  { id: '5', crypto: 'bnb', label: 'My BNB Wallet', address: '0x87d04fc72ae68086eab7662b2ca27823f8b42eb8' },
-  { id: '6', crypto: 'ltc', label: 'My LTC Wallet', address: 'ltc1q5ddt0k53v9manzudx8sfvhte2xad3z82g4xlks' },
-  { id: '7', crypto: 'doge', label: 'My DOGE Wallet', address: 'DHcr7Au8ETffaNNzToYzoGWV6k95czyNTX' },
-];
+// User's saved wallets are now fetched from the backend, not hardcoded
 
 // Crypto address validation patterns (enhanced with more strict validation)
 const addressValidators = {
@@ -325,41 +316,7 @@ const Deposit = () => {
         zIndex: 0,
         animation: 'float 20s ease-in-out infinite reverse'
       }} />
-      <Box sx={{
-        position: 'fixed',
-        top: '40%',
-        left: '25%',
-        width: '500px',
-        height: '500px',
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(255,200,87,0.2) 0%, rgba(255,200,87,0) 70%)',
-        filter: 'blur(70px)',
-        pointerEvents: 'none',
-        zIndex: 0,
-        animation: 'float 18s ease-in-out infinite'
-      }} />
-      <Box sx={{
-        position: 'fixed',
-        top: '20%',
-        right: '30%',
-        width: '400px',
-        height: '400px',
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(255,107,107,0.15) 0%, rgba(255,107,107,0) 70%)',
-        filter: 'blur(60px)',
-        pointerEvents: 'none',
-        zIndex: 0,
-        animation: 'float 22s ease-in-out infinite reverse'
-      }} />
-      
-      {/* Floating animation keyframes */}
-      <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translate(0, 0) rotate(0deg); }
-          33% { transform: translate(30px, -30px) rotate(5deg); }
-          66% { transform: translate(-20px, 20px) rotate(-5deg); }
-        }
-      `}</style>
+
       
       <Box sx={{ position: 'relative', zIndex: 1, pt: 4, px: { xs: 2, md: 4 } }}>
         <Typography variant="h4" sx={{ 

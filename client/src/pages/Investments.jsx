@@ -459,8 +459,8 @@ const Investments = () => {
           <Grid container spacing={{ xs: 2, sm: 3, md: 4 }} mb={5}>
             <Grid item xs={12} md={6}>
               <motion.div
-                whileHover={{ y: -8, scale: 1.02 }}
-                transition={{ duration: 0.3 }}
+                whileHover={{ y: -3 }}
+                transition={{ duration: 0.2 }}
               >
                 <Paper
                   elevation={0}
@@ -505,8 +505,8 @@ const Investments = () => {
             </Grid>
             <Grid item xs={12} md={6}>
               <motion.div
-                whileHover={{ y: -8, scale: 1.02 }}
-                transition={{ duration: 0.3 }}
+                whileHover={{ y: -3 }}
+                transition={{ duration: 0.2 }}
               >
                 <Paper
                   elevation={0}
