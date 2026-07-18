@@ -166,21 +166,21 @@ const AdminDashboard = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {recentTransactions.map((transaction) => (
-                <TableRow key={transaction._id}>
-                  <TableCell>{transaction.transactionId}</TableCell>
-                  <TableCell>{transaction.type}</TableCell>
-                  <TableCell>${transaction.amount.toLocaleString()}</TableCell>
+              {Array.isArray(recentTransactions) ? recentTransactions.map((transaction) => (
+                <TableRow key={transaction._id || Math.random()}>
+                  <TableCell>{transaction._id?.slice(-8) || 'N/A'}</TableCell>
+                  <TableCell>{transaction.transferType || transaction.type || 'N/A'}</TableCell>
+                  <TableCell>${transaction.amount ? transaction.amount.toLocaleString() : '0'}</TableCell>
                   <TableCell>
                     <Chip
-                      label={transaction.status}
+                      label={transaction.status || 'pending'}
                       color={transaction.status === 'completed' ? 'success' : transaction.status === 'pending' ? 'warning' : 'error'}
                       size="small"
                     />
                   </TableCell>
-                  <TableCell>{new Date(transaction.createdAt).toLocaleDateString()}</TableCell>
+                  <TableCell>{transaction.createdAt ? new Date(transaction.createdAt).toLocaleDateString() : 'N/A'}</TableCell>
                 </TableRow>
-              ))}
+              )) : null}
             </TableBody>
           </Table>
         </TableContainer>
