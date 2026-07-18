@@ -189,6 +189,9 @@ const Investments = () => {
 
   // Remove an uploaded image
   const removeImage = (index) => {
+    // Revoke the blob URL to free memory and prevent invalid references
+    URL.revokeObjectURL(imagePreviews[index]);
+    
     const newImages = [...uploadedImages];
     const newPreviews = [...imagePreviews];
     newImages.splice(index, 1);
