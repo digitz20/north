@@ -1,42 +1,16 @@
-import React from 'react';
-import { Box, Typography, Paper, List, ListItem, ListItemText, ListItemIcon, Chip, Divider } from '@mui/material';
+import React, { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { Box, Typography, Paper, List, ListItem, ListItemText, ListItemIcon, Chip, Divider, CircularProgress, Alert, Button } from '@mui/material';
 import { Notifications as NotificationsIcon, Payment, Security, AccountBalance } from '@mui/icons-material';
+import { getNotifications, markAsRead, markAllAsRead } from '../store/slices/notificationSlice';
 
 const Notifications = () => {
-  const notifications = [
-    {
-      id: 1,
-      type: 'payment',
-      title: 'Payment Received',
-      message: 'You received $1,200 from John Doe',
-      date: '2026-07-15',
-      read: false
-    },
-    {
-      id: 2,
-      type: 'security',
-      title: 'New Login Detected',
-      message: 'A new login was detected from Chrome on Windows',
-      date: '2026-07-14',
-      read: false
-    },
-    {
-      id: 3,
-      type: 'account',
-      title: 'Account Update',
-      message: 'Your profile information was updated successfully',
-      date: '2026-07-10',
-      read: true
-    },
-    {
-      id: 4,
-      type: 'payment',
-      title: 'Bill Paid',
-      message: 'Your electricity bill of $85 was paid successfully',
-      date: '2026-07-05',
-      read: true
-    }
-  ];
+  const dispatch = useDispatch();
+  const { notifications, unreadCount, loading, error } = useSelector((state) => state.notifications);
+
+  useEffect(() => {
+    dispatch(getNotifications());
+  }, [dispatch]);
 
   const getIcon = (type) => {
     switch(type) {
@@ -47,46 +21,92 @@ const Notifications = () => {
     }
   };
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const handleMarkAsRead = (notificationId) => {
+    dispatch(markAsRead(notificationId));
+  };
+
+  const handleMarkAllAsRead = () => {
+    dispatch(markAllAsRead());
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box mt={4}>
+        <Alert severity="error">{error}</Alert>
+      </Box>
+    );
+  }
 
   return (
     <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3} flexWrap="wrap" gap={2}>
         <Typography variant="h4">Notifications</Typography>
-        {unreadCount > 0 && (
-          <Chip label={`${unreadCount} unread`} color="primary" />
-        )}
+        <Box display="flex" gap={2} alignItems="center">
+          {unreadCount > 0 && (
+            <>
+              <Chip label={`${unreadCount} unread`} color="primary" />
+              <Button size="small" onClick={handleMarkAllAsRead}>Mark all as read</Button>
+            </>
+          )}
+        </Box>
       </Box>
 
       <Paper>
-        <List>
-          {notifications.map((notification, index) => (
-            <React.Fragment key={notification.id}>
-              <ListItem sx={{ backgroundColor: notification.read ? 'transparent' : 'rgba(0, 0, 0, 0.04)' }}>
-                <ListItemIcon>
-                  {getIcon(notification.type)}
-                </ListItemIcon>
-                <ListItemText
-                  primary={
-                    <Box display="flex" alignItems="center">
-                      <Typography>{notification.title}</Typography>
-                      {!notification.read && (
-                        <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'primary.main', ml: 2 }} />
-                      )}
-                    </Box>
-                  }
-                  secondary={
-                    <>
-                      <Typography variant="body2" color="text.secondary">{notification.message}</Typography>
-                      <Typography variant="caption" color="text.secondary">{notification.date}</Typography>
-                    </>
-                  }
-                />
-              </ListItem>
-              {index < notifications.length - 1 && <Divider />}
-            </React.Fragment>
-          ))}
-        </List>
+        {notifications.length > 0 ? (
+          <List>
+            {notifications.map((notification, index) => (
+              <React.Fragment key={notification._id}>
+                <ListItem 
+                  sx={{ 
+                    backgroundColor: notification.read ? 'transparent' : 'rgba(0, 0, 0, 0.04)',
+                    cursor: 'pointer',
+                    '&:hover': {
+                      backgroundColor: notification.read ? 'rgba(0,0,0,0.02)' : 'rgba(0,0,0,0.06)'
+                    }
+                  }}
+                  onClick={() => !notification.read && handleMarkAsRead(notification._id)}
+                >
+                  <ListItemIcon>
+                    {getIcon(notification.type)}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={
+                      <Box display="flex" alignItems="center">
+                        <Typography>{notification.title}</Typography>
+                        {!notification.read && (
+                          <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'primary.main', ml: 2 }} />
+                        )}
+                      </Box>
+                    }
+                    secondary={
+                      <>
+                        <Typography variant="body2" color="text.secondary">{notification.message}</Typography>
+                        <Typography variant="caption" color="text.secondary">{formatDate(notification.createdAt)}</Typography>
+                      </>
+                    }
+                  />
+                </ListItem>
+                {index < notifications.length - 1 && <Divider />}
+              </React.Fragment>
+            ))}
+          </List>
+        ) : (
+          <Box sx={{ p: 4, textAlign: 'center' }}>
+            <Typography variant="body1" color="text.secondary">You have no notifications</Typography>
+          </Box>
+        )}
       </Paper>
     </Box>
   );

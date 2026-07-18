@@ -57,6 +57,43 @@ export const createTransfer = createAsyncThunk(
   }
 );
 
+// Process withdrawal
+export const processWithdrawal = createAsyncThunk(
+  'transactions/withdraw',
+  async (withdrawalData, { rejectWithValue }) => {
+    try {
+      const response = await api.post('/transactions/withdraw', withdrawalData);
+      // Send email notification
+      await api.post('/notifications/send-email', {
+        email: withdrawalData.recipientEmail,
+        type: 'withdrawal_confirmation',
+        transactionDetails: response.data.data
+      });
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Withdrawal failed');
+    }
+  }
+);
+
+// Process crypto deposit
+export const processCryptoDeposit = createAsyncThunk(
+  'transactions/crypto-deposit',
+  async (depositData, { rejectWithValue }) => {
+    try {
+      const response = await api.post('/transactions/crypto-deposit', depositData);
+      await api.post('/notifications/send-email', {
+        email: depositData.userEmail,
+        type: 'deposit_confirmation',
+        transactionDetails: response.data.data
+      });
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Deposit failed');
+    }
+  }
+);
+
 const transactionSlice = createSlice({
   name: 'transactions',
   initialState,
@@ -119,6 +156,34 @@ const transactionSlice = createSlice({
         state.filteredTransactions.unshift(action.payload);
       })
       .addCase(createTransfer.rejected, (state, action) => {
+        state.error = action.payload;
+      })
+      
+      // Process withdrawal cases
+      .addCase(processWithdrawal.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(processWithdrawal.fulfilled, (state, action) => {
+        state.loading = false;
+        state.transactions.unshift(action.payload);
+        state.filteredTransactions.unshift(action.payload);
+      })
+      .addCase(processWithdrawal.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      
+      // Process crypto deposit cases
+      .addCase(processCryptoDeposit.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(processCryptoDeposit.fulfilled, (state, action) => {
+        state.loading = false;
+        state.transactions.unshift(action.payload);
+        state.filteredTransactions.unshift(action.payload);
+      })
+      .addCase(processCryptoDeposit.rejected, (state, action) => {
+        state.loading = false;
         state.error = action.payload;
       });
   }

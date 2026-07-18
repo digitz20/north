@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { Box, Typography, Paper, Grid, TextField, Button, Switch, FormControlLabel, Divider, Alert, MenuItem, InputAdornment } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Typography, Paper, Grid, TextField, Button, Switch, FormControlLabel, Divider, Alert, MenuItem, InputAdornment, CircularProgress } from '@mui/material';
+import { useSelector, useDispatch } from 'react-redux';
+import { getCurrentUser } from '../store/slices/authSlice';
 
-// Same country codes list, +1 default
+// Same country codes list
 const countryCodes = [
   { code: '+1', country: 'United States' },
   { code: '+44', country: 'United Kingdom' },
@@ -52,14 +54,49 @@ const countryCodes = [
 ];
 
 const Settings = () => {
+  const dispatch = useDispatch();
+  const { user, loading: authLoading } = useSelector((state) => state.auth);
+  
+  const [formData, setFormData] = useState({
+    email: '',
+    phone: '',
+    countryCode: '+1'
+  });
+  
   const [settings, setSettings] = useState({
-    emailNotifications: true,
-    smsAlerts: true,
-    twoFactorAuth: false,
-    monthlyStatements: true,
-    darkMode: false
+    emailNotifications: user?.settings?.emailNotifications ?? true,
+    smsAlerts: user?.settings?.smsAlerts ?? true,
+    twoFactorAuth: user?.settings?.twoFactorAuth ?? false,
+    monthlyStatements: user?.settings?.monthlyStatements ?? true,
+    darkMode: user?.settings?.darkMode ?? false
   });
   const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (!user) {
+      dispatch(getCurrentUser());
+    } else {
+      // Populate form data with real user information
+      const userPhone = user.phone || '';
+      const phoneMatch = userPhone.match(/^(\+\d+)\s*(.*)$/);
+      
+      setFormData({
+        email: user.email || '',
+        phone: phoneMatch ? phoneMatch[2] : userPhone.replace(/^\+\d+\s*/, ''),
+        countryCode: phoneMatch ? phoneMatch[1] : (user.phone ? user.phone.split(' ')[0] : '+1')
+      });
+      
+      if (user.settings) {
+        setSettings({
+          emailNotifications: user.settings.emailNotifications ?? true,
+          smsAlerts: user.settings.smsAlerts ?? true,
+          twoFactorAuth: user.settings.twoFactorAuth ?? false,
+          monthlyStatements: user.settings.monthlyStatements ?? true,
+          darkMode: user.settings.darkMode ?? false
+        });
+      }
+    }
+  }, [dispatch, user]);
 
   const handleToggle = (setting) => {
     setSettings({
@@ -68,10 +105,26 @@ const Settings = () => {
     });
   };
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
   const handleSave = () => {
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
+
+  if (authLoading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box>
@@ -83,39 +136,45 @@ const Settings = () => {
         <Typography variant="h6" gutterBottom>Account Settings</Typography>
         <Grid container spacing={3}>
           <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Email Address"
-            defaultValue="user@example.com"
-          />
+            <TextField
+              fullWidth
+              label="Email Address"
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+            />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Phone Number"
+              name="phone"
+              value={formData.phone}
+              onChange={handleInputChange}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <TextField
+                      select
+                      name="countryCode"
+                      value={formData.countryCode}
+                      onChange={handleInputChange}
+                      sx={{ minWidth: 120, '& .MuiInputBase-input': { py: 1 } }}
+                      variant="standard"
+                      size="small"
+                    >
+                      {countryCodes.map((country, index) => (
+                        <MenuItem key={`${country.code}-${index}`} value={country.code}>
+                          {country.code} ({country.country})
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </InputAdornment>
+                )
+              }}
+            />
+          </Grid>
         </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Phone Number"
-            defaultValue="(555) 123-4567"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <TextField
-                    select
-                    defaultValue="+1"
-                    sx={{ minWidth: 120, '& .MuiInputBase-input': { py: 1 } }}
-                    variant="standard"
-                    size="small"
-                  >
-                    {countryCodes.map((country, index) => (
-                      <MenuItem key={`${country.code}-${index}`} value={country.code}>
-                        {country.code} ({country.country})
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </InputAdornment>
-              )
-            }}
-          />
-        </Grid>
-      </Grid>
 
         <Divider sx={{ my: 4 }} />
 

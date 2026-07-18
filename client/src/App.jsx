@@ -22,6 +22,8 @@ const Beneficiaries = lazy(() => import('./pages/Beneficiaries'));
 const Notifications = lazy(() => import('./pages/Notifications'));
 const Settings = lazy(() => import('./pages/Settings'));
 const Profile = lazy(() => import('./pages/Profile'));
+const Withdraw = lazy(() => import('./pages/Withdraw'));
+const Deposit = lazy(() => import('./pages/Deposit'));
 
 function App() {
   const { isAuthenticated } = useSelector((state) => state.auth);
@@ -47,6 +49,8 @@ function App() {
             <Route path="/accounts" element={<Accounts />} />
             <Route path="/transactions" element={<Transactions />} />
             <Route path="/transfer" element={<Transfer />} />
+            <Route path="/withdraw" element={<Withdraw />} />
+            <Route path="/deposit" element={<Deposit />} />
             <Route path="/cards" element={<Cards />} />
             <Route path="/investments" element={<Investments />} />
             <Route path="/loans" element={<Loans />} />

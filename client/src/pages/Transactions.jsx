@@ -43,24 +43,53 @@ const Transactions = () => {
   
   const netSavings = totalIncome - totalExpenses;
 
-  // Chart data
-  const monthlyData = [
-    { name: 'Jan', income: 4500, expenses: 3200 },
-    { name: 'Feb', income: 5100, expenses: 2800 },
-    { name: 'Mar', income: 4800, expenses: 3500 },
-    { name: 'Apr', income: 5200, expenses: 3100 },
-    { name: 'May', income: 4900, expenses: 2900 },
-    { name: 'Jun', income: 5500, expenses: 3400 },
-    { name: 'Jul', income: 6200, expenses: 3100 },
-  ];
+  // Calculate monthly data from real transactions
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const currentDate = new Date();
+  const monthlyData = [];
+  
+  // Get last 7 months of data
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+    const monthTransactions = transactions.filter(t => {
+      const transactionDate = new Date(t.createdAt);
+      return transactionDate.getMonth() === date.getMonth() && transactionDate.getFullYear() === date.getFullYear();
+    });
+    
+    const income = monthTransactions.filter(t => t.type === 'credit').reduce((sum, t) => sum + t.amount, 0);
+    const expenses = monthTransactions.filter(t => t.type === 'debit').reduce((sum, t) => sum + t.amount, 0);
+    
+    monthlyData.push({
+      name: monthNames[date.getMonth()],
+      income,
+      expenses
+    });
+  }
 
-  const categoryData = [
-    { name: 'Shopping', value: 1250, color: '#0066FF' },
-    { name: 'Food & Dining', value: 850, color: '#00BFFF' },
-    { name: 'Housing', value: 2100, color: '#00C896' },
-    { name: 'Transport', value: 420, color: '#FFC857' },
-    { name: 'Healthcare', value: 350, color: '#FF6B6B' },
-  ];
+  // Calculate category spending from real transactions
+  const categorySpending = {};
+  transactions.filter(t => t.type === 'debit').forEach(t => {
+    const category = t.category || 'Other';
+    if (!categorySpending[category]) {
+      categorySpending[category] = 0;
+    }
+    categorySpending[category] += t.amount;
+  });
+
+  const categoryColors = {
+    Shopping: '#0066FF',
+    'Food & Dining': '#00BFFF',
+    Housing: '#00C896',
+    Transport: '#FFC857',
+    Healthcare: '#FF6B6B',
+    Other: '#808080'
+  };
+
+  const categoryData = Object.entries(categorySpending).map(([name, value]) => ({
+    name,
+    value,
+    color: categoryColors[name] || categoryColors.Other
+  }));
 
   // Transaction category icons
   const categoryIcons = {

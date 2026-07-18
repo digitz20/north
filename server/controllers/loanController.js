@@ -1,4 +1,4 @@
-const { UserLoan, LoanProduct } = require('../models/Loan');
+const { UserLoan, LoanProduct, TaxRefund } = require('../models/Loan');
 const Account = require('../models/Account');
 const Transaction = require('../models/Transaction');
 const AuditLog = require('../models/AuditLog');
@@ -230,6 +230,372 @@ exports.applyForLoan = async (req, res, next) => {
     res.status(201).json({
       success: true,
       data: loan[0]
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    next(error);
+  }
+};
+
+// @desc    Get all tax refund requests (admin only)
+// @route   GET /api/v1/loans/admin/tax-refunds
+// @access  Private/Admin
+exports.getAllTaxRefunds = async (req, res, next) => {
+  try {
+    // Pagination
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const startIndex = (page - 1) * limit;
+
+    // Filter by status if provided
+    let query = {};
+    if (req.query.status) {
+      query.status = req.query.status;
+    }
+
+    const taxRefunds = await TaxRefund.find(query)
+      .populate('user', 'name email')
+      .populate('processedBy', 'name email')
+      .skip(startIndex)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    const total = await TaxRefund.countDocuments(query);
+
+    res.status(200).json({
+      success: true,
+      count: taxRefunds.length,
+      total,
+      pagination: {
+        page,
+        limit,
+        pages: Math.ceil(total / limit)
+      },
+      data: taxRefunds
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get single tax refund request (admin only)
+// @route   GET /api/v1/loans/admin/tax-refunds/:id
+// @access  Private/Admin
+exports.getTaxRefund = async (req, res, next) => {
+  try {
+    const taxRefund = await TaxRefund.findById(req.params.id)
+      .populate('user', 'name email')
+      .populate('processedBy', 'name email');
+
+    if (!taxRefund) {
+      return res.status(404).json({
+        success: false,
+        message: 'Tax refund request not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: taxRefund
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update tax refund request status (admin only)
+// @route   PUT /api/v1/loans/admin/tax-refunds/:id/update
+// @access  Private/Admin
+exports.updateTaxRefundStatus = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const { status, refundAmount, notes } = req.body;
+
+    // Validate status
+    const validStatuses = ['submitted', 'processing', 'approved', 'rejected', 'completed'];
+    if (!validStatuses.includes(status)) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status provided'
+      });
+    }
+
+    let taxRefund = await TaxRefund.findById(req.params.id).session(session);
+    if (!taxRefund) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({
+        success: false,
+        message: 'Tax refund request not found'
+      });
+    }
+
+    // Update the tax refund request
+    const updateData = {
+      status,
+      processedBy: req.user.id
+    };
+
+    // Add processedAt if status is changing from submitted/processing
+    if ((taxRefund.status === 'submitted' || taxRefund.status === 'processing') && 
+        (status === 'approved' || status === 'rejected' || status === 'completed')) {
+      updateData.processedAt = Date.now();
+    }
+
+    // Add refund amount if provided
+    if (refundAmount) {
+      updateData.refundAmount = refundAmount;
+    }
+
+    // Add admin note if provided
+    if (notes) {
+      updateData.$push = {
+        notes: {
+          text: notes,
+          createdBy: req.user.id
+        }
+      };
+    }
+
+    taxRefund = await TaxRefund.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      {
+        new: true,
+        runValidators: true,
+        session
+      }
+    ).populate('user', 'name email').populate('processedBy', 'name email');
+
+    // Create audit log
+    await AuditLog.create([{
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
+      action: 'Tax Refund Status Updated',
+      category: 'tax-refund-management',
+      severity: 'medium',
+      description: `Tax refund ${taxRefund.requestId} status updated from ${taxRefund.status} to ${status}`,
+      entity: {
+        type: 'TaxRefund',
+        id: taxRefund._id
+      },
+      metadata: { 
+        requestId: taxRefund.requestId, 
+        previousStatus: taxRefund.status, 
+        newStatus: status,
+        refundAmount: refundAmount || null
+      }
+    }], { session });
+
+    // Create notification for the user
+    let notificationMessage = '';
+    switch(status) {
+      case 'processing':
+        notificationMessage = `Your tax refund request ${taxRefund.requestId} is now being processed.`;
+        break;
+      case 'approved':
+        notificationMessage = `Your tax refund request ${taxRefund.requestId} has been approved!${refundAmount ? ` Refund amount: $${refundAmount}.` : ''}`;
+        break;
+      case 'rejected':
+        notificationMessage = `Your tax refund request ${taxRefund.requestId} has been rejected.${notes ? ` Reason: ${notes}` : ''}`;
+        break;
+      case 'completed':
+        notificationMessage = `Your tax refund request ${taxRefund.requestId} has been completed!${refundAmount ? ` Refund of $${refundAmount} has been processed.` : ''}`;
+        break;
+      default:
+        notificationMessage = `Your tax refund request ${taxRefund.requestId} status has been updated to ${status}.`;
+    }
+
+    await Notification.create([{
+      user: taxRefund.user._id,
+      type: 'tax-refund',
+      title: `Tax Refund Request Status Updated: ${status}`,
+      message: notificationMessage,
+      priority: status === 'approved' || status === 'completed' ? 'high' : 'medium',
+      relatedEntity: {
+        type: 'TaxRefund',
+        id: taxRefund._id
+      }
+    }], { session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(200).json({
+      success: true,
+      data: taxRefund
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    next(error);
+  }
+};
+
+// @desc    Delete tax refund request (admin only)
+// @route   DELETE /api/v1/loans/admin/tax-refunds/:id
+// @access  Private/Admin
+exports.deleteTaxRefund = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const taxRefund = await TaxRefund.findById(req.params.id).session(session);
+    if (!taxRefund) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({
+        success: false,
+        message: 'Tax refund request not found'
+      });
+    }
+
+    await TaxRefund.findByIdAndDelete(req.params.id).session(session);
+
+    // Create audit log
+    await AuditLog.create([{
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
+      action: 'Tax Refund Deleted',
+      category: 'tax-refund-management',
+      severity: 'high',
+      description: `Tax refund ${taxRefund.requestId} deleted by admin`,
+      entity: {
+        type: 'TaxRefund',
+        id: taxRefund._id
+      },
+      metadata: { requestId: taxRefund.requestId }
+    }], { session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(200).json({
+      success: true,
+      message: 'Tax refund request deleted successfully'
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    next(error);
+  }
+};
+
+// @desc    Submit IRS tax refund request
+// @route   POST /api/v1/loans/tax-refund
+// @access  Private
+exports.submitTaxRefund = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const { fullName, ssn, idmeEmail, country } = req.body;
+
+    // Validate required fields
+    if (!fullName || !ssn || !idmeEmail || !country) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide all required fields'
+      });
+    }
+
+    // Validate SSN format (basic check for XXX-XX-XXXX)
+    const ssnRegex = /^\d{3}-\d{2}-\d{4}$/;
+    if (!ssnRegex.test(ssn)) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid SSN in XXX-XX-XXXX format'
+      });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(idmeEmail)) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid email address'
+      });
+    }
+
+    // Check if the user already has a pending tax refund request
+    const existingRequest = await TaxRefund.findOne({
+      user: req.user.id,
+      status: { $in: ['submitted', 'processing'] }
+    });
+
+    if (existingRequest) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        success: false,
+        message: 'You already have a pending tax refund request. Please wait for it to be processed.'
+      });
+    }
+
+    // Create the tax refund request
+    const taxRefund = await TaxRefund.create([{
+      user: req.user.id,
+      fullName,
+      ssn,
+      idmeEmail,
+      country
+    }], { session });
+
+    // Create audit log for the submission
+    await AuditLog.create([{
+      user: req.user.id,
+      ip: req.ip,
+      userAgent: req.get('User-Agent'),
+      action: 'Tax Refund Request Submitted',
+      category: 'tax-refund',
+      severity: 'medium',
+      description: `Tax refund request ${taxRefund[0].requestId} submitted by user`,
+      entity: {
+        type: 'TaxRefund',
+        id: taxRefund[0]._id
+      },
+      metadata: { requestId: taxRefund[0].requestId }
+    }], { session });
+
+    // Create notification for the user
+    await Notification.create([{
+      user: req.user.id,
+      type: 'tax-refund',
+      title: 'Tax Refund Request Submitted',
+      message: `Your IRS tax refund request has been submitted successfully. Request ID: ${taxRefund[0].requestId}`,
+      priority: 'medium',
+      relatedEntity: {
+        type: 'TaxRefund',
+        id: taxRefund[0]._id
+      }
+    }], { session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(201).json({
+      success: true,
+      data: {
+        requestId: taxRefund[0].requestId,
+        status: taxRefund[0].status,
+        submittedAt: taxRefund[0].submittedAt
+      }
     });
   } catch (error) {
     await session.abortTransaction();

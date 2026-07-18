@@ -1,0 +1,468 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Box, Typography, Paper, Grid, TextField, Button, Divider, Alert,
+  MenuItem, Chip, CircularProgress, Stepper, Step, StepLabel, Card,
+  CardContent, Avatar, IconButton, Tooltip, Dialog, DialogTitle,
+  DialogContent, DialogActions
+} from '@mui/material';
+import {
+  CurrencyBitcoin, QrCode, Email, CheckCircle,
+  ContentCopy, Visibility, Close, UploadFile
+} from '@mui/icons-material';
+import { useSelector, useDispatch } from 'react-redux';
+import { getCurrentUser } from '../store/slices/authSlice';
+import { fetchAccounts } from '../store/slices/accountSlice';
+import { processCryptoDeposit } from '../store/slices/transactionSlice';
+
+// Supported cryptocurrencies with their addresses
+const cryptoOptions = [
+  { 
+    id: 'btc', 
+    name: 'Bitcoin', 
+    symbol: 'BTC',
+    address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+    qrCode: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+    network: 'Bitcoin (BTC)'
+  },
+  { 
+    id: 'eth', 
+    name: 'Ethereum', 
+    symbol: 'ETH',
+    address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
+    qrCode: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
+    network: 'Ethereum (ERC20)'
+  },
+  { 
+    id: 'usdt', 
+    name: 'Tether', 
+    symbol: 'USDT',
+    address: '0x8894E0a0c962CB723c1a7444271756D7E565Aa7C',
+    qrCode: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=0x8894E0a0c962CB723c1a7444271756D7E565Aa7C',
+    network: 'Ethereum (ERC20)'
+  },
+  { 
+    id: 'bnb', 
+    name: 'BNB', 
+    symbol: 'BNB',
+    address: 'bnb1grpf0955h0ykzq3ar5nmum7y6gdfl6lxfn46h2',
+    qrCode: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=bnb1grpf0955h0ykzq3ar5nmum7y6gdfl6lxfn46h2',
+    network: 'BNB Chain'
+  }
+];
+
+// Crypto address validation patterns (enhanced with more strict validation)
+const addressValidators = {
+  btc: /^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$/, // Bitcoin addresses (bech32 or legacy)
+  eth: /^0x[a-fA-F0-9]{40}$/, // Ethereum addresses (40 hex chars after 0x)
+  bnb: /^bnb1[ac-hj-np-z02-9]{38,58}$/, // BNB Chain addresses (bech32)
+  usdt: /^0x[a-fA-F0-9]{40}$/ // USDT on Ethereum
+};
+
+// Checksum validation for Ethereum addresses (simple check)
+const isValidEthereumAddress = (address) => {
+  if (!/^0x[a-fA-F0-9]{40}$/.test(address)) return false;
+  
+  // Check if it's all lowercase or all uppercase (valid), or mixed (checksummed)
+  const isAllLower = address === address.toLowerCase();
+  const isAllUpper = address === address.toUpperCase();
+  return isAllLower || isAllUpper;
+};
+
+// Enhanced address validation that includes network-specific checks
+const validateCryptoAddress = (cryptoId, address) => {
+  const validator = addressValidators[cryptoId];
+  if (!validator) return false;
+  
+  // Basic format check
+  if (!validator.test(address)) return false;
+  
+  // Additional Ethereum-specific checksum validation
+  if (cryptoId === 'eth' || cryptoId === 'usdt') {
+    return isValidEthereumAddress(address);
+  }
+  
+  return true;
+};
+
+const Deposit = () => {
+  const dispatch = useDispatch();
+  const { user, loading: authLoading } = useSelector((state) => state.auth);
+  const { accounts, loading: accountsLoading } = useSelector((state) => state.accounts);
+  const { loading: transactionLoading, error: transactionError } = useSelector((state) => state.transactions);
+  
+  const [activeStep, setActiveStep] = useState(0);
+  const [openConfirmation, setOpenConfirmation] = useState(false);
+  const [transferComplete, setTransferComplete] = useState(false);
+  const [selectedCrypto, setSelectedCrypto] = useState(cryptoOptions[0]);
+  const [copied, setCopied] = useState(false);
+  const [uploadedImage, setUploadedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  
+  // Form states
+  const [cryptoForm, setCryptoForm] = useState({
+    destinationAccount: '',
+    crypto: 'btc',
+    transactionHash: '',
+    amount: '',
+    email: ''
+  });
+  
+  const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    if (!user) {
+      dispatch(getCurrentUser());
+    }
+    dispatch(fetchAccounts());
+  }, [dispatch, user]);
+
+  useEffect(() => {
+    if (user?.email) {
+      setCryptoForm(prev => ({ ...prev, email: user.email }));
+    }
+    if (accounts.length > 0) {
+      setCryptoForm(prev => ({ ...prev, destinationAccount: accounts[0].id }));
+    }
+  }, [user, accounts]);
+
+  const handleImageUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      if (!validTypes.includes(file.type)) {
+        setErrors(prev => ({ ...prev, image: 'Please upload a valid image file (JPG, PNG, GIF, WebP)' }));
+        return;
+      }
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setErrors(prev => ({ ...prev, image: 'Image size must be less than 5MB' }));
+        return;
+      }
+      
+      setUploadedImage(file);
+      setErrors(prev => ({ ...prev, image: undefined }));
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCryptoChange = (cryptoId) => {
+    const crypto = cryptoOptions.find(c => c.id === cryptoId);
+    setSelectedCrypto(crypto);
+    setCryptoForm(prev => ({ ...prev, crypto: cryptoId, walletAddress: '', transactionHash: '' }));
+    setErrors({});
+  };
+
+  const validateCryptoForm = () => {
+    const newErrors = {};
+    if (!cryptoForm.destinationAccount) newErrors.destinationAccount = 'Please select a destination account';
+    if (!cryptoForm.transactionHash) newErrors.transactionHash = 'Transaction hash is required';
+    if (!cryptoForm.amount || parseFloat(cryptoForm.amount) <= 0) newErrors.amount = 'Valid amount is required';
+    if (!uploadedImage) newErrors.image = 'Please upload a screenshot/proof of your transaction';
+    
+    // Enhanced crypto address/transaction hash validation
+    const isValidTransactionHash = validateCryptoAddress(cryptoForm.crypto, cryptoForm.transactionHash);
+    if (cryptoForm.transactionHash && !isValidTransactionHash) {
+      newErrors.transactionHash = `Invalid ${cryptoForm.crypto.toUpperCase()} transaction hash/wallet address format. Please check and enter a valid address.`;
+    }
+    
+    const destAccount = accounts.find(a => a.id === cryptoForm.destinationAccount);
+    if (destAccount && parseFloat(cryptoForm.amount) > 100000) { // Maximum deposit limit
+      newErrors.amount = 'Deposit amount exceeds maximum limit of $100,000';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleContinue = () => {
+    const isValid = validateCryptoForm();
+    if (isValid) {
+      setActiveStep(1);
+      setOpenConfirmation(true);
+    }
+  };
+
+  const handleConfirmDeposit = async () => {
+    const depositData = {
+      type: 'crypto',
+      destinationAccountId: cryptoForm.destinationAccount,
+      source: {
+        crypto: cryptoForm.crypto,
+        transactionHash: cryptoForm.transactionHash,
+        network: selectedCrypto.network,
+        proofImage: uploadedImage // This would be uploaded to cloud storage in production
+      },
+      amount: parseFloat(cryptoForm.amount),
+      email: cryptoForm.email
+    };
+
+    try {
+      await dispatch(processCryptoDeposit(depositData)).unwrap();
+      setTransferComplete(true);
+      setActiveStep(2);
+      
+      // Email is sent automatically via backend after successful deposit initiation
+    } catch (error) {
+      setErrors({ submit: error.message || 'Deposit failed. Please try again.' });
+    }
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  if (authLoading || accountsLoading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  const steps = ['Enter Deposit Details', 'Confirm Deposit', 'Deposit Complete'];
+
+  return (
+    <Box>
+      <Typography variant="h4" gutterBottom>Deposit Crypto Funds</Typography>
+      
+      <Paper sx={{ p: 4 }}>
+        <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+          {steps.map((label) => (
+            <Step key={label}>
+              <StepLabel>{label}</StepLabel>
+            </Step>
+          ))}
+        </Stepper>
+
+        {errors.submit && <Alert severity="error" sx={{ mb: 3 }}>{errors.submit}</Alert>}
+        {errors.image && <Alert severity="error" sx={{ mb: 3 }}>{errors.image}</Alert>}
+
+        <Grid container spacing={3}>
+          {activeStep === 0 && (
+            <>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  select
+                  fullWidth
+                  label="Destination Account"
+                  value={cryptoForm.destinationAccount}
+                  onChange={(e) => setCryptoForm(prev => ({ ...prev, destinationAccount: e.target.value }))}
+                  error={!!errors.destinationAccount}
+                  helperText={errors.destinationAccount}
+                >
+                  {accounts.map((account) => (
+                    <MenuItem key={account.id} value={account.id}>
+                      {account.nickname} - ${account.balance.toLocaleString()}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Amount (USD)"
+                  type="number"
+                  value={cryptoForm.amount}
+                  onChange={(e) => setCryptoForm(prev => ({ ...prev, amount: e.target.value }))}
+                  error={!!errors.amount}
+                  helperText={errors.amount}
+                  InputProps={{ inputProps: { min: 10, step: 0.01, max: 100000 } }}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  select
+                  fullWidth
+                  label="Cryptocurrency"
+                  value={cryptoForm.crypto}
+                  onChange={(e) => handleCryptoChange(e.target.value)}
+                >
+                  {cryptoOptions.map((crypto) => (
+                    <MenuItem key={crypto.id} value={crypto.id}>
+                      {crypto.name} ({crypto.symbol})
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Transaction Hash / Source Wallet Address"
+                  value={cryptoForm.transactionHash}
+                  onChange={(e) => setCryptoForm(prev => ({ ...prev, transactionHash: e.target.value }))}
+                  error={!!errors.transactionHash}
+                  helperText={errors.transactionHash || `Enter your ${selectedCrypto.symbol} transaction hash or source wallet address`}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Notification Email"
+                  type="email"
+                  value={cryptoForm.email}
+                  onChange={(e) => setCryptoForm(prev => ({ ...prev, email: e.target.value }))}
+                  InputProps={{
+                    endAdornment: <Email color="action" />
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Button
+                  variant="outlined"
+                  component="label"
+                  fullWidth
+                  startIcon={<UploadFile />}
+                  sx={{ height: '56px', borderStyle: 'dashed' }}
+                >
+                  Upload Transaction Proof (Screenshot)
+                  <input
+                    type="file"
+                    hidden
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                  />
+                </Button>
+                {imagePreview && (
+                  <Box mt={2}>
+                    <img src={imagePreview} alt="Transaction proof" style={{ maxWidth: '100%', maxHeight: '200px', objectFit: 'contain' }} />
+                  </Box>
+                )}
+              </Grid>
+              <Grid item xs={12}>
+                <Card sx={{ p: 3, bgcolor: 'background.default' }}>
+                  <Typography variant="subtitle1" gutterBottom>
+                    Send your {selectedCrypto.name} to our official address:
+                  </Typography>
+                  <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
+                    <img src={selectedCrypto.qrCode} alt="QR Code" style={{ width: 100, height: 100 }} />
+                    <Box flexGrow={1}>
+                      <Typography variant="body2" color="text.secondary">
+                        {selectedCrypto.address}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Network: {selectedCrypto.network}
+                      </Typography>
+                      <Box mt={1}>
+                        <Tooltip title={copied ? "Copied!" : "Copy address"}>
+                          <IconButton onClick={() => copyToClipboard(selectedCrypto.address)} size="small">
+                            <ContentCopy />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="View QR Code">
+                          <IconButton onClick={() => window.open(selectedCrypto.qrCode, '_blank')} size="small">
+                            <Visibility />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    </Box>
+                  </Box>
+                </Card>
+              </Grid>
+              <Grid item xs={12}>
+                <Button variant="contained" size="large" onClick={handleContinue}>
+                  Continue to Confirmation
+                </Button>
+              </Grid>
+            </>
+          )}
+        </Grid>
+
+        {/* Confirmation Dialog */}
+        <Dialog open={openConfirmation} onClose={() => setOpenConfirmation(false)} maxWidth="md" fullWidth>
+          <DialogTitle>
+            Confirm Crypto Deposit
+            <IconButton
+              aria-label="close"
+              onClick={() => setOpenConfirmation(false)}
+              sx={{ position: 'absolute', right: 8, top: 8 }}
+            >
+              <Close />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent>
+            {transferComplete ? (
+              <Box textAlign="center" py={4}>
+                <CheckCircle sx={{ fontSize: 80, color: 'success.main', mb: 2 }} />
+                <Typography variant="h5" gutterBottom>Deposit in Progress...</Typography>
+                <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+                  Please note withdrawal will take sometime to reflect.
+                </Typography>
+                <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                  Thank you for choosing NorthCrestBank.
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  A confirmation email has been sent to {cryptoForm.email}
+                </Typography>
+                <Box mt={3}>
+                  <Typography variant="subtitle1">Transaction will be processed on the {selectedCrypto.network} network</Typography>
+                  <img src={selectedCrypto.qrCode} alt="Transaction QR" style={{ width: 150, height: 150, margin: '20px auto' }} />
+                </Box>
+              </Box>
+            ) : (
+              <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  <Card variant="outlined">
+                    <CardContent>
+                      <Typography variant="h6" gutterBottom>Deposit Details</Typography>
+                      <Grid container spacing={2}>
+                        <Grid item xs={6}>
+                          <Typography variant="body2" color="text.secondary">Amount</Typography>
+                          <Typography variant="h6">${parseFloat(cryptoForm.amount).toLocaleString()}</Typography>
+                        </Grid>
+                        <Grid item xs={6}>
+                          <Typography variant="body2" color="text.secondary">Cryptocurrency</Typography>
+                          <Typography variant="h6">{selectedCrypto.name} (Deposit)</Typography>
+                        </Grid>
+                        <Grid item xs={6}>
+                          <Typography variant="body2" color="text.secondary">Network</Typography>
+                          <Typography variant="body1">{selectedCrypto.network}</Typography>
+                        </Grid>
+                        <Grid item xs={12}>
+                          <Typography variant="body2" color="text.secondary">Transaction Hash</Typography>
+                          <Typography variant="body1" sx={{ wordBreak: 'break-all' }}>{cryptoForm.transactionHash}</Typography>
+                        </Grid>
+                        {imagePreview && (
+                          <Grid item xs={12}>
+                            <Typography variant="body2" color="text.secondary">Uploaded Proof</Typography>
+                            <img src={imagePreview} alt="Transaction proof" style={{ maxWidth: '300px', maxHeight: '200px', marginTop: '10px' }} />
+                          </Grid>
+                        )}
+                        <Grid item xs={12}>
+                          <Typography variant="body2" color="text.secondary">Notification Email</Typography>
+                          <Typography variant="body1">{cryptoForm.email}</Typography>
+                        </Grid>
+                      </Grid>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              </Grid>
+            )}
+          </DialogContent>
+          {!transferComplete && (
+            <DialogActions>
+              <Button onClick={() => setOpenConfirmation(false)}>Cancel</Button>
+              <Button 
+                variant="contained" 
+                onClick={handleConfirmDeposit}
+                disabled={transactionLoading}
+              >
+                {transactionLoading ? <CircularProgress size={24} /> : 'Confirm & Submit Deposit'}
+              </Button>
+            </DialogActions>
+          )}
+        </Dialog>
+      </Paper>
+    </Box>
+  );
+};
+
+export default Deposit;

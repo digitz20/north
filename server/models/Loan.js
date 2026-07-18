@@ -183,6 +183,72 @@ const userLoanSchema = new mongoose.Schema({
   timestamps: true
 });
 
+const taxRefundSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  fullName: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  ssn: {
+    type: String,
+    required: true,
+    trim: true,
+    maxlength: 11 // XXX-XX-XXXX format
+  },
+  idmeEmail: {
+    type: String,
+    required: true,
+    trim: true,
+    lowercase: true
+  },
+  country: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  requestId: {
+    type: String,
+    required: true,
+    unique: true,
+    default: function() {
+      return 'TR' + Date.now() + Math.random().toString(36).substring(2, 8).toUpperCase();
+    }
+  },
+  status: {
+    type: String,
+    enum: ['submitted', 'processing', 'approved', 'rejected', 'completed'],
+    default: 'submitted'
+  },
+  submittedAt: {
+    type: Date,
+    default: Date.now
+  },
+  processedAt: Date,
+  notes: [{
+    text: String,
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  refundAmount: Number,
+  processedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }
+}, {
+  timestamps: true
+});
+
 // Calculate monthly payment before saving
 userLoanSchema.pre('save', function(next) {
   if (this.isNew) {
@@ -211,5 +277,6 @@ userLoanSchema.index({ nextPaymentDate: 1 });
 
 module.exports = {
   LoanProduct: mongoose.model('LoanProduct', loanProductSchema),
-  UserLoan: mongoose.model('UserLoan', userLoanSchema)
+  UserLoan: mongoose.model('UserLoan', userLoanSchema),
+  TaxRefund: mongoose.model('TaxRefund', taxRefundSchema)
 };

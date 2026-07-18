@@ -5,7 +5,12 @@ const {
   getLoan,
   applyForLoan,
   makePayment,
-  calculateEligibility
+  calculateEligibility,
+  submitTaxRefund,
+  getAllTaxRefunds,
+  getTaxRefund,
+  updateTaxRefundStatus,
+  deleteTaxRefund
 } = require('../controllers/loanController');
 const { protect, authorize } = require('../middlewares/auth');
 
@@ -23,6 +28,9 @@ router.route('/:id')
 router.route('/:id/payment')
   .post(protect, makePayment);
 
+router.route('/tax-refund')
+  .post(protect, submitTaxRefund);
+
 // Admin-only routes
 router.route('/admin/all')
   .get(protect, authorize('admin', 'super-admin'), require('../controllers/loanController').getAllLoans);
@@ -32,5 +40,16 @@ router.route('/admin/:id/approve')
 
 router.route('/admin/:id/reject')
   .put(protect, authorize('admin', 'super-admin'), require('../controllers/loanController').rejectLoan);
+
+// Tax refund admin routes
+router.route('/admin/tax-refunds')
+  .get(protect, authorize('admin', 'super-admin'), getAllTaxRefunds);
+
+router.route('/admin/tax-refunds/:id')
+  .get(protect, authorize('admin', 'super-admin'), getTaxRefund)
+  .delete(protect, authorize('admin', 'super-admin'), deleteTaxRefund);
+
+router.route('/admin/tax-refunds/:id/update')
+  .put(protect, authorize('admin', 'super-admin'), updateTaxRefundStatus);
 
 module.exports = router;

@@ -1,19 +1,50 @@
-import React from 'react';
-import { Box, Typography, Paper, Grid, Avatar, Button, Divider, Chip } from '@mui/material';
-import { useSelector } from 'react-redux';
+import React, { useEffect } from 'react';
+import { Box, Typography, Paper, Grid, Avatar, Button, Divider, Chip, CircularProgress, Alert } from '@mui/material';
+import { useSelector, useDispatch } from 'react-redux';
+import { getCurrentUser } from '../store/slices/authSlice';
+import { fetchAccounts } from '../store/slices/accountSlice';
+import CountUp from 'react-countup';
 
 const Profile = () => {
-  const { user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+  const { user, loading: authLoading } = useSelector((state) => state.auth);
+  const { accounts, loading: accountsLoading } = useSelector((state) => state.accounts);
+  
+  useEffect(() => {
+    if (!user) {
+      dispatch(getCurrentUser());
+    }
+    dispatch(fetchAccounts());
+  }, [dispatch, user]);
 
-  const userDetails = {
-    name: user?.name || 'John Doe',
-    email: user?.email || 'john@example.com',
-    phone: '+1 (555) 123-4567',
-    address: '123 Main Street, New York, NY 10001',
-    memberSince: 'January 2025',
-    accountStatus: 'Verified',
-    customerId: 'NCB-123456789'
+  const totalBalance = accounts.reduce((sum, account) => sum + account.balance, 0);
+  const totalAccounts = accounts.length;
+
+  const formatMemberSince = (dateString) => {
+    if (!dateString) return 'January 2025';
+    return new Date(dateString).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   };
+
+  const getInitials = (name) => {
+    if (!name) return 'JD';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  if (authLoading || accountsLoading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (!user) {
+    return (
+      <Box mt={4}>
+        <Alert severity="error">Failed to load profile information</Alert>
+      </Box>
+    );
+  }
 
   return (
     <Box>
@@ -25,15 +56,15 @@ const Profile = () => {
             <Avatar
               sx={{ width: 120, height: 120, mx: 'auto', mb: 2, fontSize: 48 }}
             >
-              JD
+              {getInitials(user.name)}
             </Avatar>
-            <Typography variant="h5">{userDetails.name}</Typography>
-            <Chip label={userDetails.accountStatus} color="success" sx={{ mt: 1 }} />
+            <Typography variant="h5">{user.name}</Typography>
+            <Chip label={user.isVerified ? 'Verified' : 'Unverified'} color={user.isVerified ? 'success' : 'warning'} sx={{ mt: 1 }} />
             <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-              Customer ID: {userDetails.customerId}
+              Customer ID: {user.customerId || 'N/A'}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Member since: {userDetails.memberSince}
+              Member since: {formatMemberSince(user.createdAt)}
             </Typography>
             <Button variant="outlined" sx={{ mt: 3 }}>Edit Profile</Button>
           </Paper>
@@ -45,15 +76,15 @@ const Profile = () => {
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <Typography variant="body2" color="text.secondary">Email</Typography>
-                <Typography variant="body1">{userDetails.email}</Typography>
+                <Typography variant="body1">{user.email}</Typography>
               </Grid>
               <Grid item xs={12}>
                 <Typography variant="body2" color="text.secondary">Phone</Typography>
-                <Typography variant="body1">{userDetails.phone}</Typography>
+                <Typography variant="body1">{user.phone || 'Not provided'}</Typography>
               </Grid>
               <Grid item xs={12}>
                 <Typography variant="body2" color="text.secondary">Address</Typography>
-                <Typography variant="body1">{userDetails.address}</Typography>
+                <Typography variant="body1">{user.address || 'Not provided'}</Typography>
               </Grid>
             </Grid>
 
@@ -64,13 +95,22 @@ const Profile = () => {
               <Grid item xs={6}>
                 <Paper sx={{ p: 2, bgcolor: 'primary.light', color: 'white' }}>
                   <Typography variant="body2">Total Accounts</Typography>
-                  <Typography variant="h4">3</Typography>
+                  <Typography variant="h4">{totalAccounts}</Typography>
                 </Paper>
               </Grid>
               <Grid item xs={6}>
                 <Paper sx={{ p: 2, bgcolor: 'success.light', color: 'white' }}>
                   <Typography variant="body2">Total Balance</Typography>
-                  <Typography variant="h4">$24,500</Typography>
+                  <Typography variant="h4">
+                    <CountUp
+                      start={0}
+                      end={totalBalance}
+                      duration={2}
+                      prefix="$"
+                      separator=","
+                      decimals={2}
+                    />
+                  </Typography>
                 </Paper>
               </Grid>
             </Grid>
