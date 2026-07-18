@@ -49,6 +49,14 @@ const transferSchema = new mongoose.Schema({
     required: true,
     min: [0.01, 'Transfer amount must be greater than 0']
   },
+  proofs: [{
+    url: String,
+    name: String,
+    uploadedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
   currency: {
     type: String,
     default: 'USD',

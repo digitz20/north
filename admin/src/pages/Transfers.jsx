@@ -14,7 +14,15 @@ import {
   TextField,
   Grid,
   Card,
-  CardContent
+  CardContent,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  List,
+  ListItem,
+  ListItemText,
+  Link
 } from '@mui/material';
 import api from '../services/api';
 
@@ -23,6 +31,8 @@ const Transfers = () => {
   const [transfers, setTransfers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedTransfer, setSelectedTransfer] = useState(null);
+  const [openDetails, setOpenDetails] = useState(false);
   const [stats, setStats] = useState({
     totalToday: 0,
     totalVolume: 0,
@@ -53,6 +63,11 @@ const Transfers = () => {
     } catch (error) {
       console.error('Error fetching transfer stats:', error);
     }
+  };
+
+  const handleViewDetails = (transfer) => {
+    setSelectedTransfer(transfer);
+    setOpenDetails(true);
   };
 
   const filteredTransfers = transfers.filter(transfer =>
@@ -133,6 +148,7 @@ const Transfers = () => {
                 <TableCell>Amount</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell>Date</TableCell>
+                <TableCell>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -151,12 +167,95 @@ const Transfers = () => {
                     />
                   </TableCell>
                   <TableCell>{new Date(transfer.createdAt).toLocaleDateString()}</TableCell>
+                  <TableCell>
+                    <Button 
+                      size="small" 
+                      variant="outlined"
+                      onClick={() => handleViewDetails(transfer)}
+                    >
+                      View
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </TableContainer>
       </Paper>
+
+      {/* Transfer Details Dialog */}
+      <Dialog open={openDetails} onClose={() => setOpenDetails(false)} maxWidth="md" fullWidth>
+        <DialogTitle>
+          Transfer Details: {selectedTransfer?.transferId}
+        </DialogTitle>
+        <DialogContent>
+          {selectedTransfer && (
+            <>
+              <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>Basic Information</Typography>
+              <Grid container spacing={2} sx={{ mb: 3 }}>
+                <Grid item xs={6}>
+                  <Typography variant="body2"><strong>Amount:</strong> ${selectedTransfer.amount.toLocaleString()}</Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="body2"><strong>Status:</strong> {selectedTransfer.status}</Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="body2"><strong>Created:</strong> {new Date(selectedTransfer.createdAt).toLocaleString()}</Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="body2"><strong>Type:</strong> {selectedTransfer.transferType}</Typography>
+                </Grid>
+              </Grid>
+
+              {/* Crypto Transfer Details */}
+              {selectedTransfer.source?.walletAddress && (
+                <>
+                  <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>Crypto Transaction Details</Typography>
+                  <Grid container spacing={2} sx={{ mb: 3 }}>
+                    <Grid item xs={12}>
+                      <Typography variant="body2"><strong>Source Wallet Address:</strong> {selectedTransfer.source.walletAddress}</Typography>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Typography variant="body2"><strong>Transaction Hash:</strong> {selectedTransfer.source.transactionHash}</Typography>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Typography variant="body2"><strong>Cryptocurrency:</strong> {selectedTransfer.source.crypto?.toUpperCase()}</Typography>
+                    </Grid>
+                  </Grid>
+                </>
+              )}
+
+              {/* Uploaded Proofs */}
+              {selectedTransfer.proofs && selectedTransfer.proofs.length > 0 && (
+                <>
+                  <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>Uploaded Transaction Proofs</Typography>
+                  <List>
+                    {selectedTransfer.proofs.map((proof, index) => (
+                      <ListItem key={index}>
+                        <ListItemText 
+                          primary={proof.name} 
+                          secondary={`Uploaded: ${new Date(proof.uploadedAt).toLocaleString()}`}
+                        />
+                        {proof.url && (
+                          <Link href={proof.url} target="_blank" rel="noopener">
+                            <Button size="small" variant="outlined">View Proof</Button>
+                          </Link>
+                        )}
+                      </ListItem>
+                    ))}
+                  </List>
+                </>
+              )}
+
+              {(!selectedTransfer.proofs || selectedTransfer.proofs.length === 0) && (
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                  No transaction proofs uploaded for this transfer.
+                </Typography>
+              )}
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 };

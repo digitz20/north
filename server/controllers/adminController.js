@@ -140,13 +140,55 @@ exports.updateUser = async (req, res, next) => {
 // @route   DELETE /api/v1/admin/users/:id
 // @access  Private/Super Admin
 exports.deleteUser = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
-    // TODO: Implement deleteUser functionality
+    const user = await User.findById(req.params.id).session(session);
+    
+    if (!user) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Prevent deleting super admins unless it's a super admin doing it
+    if (user.role === 'super-admin') {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(403).json({
+        success: false,
+        message: 'Cannot delete super admin accounts'
+      });
+    }
+
+    // Delete all user-related data
+    await Account.deleteMany({ user: user._id }).session(session);
+    await Transaction.deleteMany({ 'sender.user': user._id }).session(session);
+    await Notification.deleteMany({ user: user._id }).session(session);
+    await AuditLog.create({
+      user: req.user.id,
+      action: `Deleted user: ${user.email}`,
+      description: `Super admin deleted user account: ${user.fullName} (${user.email})`,
+      ipAddress: req.ip
+    }, { session });
+
+    // Delete the user itself
+    await User.findByIdAndDelete(req.params.id).session(session);
+
+    await session.commitTransaction();
+    session.endSession();
+
     res.status(200).json({
       success: true,
-      message: 'Delete user endpoint - functionality not yet implemented'
+      message: 'User and all associated data deleted successfully'
     });
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     next(error);
   }
 };

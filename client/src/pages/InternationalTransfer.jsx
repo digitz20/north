@@ -524,9 +524,9 @@ const InternationalTransfer = () => {
                         fullWidth
                         label="Your Source Wallet Address"
                         value={transferForm.sourceWalletAddress}
-                        onChange={(e) => setTransferForm(prev => ({ ...prev, sourceWalletAddress: e.target.value }))}
+                        onChange={(e) => setTransferForm(prev => ({ ...prev, sourceWalletAddress: e.target.value, transactionHash: e.target.value }))}
                         error={!!errors.sourceWalletAddress}
-                        helperText={errors.sourceWalletAddress || "Select from your saved crypto wallets or enter manually"}
+                        helperText={errors.sourceWalletAddress || "Select from your saved crypto wallets"}
                       >
                         {savedWallets.filter(wallet => wallet.crypto === transferForm.crypto).map((wallet) => (
                           <MenuItem key={wallet.id} value={wallet.address}>
@@ -537,6 +537,19 @@ const InternationalTransfer = () => {
                           <MenuItem value="" disabled>No saved addresses for this cryptocurrency</MenuItem>
                         )}
                       </TextField>
+                      {transferForm.sourceWalletAddress && (
+                        <Tooltip title="Copy your wallet address">
+                          <IconButton 
+                            color="primary" 
+                            onClick={() => {
+                              navigator.clipboard.writeText(transferForm.sourceWalletAddress);
+                            }}
+                            sx={{ mt: 1 }}
+                          >
+                            <ContentCopy />
+                          </IconButton>
+                        </Tooltip>
+                      )}
                     </Grid>
                     <Grid item xs={12} md={6}>
                       <TextField
@@ -555,13 +568,13 @@ const InternationalTransfer = () => {
                         variant="outlined"
                         startIcon={<UploadFile />}
                         component="label"
-                        sx={{ mr: 2 }}
+                        sx={{ mr: 2, mt: 2 }}
                       >
-                        Upload Transaction Proofs
+                        Upload Transaction Proof (Screenshot)
                         <input
                           type="file"
                           hidden
-                          multiple
+                          accept="image/*"
                           onChange={handleProofUpload}
                         />
                       </Button>
