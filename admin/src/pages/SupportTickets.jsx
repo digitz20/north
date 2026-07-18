@@ -35,7 +35,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import PhoneIcon from '@mui/icons-material/Phone';
 import EmailIcon from '@mui/icons-material/Email';
 import TransferWithinAStationIcon from '@mui/icons-material/TransferWithinAStation';
-import MarkUnreadIcon from '@mui/icons-material/MarkUnread';
+import MarkEmailUnreadIcon from '@mui/icons-material/MarkEmailUnread';
 import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
 import api from '../services/api';
 import { useSocket } from '../contexts/SocketContext';
@@ -490,7 +490,7 @@ const LiveSupportConsole = () => {
               </ListItem>
               <Divider />
               <ListItem button>
-                <ListItemIcon><MarkUnreadIcon /></ListItemIcon>
+                <ListItemIcon><MarkEmailUnreadIcon /></ListItemIcon>
                 <ListItemText primary="Mark as Unread" secondary="Flag for follow-up" />
               </ListItem>
             </List>
