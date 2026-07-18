@@ -142,10 +142,12 @@ exports.updateAccount = async (req, res, next) => {
   }
 };
 
-// @desc    Delete account (client-side, users can delete their own accounts)
+// @desc    Delete/Close account (client-side, users can delete their own accounts)
 // @route   DELETE /api/v1/accounts/:id
 // @access  Private
 exports.deleteAccount = async (req, res, next) => {
+// Alias for route compatibility (route uses closeAccount)
+exports.closeAccount = exports.deleteAccount;
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -313,6 +315,74 @@ exports.deleteAdminAccount = async (req, res, next) => {
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
+    next(error);
+  }
+};
+
+// @desc    Freeze account (admin only)
+// @route   PUT /api/v1/accounts/admin/:id/freeze
+// @access  Private/Admin
+exports.freezeAccount = async (req, res, next) => {
+  try {
+    const account = await Account.findById(req.params.id);
+    
+    if (!account) {
+      return res.status(404).json({
+        success: false,
+        message: 'Account not found'
+      });
+    }
+
+    account.isLocked = true;
+    account.accountStatus = 'frozen';
+    await account.save();
+
+    await AuditLog.create({
+      user: req.user.id,
+      action: `Froze account: ${account.accountNumber}`,
+      description: `Admin froze user account`,
+      ipAddress: req.ip
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Account frozen successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Unfreeze account (admin only)
+// @route   PUT /api/v1/accounts/admin/:id/unfreeze
+// @access  Private/Admin
+exports.unfreezeAccount = async (req, res, next) => {
+  try {
+    const account = await Account.findById(req.params.id);
+    
+    if (!account) {
+      return res.status(404).json({
+        success: false,
+        message: 'Account not found'
+      });
+    }
+
+    account.isLocked = false;
+    account.accountStatus = 'active';
+    await account.save();
+
+    await AuditLog.create({
+      user: req.user.id,
+      action: `Unfroze account: ${account.accountNumber}`,
+      description: `Admin unfroze user account`,
+      ipAddress: req.ip
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Account unfrozen successfully'
+    });
+  } catch (error) {
     next(error);
   }
 };
