@@ -145,8 +145,6 @@ const InternationalTransfer = () => {
     crypto: 'btc'
   });
 
-  const [copied, setCopied] = useState(false);
-
   useEffect(() => {
     if (!user) {
       dispatch(getCurrentUser());
