@@ -189,8 +189,14 @@ const Investments = () => {
 
   // Remove an uploaded image
   const removeImage = (index) => {
-    // Revoke the blob URL to free memory and prevent invalid references
-    URL.revokeObjectURL(imagePreviews[index]);
+    // Only revoke if the blob URL still exists
+    if (imagePreviews[index]) {
+      try {
+        URL.revokeObjectURL(imagePreviews[index]);
+      } catch (e) {
+        console.warn('Could not revoke blob URL:', e);
+      }
+    }
     
     const newImages = [...uploadedImages];
     const newPreviews = [...imagePreviews];
@@ -199,6 +205,20 @@ const Investments = () => {
     setUploadedImages(newImages);
     setImagePreviews(newPreviews);
   };
+
+  // Cleanup all blob URLs when component unmounts
+  useEffect(() => {
+    return () => {
+      // Revoke all remaining blob URLs to prevent memory leaks
+      imagePreviews.forEach(preview => {
+        try {
+          URL.revokeObjectURL(preview);
+        } catch (e) {
+          console.warn('Cleanup: Could not revoke blob URL:', e);
+        }
+      });
+    };
+  }, []);
 
   // Copy address to clipboard
   const copyToClipboard = (text) => {
