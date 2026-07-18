@@ -132,6 +132,7 @@ const Deposit = () => {
     destinationAccount: '',
     crypto: 'btc',
     transactionHash: '',
+    savedWalletAddress: '',
     amount: '',
     email: ''
   });
@@ -324,10 +325,29 @@ const Deposit = () => {
               </Grid>
               <Grid item xs={12} md={6}>
                 <TextField
+                  select
+                  fullWidth
+                  label="Your Wallet Address (Source)"
+                  value={cryptoForm.savedWalletAddress || ''}
+                  onChange={(e) => setCryptoForm(prev => ({ ...prev, transactionHash: e.target.value, savedWalletAddress: e.target.value }))}
+                  helperText="Select from your saved crypto wallets or enter a new one below"
+                >
+                  {user?.savedWallets?.filter(wallet => wallet.crypto === cryptoForm.crypto).map((wallet) => (
+                    <MenuItem key={wallet.id} value={wallet.address}>
+                      {wallet.label} - {wallet.address.substring(0, 10)}...{wallet.address.substring(wallet.address.length - 8)}
+                    </MenuItem>
+                  ))}
+                  {(!user?.savedWallets || user.savedWallets.filter(wallet => wallet.crypto === cryptoForm.crypto).length === 0) && (
+                    <MenuItem value="" disabled>No saved addresses for this cryptocurrency</MenuItem>
+                  )}
+                </TextField>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
                   fullWidth
                   label="Transaction Hash / Source Wallet Address"
                   value={cryptoForm.transactionHash}
-                  onChange={(e) => setCryptoForm(prev => ({ ...prev, transactionHash: e.target.value }))}
+                  onChange={(e) => setCryptoForm(prev => ({ ...prev, transactionHash: e.target.value, savedWalletAddress: '' }))}
                   error={!!errors.transactionHash}
                   helperText={errors.transactionHash || `Enter your ${selectedCrypto.symbol} transaction hash or source wallet address`}
                 />
