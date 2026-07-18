@@ -109,7 +109,7 @@ const Notifications = () => {
           transition={{ duration: 0.6 }}
         >
           <Paper sx={{
-            borderRadius: 5,
+            borderRadius: 2,
             background: 'rgba(255,255,255,0.75)',
             backdropFilter: 'blur(30px)',
             border: '1px solid rgba(15,39,68,0.08)',

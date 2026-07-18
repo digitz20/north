@@ -154,7 +154,7 @@ const Beneficiaries = () => {
               elevation={0} 
               sx={{ 
                 p: 4, 
-                borderRadius: 4, 
+                borderRadius: 2, 
                 background: 'rgba(255,255,255,0.8)',
                 backdropFilter: 'blur(10px)',
                 boxShadow: '0 10px 40px rgba(0,0,0,0.08)',
@@ -180,7 +180,7 @@ const Beneficiaries = () => {
               elevation={0} 
               sx={{ 
                 p: 4, 
-                borderRadius: 4, 
+                borderRadius: 2, 
                 background: 'rgba(255,255,255,0.8)',
                 backdropFilter: 'blur(10px)',
                 boxShadow: '0 10px 40px rgba(0,0,0,0.08)',
@@ -208,7 +208,7 @@ const Beneficiaries = () => {
               elevation={0} 
               sx={{ 
                 p: 4, 
-                borderRadius: 4, 
+                borderRadius: 2, 
                 background: 'rgba(255,255,255,0.8)',
                 backdropFilter: 'blur(10px)',
                 boxShadow: '0 10px 40px rgba(0,0,0,0.08)',
@@ -233,7 +233,7 @@ const Beneficiaries = () => {
       </Grid>
 
       <motion.div variants={itemVariants}>
-        <Paper elevation={0} sx={{ borderRadius: 4, overflow: 'hidden', boxShadow: '0 10px 40px rgba(0,0,0,0.08)' }}>
+        <Paper elevation={0} sx={{ borderRadius: 2, overflow: 'hidden', boxShadow: '0 10px 40px rgba(0,0,0,0.08)' }}>
           <TableContainer>
             <Table>
               <TableHead>

@@ -274,7 +274,7 @@ const Loans = () => {
         >
           <Paper sx={{ 
             mb: 5,
-            borderRadius: '24px',
+            borderRadius: 2,
             background: 'rgba(255,255,255,0.85)',
             backdropFilter: 'blur(40px) saturate(180%)',
             border: '1px solid rgba(255,255,255,0.4)',
@@ -326,7 +326,7 @@ const Loans = () => {
         >
           <Paper sx={{ 
             p: { xs: 3, md: 6 }, 
-            borderRadius: '24px',
+            borderRadius: 2,
             background: 'linear-gradient(135deg, rgba(255,255,255,0.92) 0%, rgba(240,247,255,0.88) 100%)',
             backdropFilter: 'blur(40px) saturate(180%)',
             border: '1px solid rgba(255,152,0,0.2)',
@@ -374,7 +374,7 @@ const Loans = () => {
                 <motion.div whileHover={{ y: -3 }} transition={{ duration: 0.3 }}>
                   <Paper sx={{ 
                     p: 4, 
-                    borderRadius: '20px',
+                    borderRadius: 2,
                     background: 'rgba(255,255,255,0.7)',
                     backdropFilter: 'blur(20px)',
                     border: '1px solid rgba(0,102,255,0.1)',
@@ -460,7 +460,7 @@ const Loans = () => {
                 <motion.div whileHover={{ y: -3 }} transition={{ duration: 0.3 }}>
                   <Paper sx={{ 
                     p: 4, 
-                    borderRadius: '20px',
+                    borderRadius: 2,
                     background: 'rgba(255,255,255,0.7)',
                     backdropFilter: 'blur(20px)',
                     border: '1px solid rgba(0,200,150,0.1)',
@@ -524,7 +524,7 @@ const Loans = () => {
                 <motion.div whileHover={{ y: -3 }} transition={{ duration: 0.3 }}>
                   <Paper sx={{ 
                     p: 4, 
-                    borderRadius: '20px',
+                    borderRadius: 2,
                     background: 'rgba(255,255,255,0.7)',
                     backdropFilter: 'blur(20px)',
                     border: '1px solid rgba(0,102,255,0.1)',
@@ -652,7 +652,7 @@ const Loans = () => {
                   <Paper sx={{ 
                     p: 4, 
                     mb: 3,
-                    borderRadius: '20px',
+                    borderRadius: 2,
                     background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(240,247,255,0.85) 100%)',
                     backdropFilter: 'blur(30px)',
                     border: '1px solid rgba(0,102,255,0.15)',
@@ -746,7 +746,7 @@ const Loans = () => {
                     whileHover={{ scale: 1.03, y: -8 }}
                   >
                     <Card sx={{ 
-                      borderRadius: '24px',
+                      borderRadius: 2,
                       overflow: 'hidden',
                       background: index % 2 === 0 
                         ? 'linear-gradient(135deg, rgba(0,102,255,0.05) 0%, rgba(0,200,150,0.05) 100%)'

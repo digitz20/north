@@ -125,7 +125,7 @@ const Cards = () => {
         <Box sx={{ 
           mb: 6, 
           p: 5, 
-          borderRadius: 4,
+          borderRadius: 2,
           background: 'linear-gradient(135deg, #00C896 0%, #00BFFF 100%)',
           color: 'white',
           position: 'relative',
@@ -257,7 +257,7 @@ const Cards = () => {
         <Grid container spacing={5} ref={ref}>
           {cards.length === 0 ? (
             <Grid item xs={12}>
-              <Paper sx={{ p: 6, textAlign: 'center', borderRadius: 3 }}>
+              <Paper sx={{ p: 6, textAlign: 'center', borderRadius: 2 }}>
                 <CreditCard sx={{ fontSize: 80, color: '#ccc', mb: 3 }} />
                 <Typography variant="h5" sx={{ mb: 2, color: '#666' }}>No cards found</Typography>
                 <Typography variant="body1" sx={{ mb: 4, color: '#888' }}>You don't have any cards yet. Request your first card to get started!</Typography>
@@ -300,7 +300,7 @@ const Cards = () => {
                       sx={{
                         p: 0,
                         height: 320,
-                        borderRadius: 4,
+                        borderRadius: 2,
                         overflow: 'hidden',
                         boxShadow: '0 30px 60px rgba(0,0,0,0.2)',
                         backfaceVisibility: 'hidden'
@@ -398,7 +398,7 @@ const Cards = () => {
                         left: 0,
                         width: '100%',
                         height: 320,
-                        borderRadius: 4,
+                        borderRadius: 2,
                         overflow: 'hidden',
                         boxShadow: '0 30px 60px rgba(0,0,0,0.2)',
                         backfaceVisibility: 'hidden',

@@ -349,7 +349,7 @@ const InternationalTransfer = () => {
           <Paper sx={{ 
             p: 4, 
             maxWidth: 1200,
-            borderRadius: 5,
+            borderRadius: 2,
             background: 'rgba(255,255,255,0.75)',
             backdropFilter: 'blur(30px)',
             border: '1px solid rgba(15,39,68,0.08)',
@@ -409,7 +409,7 @@ const InternationalTransfer = () => {
             <Paper sx={{ 
               mt: 5,
               p: 3, 
-              borderRadius: 5,
+              borderRadius: 2,
               background: 'rgba(0,102,255,0.05)',
               border: '1px solid rgba(0,102,255,0.1)',
               textAlign: 'center'

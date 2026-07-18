@@ -144,7 +144,7 @@ const Transactions = () => {
         <Box sx={{ 
           mb: 6, 
           p: 5, 
-          borderRadius: 4,
+          borderRadius: 2,
           background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
           color: 'white',
           position: 'relative',
@@ -263,7 +263,7 @@ const Transactions = () => {
       <Grid container spacing={4} sx={{ mb: 6 }}>
         <Grid item xs={12} lg={8}>
           <motion.div variants={itemVariants}>
-            <Paper elevation={0} sx={{ p: 4, borderRadius: 4, boxShadow: '0 10px 40px rgba(0,0,0,0.08)' }}>
+            <Paper elevation={0} sx={{ p: 4, borderRadius: 2, boxShadow: '0 10px 40px rgba(0,0,0,0.08)' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
                 <Typography variant="h5" sx={{ fontWeight: 700 }}>Income vs Expenses</Typography>
                 <Button 
@@ -309,7 +309,7 @@ const Transactions = () => {
         </Grid>
         <Grid item xs={12} lg={4}>
           <motion.div variants={itemVariants}>
-            <Paper elevation={0} sx={{ p: 4, borderRadius: 4, boxShadow: '0 10px 40px rgba(0,0,0,0.08)', height: '100%' }}>
+            <Paper elevation={0} sx={{ p: 4, borderRadius: 2, boxShadow: '0 10px 40px rgba(0,0,0,0.08)', height: '100%' }}>
               <Typography variant="h5" sx={{ fontWeight: 700, mb: 4 }}>Spending by Category</Typography>
               <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
@@ -351,7 +351,7 @@ const Transactions = () => {
 
       {/* Transactions List */}
       <motion.div variants={itemVariants} ref={ref}>
-        <Paper elevation={0} sx={{ borderRadius: 4, boxShadow: '0 10px 40px rgba(0,0,0,0.08)', overflow: 'hidden' }}>
+        <Paper elevation={0} sx={{ borderRadius: 2, boxShadow: '0 10px 40px rgba(0,0,0,0.08)', overflow: 'hidden' }}>
           {/* Filters */}
           <Box sx={{ 
             p: 4, 

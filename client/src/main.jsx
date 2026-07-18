@@ -77,7 +77,7 @@ const theme = createTheme({
     },
   },
   shape: {
-    borderRadius: 16, // Premium rounded corners
+    borderRadius: 2, // Mature minimal border radius
   },
   shadows: [
     'none',
@@ -96,6 +96,7 @@ const theme = createTheme({
           backdropFilter: 'blur(20px)',
           background: 'rgba(255, 255, 255, 0.85)',
           border: '1px solid rgba(255, 255, 255, 0.5)',
+          borderRadius: 2,
         },
       },
     },
@@ -106,6 +107,7 @@ const theme = createTheme({
           background: 'rgba(255, 255, 255, 0.9)',
           border: '1px solid rgba(15, 39, 68, 0.08)',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          borderRadius: 2,
         },
       },
     },

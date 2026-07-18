@@ -597,7 +597,7 @@ const Deposit = () => {
           fullWidth
           PaperProps={{
             sx: {
-              borderRadius: 5,
+              borderRadius: 2,
               overflow: 'hidden',
               background: 'rgba(255,255,255,0.95)',
               backdropFilter: 'blur(30px)',

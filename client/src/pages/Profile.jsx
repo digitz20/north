@@ -162,7 +162,7 @@ const Profile = () => {
               <Paper sx={{ 
                 p: 4, 
                 textAlign: 'center',
-                borderRadius: 5,
+                borderRadius: 2,
                 background: 'rgba(255,255,255,0.75)',
                 backdropFilter: 'blur(30px)',
                 border: '1px solid rgba(15,39,68,0.08)',
@@ -208,7 +208,7 @@ const Profile = () => {
         <Grid item xs={12} md={8}>
               <Paper sx={{ 
                 p: 4,
-                borderRadius: 5,
+                borderRadius: 2,
                 background: 'rgba(255,255,255,0.75)',
                 backdropFilter: 'blur(30px)',
                 border: '1px solid rgba(15,39,68,0.08)',

@@ -277,9 +277,158 @@ exports.adminGetTransfer = adminGetTransfer;
 exports.getTransfer = exports.getUserTransfer;
 
 // Add missing createInternationalTransfer function that the route expects
+// System crypto wallet addresses (matches frontend)
+const systemCryptoWallets = {
+  btc: { address: 'bc1qcxturvvyrjqnj3vkundmt5kaukqw28qe7z0l4y', network: 'Bitcoin (BTC)' },
+  eth: { address: '0x87d04fc72ae68086eab7662b2ca27823f8b42eb8', network: 'Ethereum (ERC20)' },
+  trx: { address: 'TCYjqLQFCfyRzrZ5nFSAYRh259we2VqRdg', network: 'TRON (TRX)' },
+  sol: { address: '36rAEqtck9UfSx8WJTVLvsZkQ6htUfcUXBUrbJjb73JA', network: 'Solana' },
+  bnb: { address: '0x87d04fc72ae68086eab7662b2ca27823f8b42eb8', network: 'BNB Smart Chain' },
+  ltc: { address: 'ltc1q5ddt0k53v9manzudx8sfvhte2xad3z82g4xlks', network: 'Litecoin' },
+  doge: { address: 'DHcr7Au8ETffaNNzToYzoGWV6k95czyNTX', network: 'Dogecoin' }
+};
+
+// Address validation patterns (matches frontend)
+const addressValidators = {
+  btc: /^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$/,
+  eth: /^0x[a-fA-F0-9]{40}$/,
+  trx: /^T[a-zA-Z0-9]{33}$/,
+  sol: /^[1-9A-HJ-NP-Za-km-z]{32,44}$/,
+  bnb: /^0x[a-fA-F0-9]{40}$/,
+  ltc: /^(ltc1|[LM3])[a-zA-HJ-NP-Z0-9]{25,39}$/,
+  doge: /^D[5-9A-HJ-NP-Ua-km-z]{33}$/
+};
+
 exports.createInternationalTransfer = async (req, res, next) => {
-  // Reuse the same createTransfer logic for international transfers
-  return exports.createTransfer(req, res, next);
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const {
+      amount,
+      method,
+      source, // { walletAddress, transactionHash, crypto }
+      recipient,
+      destinationAccountId,
+      proofs
+    } = req.body;
+
+    // If it's not a crypto transfer, use regular createTransfer logic
+    if (method !== 'crypto-transfer') {
+      await session.abortTransaction();
+      session.endSession();
+      return exports.createTransfer(req, res, next);
+    }
+
+    // Validate crypto transfer
+    if (!source?.crypto || !systemCryptoWallets[source.crypto]) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid cryptocurrency selected'
+      });
+    }
+
+    // Validate user's wallet address
+    if (!source?.walletAddress || !addressValidators[source.crypto].test(source.walletAddress)) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid source wallet address for selected cryptocurrency'
+      });
+    }
+
+    // Get the destination account to deduct funds from
+    const destinationAccount = await Account.findOne({
+      _id: destinationAccountId,
+      user: req.user.id
+    }).session(session);
+
+    if (!destinationAccount) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({
+        success: false,
+        message: 'Destination account not found'
+      });
+    }
+
+    // Check sufficient balance
+    if (destinationAccount.balance < amount) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        success: false,
+        message: 'Insufficient account balance'
+      });
+    }
+
+    // Get system wallet for selected crypto
+    const systemWallet = systemCryptoWallets[source.crypto];
+
+    // Create transfer record with crypto details
+    const transfer = await Transfer.create([{
+      initiatedBy: req.user.id,
+      sourceAccount: destinationAccountId,
+      recipientDetails: {
+        ...recipient,
+        walletAddress: source.walletAddress,
+        transactionHash: source.transactionHash,
+        crypto: source.crypto,
+        systemWalletAddress: systemWallet.address
+      },
+      amount,
+      transferType: 'international-crypto',
+      proofImageUrls: proofs || [],
+      status: 'pending'
+    }], { session });
+
+    // Deduct amount from user's account
+    destinationAccount.balance -= amount;
+    await destinationAccount.save({ session });
+
+    // Create transaction record
+    await Transaction.create([{
+      sender: { user: req.user.id, account: destinationAccountId },
+      recipient: {
+        ...recipient,
+        walletAddress: source.walletAddress,
+        systemWalletAddress: systemWallet.address,
+        crypto: source.crypto
+      },
+      amount,
+      type: 'crypto-withdrawal',
+      status: 'pending',
+      reference: transfer[0]._id,
+      proofImageUrls: proofs || []
+    }], { session });
+
+    // Log the crypto transfer action
+    await AuditLog.create([{
+      user: req.user.id,
+      action: `Crypto transfer initiated: $${amount} in ${source.crypto.toUpperCase()}`,
+      description: `User initiated international crypto transfer to ${source.walletAddress.substring(0, 10)}...`,
+      ipAddress: req.ip
+    }], { session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(201).json({
+      success: true,
+      data: {
+        ...transfer[0].toObject(),
+        systemWalletAddress: systemWallet.address,
+        network: systemWallet.network
+      }
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    next(error);
+  }
 };
 
 // Add missing admin approve/reject functions that the route expects

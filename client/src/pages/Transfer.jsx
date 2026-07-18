@@ -86,7 +86,7 @@ const Transfer = () => {
                 sx={{ 
                   p: 6, 
                   height: '100%', 
-                  borderRadius: '24px', 
+                  borderRadius: 2, 
                   background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(240,247,255,0.9) 100%)',
                   backdropFilter: 'blur(20px) saturate(120%)', 
                   border: '1px solid rgba(255,255,255,0.3)',
@@ -168,7 +168,7 @@ const Transfer = () => {
                 sx={{ 
                   p: 6, 
                   height: '100%', 
-                  borderRadius: '24px', 
+                  borderRadius: 2, 
                   background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(240,255,247,0.9) 100%)',
                   backdropFilter: 'blur(20px) saturate(120%)', 
                   border: '1px solid rgba(255,255,255,0.3)',
@@ -244,7 +244,7 @@ const Transfer = () => {
           <Paper sx={{ 
             mt: 6, 
             p: 4, 
-            borderRadius: '20px', 
+            borderRadius: 2, 
             background: 'linear-gradient(135deg, rgba(0,102,255,0.15) 0%, rgba(0,191,255,0.1) 100%)',
             backdropFilter: 'blur(15px)',
             border: '1px solid rgba(0,102,255,0.3)', 

@@ -308,7 +308,7 @@ const Dashboard = () => {
                     size="small"
                     onClick={() => setSelectedTimeframe(period)}
                     sx={{
-                      borderRadius: 3,
+                      borderRadius: 2,
                       px: 3.5,
                       py: 1.2,
                       fontWeight: 600,
@@ -350,7 +350,7 @@ const Dashboard = () => {
                       height: '100%',
                       background: stat.color,
                       color: 'white',
-                      borderRadius: 5,
+                      borderRadius: 2,
                       position: 'relative',
                       overflow: 'hidden',
                       boxShadow: `0 15px 35px -8px ${stat.glowColor}, 0 10px 25px rgba(0,0,0,0.15)`,
@@ -431,7 +431,7 @@ const Dashboard = () => {
               mb: 5,
               background: 'rgba(255,255,255,0.75)',
               backdropFilter: 'blur(30px)',
-              borderRadius: 5,
+              borderRadius: 2,
               border: '1px solid rgba(15,39,68,0.08)',
               boxShadow: '0 20px 60px -15px rgba(0,0,0,0.1)'
             }}
@@ -565,7 +565,7 @@ const Dashboard = () => {
                   mb: 4,
                   background: 'rgba(255,255,255,0.8)',
                   backdropFilter: 'blur(20px)',
-                  borderRadius: 4,
+                  borderRadius: 2,
                   border: '1px solid rgba(0,102,255,0.1)',
                   boxShadow: '0 8px 32px rgba(0,0,0,0.05)'
                 }}

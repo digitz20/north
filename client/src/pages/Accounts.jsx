@@ -78,7 +78,7 @@ const Accounts = () => {
         <Box sx={{ 
           mb: 6, 
           p: 5, 
-          borderRadius: 4,
+          borderRadius: 2,
           background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
           color: 'white',
           position: 'relative',
@@ -155,7 +155,7 @@ const Accounts = () => {
                 sx={{
                   p: 0,
                   height: '100%',
-                  borderRadius: 4,
+                  borderRadius: 2,
                   overflow: 'hidden',
                   boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
                   transition: 'all 0.2s ease'
