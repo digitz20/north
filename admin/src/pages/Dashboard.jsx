@@ -44,18 +44,30 @@ const AdminDashboard = () => {
         api.get('/admin/transactions/recent')
       ]);
       
+      console.log('Stats response:', statsResponse.data);
+      console.log('Transactions response:', transactionsResponse.data);
+      
       // Backend wraps data in .data property, so extract correctly
-      setStats(statsResponse.data.data || {
+      setStats(statsResponse.data?.data || {
         totalUsers: 0,
         totalAccounts: 0,
         totalTransactions: 0,
         openTickets: 0
       });
-      // Ensure we get the actual array from the backend response
-      setRecentTransactions(transactionsResponse.data.data || []);
+      
+      // Force recentTransactions to ALWAYS be an array, no matter what the API returns
+      let transactions = [];
+      if (Array.isArray(transactionsResponse.data)) {
+        transactions = transactionsResponse.data;
+      } else if (Array.isArray(transactionsResponse.data?.data)) {
+        transactions = transactionsResponse.data.data;
+      }
+      setRecentTransactions(transactions);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      // Always set to empty array even on error to prevent map() errors
+      setRecentTransactions([]);
       setLoading(false);
     }
   };
