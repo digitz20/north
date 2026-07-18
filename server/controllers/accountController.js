@@ -1,4 +1,203 @@
-// Admin-only account functions
+const Account = require('../models/Account');
+const Transaction = require('../models/Transaction');
+const AuditLog = require('../models/AuditLog');
+const Notification = require('../models/Notification');
+const User = require('../models/User');
+const mongoose = require('mongoose');
+
+// @desc    Get all user accounts (client-side, for logged-in users)
+// @route   GET /api/v1/accounts
+// @access  Private
+exports.getAccounts = async (req, res, next) => {
+  try {
+    const accounts = await Account.find({ user: req.user.id });
+    const total = accounts.length;
+
+    await AuditLog.log({
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
+      action: 'accounts_viewed',
+      category: 'account-management',
+      description: `User viewed their accounts`,
+      entity: { type: 'user', id: req.user.id }
+    });
+
+    res.status(200).json({
+      success: true,
+      data: { accounts, total }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get single account (client-side, for logged-in users)
+// @route   GET /api/v1/accounts/:id
+// @access  Private
+exports.getAccount = async (req, res, next) => {
+  try {
+    const account = await Account.findOne({
+      _id: req.params.id,
+      user: req.user.id
+    });
+
+    if (!account) {
+      return res.status(404).json({
+        success: false,
+        message: 'Account not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: account
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Create new account
+// @route   POST /api/v1/accounts
+// @access  Private
+exports.createAccount = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const { accountType, currency } = req.body;
+    
+    // Create new account
+    const account = await Account.create([{
+      user: req.user.id,
+      accountType,
+      currency: currency || 'USD',
+      balance: 0,
+      accountStatus: 'active'
+    }], { session });
+
+    await AuditLog.create([{
+      user: req.user.id,
+      action: 'account_created',
+      description: `User created new ${accountType} account`,
+      ipAddress: req.ip
+    }], { session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(201).json({
+      success: true,
+      data: account[0]
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    next(error);
+  }
+};
+
+// @desc    Update account (client-side, limited updates)
+// @route   PUT /api/v1/accounts/:id
+// @access  Private
+exports.updateAccount = async (req, res, next) => {
+  try {
+    const account = await Account.findOne({
+      _id: req.params.id,
+      user: req.user.id
+    });
+
+    if (!account) {
+      return res.status(404).json({
+        success: false,
+        message: 'Account not found'
+      });
+    }
+
+    // Users can only update limited fields (nickname, etc.)
+    const updateableFields = {
+      nickname: req.body.nickname
+    };
+
+    Object.keys(updateableFields).forEach(key => 
+      updateableFields[key] === undefined && delete updateableFields[key]
+    );
+
+    const updatedAccount = await Account.findByIdAndUpdate(
+      req.params.id,
+      updateableFields,
+      { new: true, runValidators: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      data: updatedAccount
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Delete account (client-side, users can delete their own accounts)
+// @route   DELETE /api/v1/accounts/:id
+// @access  Private
+exports.deleteAccount = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const account = await Account.findOne({
+      _id: req.params.id,
+      user: req.user.id
+    }).session(session);
+
+    if (!account) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({
+        success: false,
+        message: 'Account not found'
+      });
+    }
+
+    // Delete all transactions linked to this account
+    await Transaction.deleteMany({
+      $or: [
+        { 'source.account': account._id },
+        { 'destination.account': account._id }
+      ]
+    }).session(session);
+
+    await Account.findByIdAndDelete(req.params.id).session(session);
+
+    await AuditLog.create([{
+      user: req.user.id,
+      action: 'account_deleted',
+      description: `User deleted their account`,
+      ipAddress: req.ip
+    }], { session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(200).json({
+      success: true,
+      message: 'Account deleted successfully'
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    next(error);
+  }
+};
+
+// ------------------------------
+// ADMIN-ONLY ACCOUNT FUNCTIONS
+// ------------------------------
 // @desc    Get ALL accounts across all users (admin only)
 // @route   GET /api/v1/admin/accounts
 // @access  Private/Admin
@@ -116,4 +315,15 @@ exports.deleteAdminAccount = async (req, res, next) => {
     session.endSession();
     next(error);
   }
+};
+
+module.exports = {
+  getAccounts,
+  getAccount,
+  createAccount,
+  updateAccount,
+  deleteAccount,
+  getAdminAccounts,
+  updateAdminAccount,
+  deleteAdminAccount
 };
