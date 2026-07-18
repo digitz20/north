@@ -35,7 +35,7 @@ app.use(helmet());
 
 // CORS configuration
 app.use(cors({
-  origin: [process.env.CLIENT_URL, process.env.ADMIN_URL],
+  origin: [process.env.CLIENT_URL, process.env.ADMIN_URL, 'https://northcrestadmin.vercel.app'],
   credentials: true
 }));
 
