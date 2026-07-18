@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import {
   Box, Typography, Paper, Grid, TextField, Button, Divider, Alert,
   MenuItem, Chip, CircularProgress, Stepper, Step, StepLabel, Card,
@@ -288,10 +289,61 @@ const Deposit = () => {
   const steps = ['Enter Deposit Details', 'Confirm Deposit', 'Deposit Complete'];
 
   return (
-    <Box>
-      <Typography variant="h4" gutterBottom>Deposit Crypto Funds</Typography>
-      
-      <Paper sx={{ p: 4 }}>
+    <Box sx={{ 
+      position: 'relative', 
+      overflow: 'hidden',
+      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%)',
+      minHeight: '100vh',
+      p: { xs: 2, md: 0 }
+    }}>
+      {/* Premium ambient background effects */}
+      <Box sx={{
+        position: 'fixed',
+        top: '-5%',
+        right: '-10%',
+        width: '500px',
+        height: '500px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(0,200,150,0.1) 0%, rgba(0,200,150,0) 70%)',
+        filter: 'blur(60px)',
+        pointerEvents: 'none',
+        zIndex: 0
+      }} />
+      <Box sx={{
+        position: 'fixed',
+        bottom: '-10%',
+        left: '-5%',
+        width: '600px',
+        height: '600px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(0,102,255,0.08) 0%, rgba(0,102,255,0) 70%)',
+        filter: 'blur(70px)',
+        pointerEvents: 'none',
+        zIndex: 0
+      }} />
+      <Box sx={{ position: 'relative', zIndex: 1 }}>
+        <Typography variant="h4" sx={{ 
+          fontWeight: 700, 
+          background: 'linear-gradient(135deg, #0f2744 0%, #1e4d8a 50%, #0066ff 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          mb: 1,
+          gutterBottom: true
+        }}>Deposit Funds</Typography>
+        
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <Paper sx={{ 
+            p: 4,
+            borderRadius: 5,
+            background: 'rgba(255,255,255,0.75)',
+            backdropFilter: 'blur(30px)',
+            border: '1px solid rgba(15,39,68,0.08)',
+            boxShadow: '0 20px 60px -15px rgba(0,0,0,0.1)'
+          }}>
         <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
           {steps.map((label) => (
             <Step key={label}>
@@ -468,13 +520,33 @@ const Deposit = () => {
         </Grid>
 
         {/* Confirmation Dialog */}
-        <Dialog open={openConfirmation} onClose={() => setOpenConfirmation(false)} maxWidth="md" fullWidth>
-          <DialogTitle>
+        <Dialog 
+          open={openConfirmation} 
+          onClose={() => setOpenConfirmation(false)} 
+          maxWidth="md" 
+          fullWidth
+          PaperProps={{
+            sx: {
+              borderRadius: 5,
+              overflow: 'hidden',
+              background: 'rgba(255,255,255,0.95)',
+              backdropFilter: 'blur(30px)',
+              boxShadow: '0 50px 100px -20px rgba(0,0,0,0.3)'
+            }
+          }}
+        >
+          <DialogTitle sx={{ 
+            background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
+            color: 'white',
+            fontWeight: 700,
+            position: 'relative',
+            p: 3
+          }}>
             Confirm Crypto Deposit
             <IconButton
               aria-label="close"
               onClick={() => setOpenConfirmation(false)}
-              sx={{ position: 'absolute', right: 8, top: 8 }}
+              sx={{ position: 'absolute', right: 8, top: 8, color: 'white' }}
             >
               <Close />
             </IconButton>
@@ -552,6 +624,8 @@ const Deposit = () => {
           )}
         </Dialog>
       </Paper>
+        </motion.div>
+      </Box>
     </Box>
   );
 };

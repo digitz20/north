@@ -3,6 +3,7 @@ import { Box, Typography, Paper, Grid, TextField, Button, Switch, FormControlLab
 import { useSelector, useDispatch } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 import { getCurrentUser } from '../store/slices/authSlice';
+import { motion } from 'framer-motion';
 
 // Same country codes list
 const countryCodes = [
@@ -129,13 +130,64 @@ const Settings = () => {
   }
 
   return (
-    <Box>
-      <Typography variant="h4" gutterBottom>Settings</Typography>
+    <Box sx={{ 
+      position: 'relative', 
+      overflow: 'hidden',
+      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%)',
+      minHeight: '100vh',
+      p: { xs: 2, md: 0 }
+    }}>
+      {/* Premium ambient background effects */}
+      <Box sx={{
+        position: 'fixed',
+        top: '-5%',
+        right: '-10%',
+        width: '500px',
+        height: '500px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(0,200,150,0.1) 0%, rgba(0,200,150,0) 70%)',
+        filter: 'blur(60px)',
+        pointerEvents: 'none',
+        zIndex: 0
+      }} />
+      <Box sx={{
+        position: 'fixed',
+        bottom: '-10%',
+        left: '-5%',
+        width: '600px',
+        height: '600px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(0,102,255,0.08) 0%, rgba(0,102,255,0) 70%)',
+        filter: 'blur(70px)',
+        pointerEvents: 'none',
+        zIndex: 0
+      }} />
+      <Box sx={{ position: 'relative', zIndex: 1 }}>
+        <Typography variant="h4" sx={{ 
+          fontWeight: 700, 
+          background: 'linear-gradient(135deg, #0f2744 0%, #1e4d8a 50%, #0066ff 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          mb: 1,
+          gutterBottom: true
+        }}>Settings</Typography>
 
-      {saved && <Alert severity="success" sx={{ mb: 3 }}>Settings saved successfully!</Alert>}
+        {saved && <Alert severity="success" sx={{ mb: 3 }}>Settings saved successfully!</Alert>}
 
-      <Paper sx={{ p: 4 }}>
-        <Typography variant="h6" gutterBottom>Account Settings</Typography>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <Paper sx={{ 
+            p: 4,
+            borderRadius: 5,
+            background: 'rgba(255,255,255,0.75)',
+            backdropFilter: 'blur(30px)',
+            border: '1px solid rgba(15,39,68,0.08)',
+            boxShadow: '0 20px 60px -15px rgba(0,0,0,0.1)'
+          }}>
+            <Typography variant="h6" gutterBottom>Account Settings</Typography>
         <Grid container spacing={3}>
           <Grid item xs={12} md={6}>
             <TextField
@@ -227,8 +279,10 @@ const Settings = () => {
         <Box sx={{ mt: 4 }}>
           <Button variant="contained" size="large" onClick={handleSave}>Save Changes</Button>
         </Box>
-      </Paper>
+        </Paper>
+      </motion.div>
     </Box>
+  </Box>
   );
 };
 

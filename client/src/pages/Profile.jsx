@@ -6,6 +6,7 @@ import { getCurrentUser } from '../store/slices/authSlice';
 import { fetchAccounts } from '../store/slices/accountSlice';
 import CountUp from 'react-countup';
 import api from '../services/api';
+import { motion } from 'framer-motion';
 
 const Profile = () => {
   const dispatch = useDispatch();
@@ -109,12 +110,64 @@ const Profile = () => {
   }
 
   return (
-    <Box>
-      <Typography variant="h4" gutterBottom>My Profile</Typography>
+    <Box sx={{ 
+      position: 'relative', 
+      overflow: 'hidden',
+      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%)',
+      minHeight: '100vh',
+      p: { xs: 2, md: 0 }
+    }}>
+      {/* Premium ambient background effects */}
+      <Box sx={{
+        position: 'fixed',
+        top: '-5%',
+        right: '-10%',
+        width: '500px',
+        height: '500px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(0,200,150,0.1) 0%, rgba(0,200,150,0) 70%)',
+        filter: 'blur(60px)',
+        pointerEvents: 'none',
+        zIndex: 0
+      }} />
+      <Box sx={{
+        position: 'fixed',
+        bottom: '-10%',
+        left: '-5%',
+        width: '600px',
+        height: '600px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(0,102,255,0.08) 0%, rgba(0,102,255,0) 70%)',
+        filter: 'blur(70px)',
+        pointerEvents: 'none',
+        zIndex: 0
+      }} />
+      <Box sx={{ position: 'relative', zIndex: 1 }}>
+        <Typography variant="h4" sx={{ 
+          fontWeight: 700, 
+          background: 'linear-gradient(135deg, #0f2744 0%, #1e4d8a 50%, #0066ff 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          mb: 1,
+          gutterBottom: true
+        }}>My Profile</Typography>
 
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 4, textAlign: 'center' }}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={4}>
+              <Paper sx={{ 
+                p: 4, 
+                textAlign: 'center',
+                borderRadius: 5,
+                background: 'rgba(255,255,255,0.75)',
+                backdropFilter: 'blur(30px)',
+                border: '1px solid rgba(15,39,68,0.08)',
+                boxShadow: '0 20px 60px -15px rgba(0,0,0,0.1)'
+              }}>
             <Avatar
               sx={{ width: 120, height: 120, mx: 'auto', mb: 2, fontSize: 48, bgcolor: 'primary.main' }}
               src={user?.profilePicture || ''}
@@ -153,8 +206,15 @@ const Profile = () => {
         </Grid>
 
         <Grid item xs={12} md={8}>
-          <Paper sx={{ p: 4 }}>
-            <Typography variant="h6" gutterBottom>Contact Information</Typography>
+              <Paper sx={{ 
+                p: 4,
+                borderRadius: 5,
+                background: 'rgba(255,255,255,0.75)',
+                backdropFilter: 'blur(30px)',
+                border: '1px solid rgba(15,39,68,0.08)',
+                boxShadow: '0 20px 60px -15px rgba(0,0,0,0.1)'
+              }}>
+                <Typography variant="h6" gutterBottom>Personal Information</Typography>
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <Typography variant="body2" color="text.secondary">Email</Typography>
@@ -187,6 +247,8 @@ const Profile = () => {
           </Paper>
         </Grid>
       </Grid>
+        </motion.div>
+      </Box>
     </Box>
   );
 };

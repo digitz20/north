@@ -141,10 +141,46 @@ const Dashboard = () => {
   const monthlyData = getLast6Months();
 
   const realtimeStats = [
-    { title: 'Total Balance', value: totalBalance, prefix: '$', icon: <AccountBalance sx={{ fontSize: 40 }} />, change: '+2.4%', positive: true, color: 'linear-gradient(135deg, #021024 0%, #063970 100%)' },
-    { title: 'Monthly Income', value: monthlyIncome, prefix: '$', icon: <AttachMoney sx={{ fontSize: 40 }} />, change: monthlyIncome > 0 ? `+${((monthlyIncome - monthlyExpenses)/monthlyExpenses*100).toFixed(1)}%` : '+0%', positive: true, color: 'linear-gradient(135deg, #063970 0%, #0066FF 100%)' },
-    { title: 'Monthly Expenses', value: monthlyExpenses, prefix: '$', icon: <Payments sx={{ fontSize: 40 }} />, change: monthlyExpenses > 0 ? `-${((monthlyExpenses - monthlyIncome)/monthlyIncome*100).toFixed(1)}%` : '-0%', positive: monthlyExpenses < monthlyIncome, color: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)' },
-    { title: 'Net Savings', value: monthlyIncome - monthlyExpenses, prefix: '$', icon: <TrendingUp sx={{ fontSize: 40 }} />, change: monthlyIncome - monthlyExpenses > 0 ? `+${((monthlyIncome - monthlyExpenses)/monthlyExpenses*100).toFixed(1)}%` : '+0%', positive: (monthlyIncome - monthlyExpenses) > 0, color: 'linear-gradient(135deg, #00C896 0%, #00BFFF 100%)' },
+    { 
+      title: 'Total Balance', 
+      value: totalBalance, 
+      prefix: '$', 
+      icon: <AccountBalance sx={{ fontSize: 44 }} />, 
+      change: '+2.4%', 
+      positive: true, 
+      color: 'linear-gradient(135deg, #0f2744 0%, #1e4d8a 100%)',
+      glowColor: 'rgba(0,102,255,0.4)'
+    },
+    { 
+      title: 'Monthly Income', 
+      value: monthlyIncome, 
+      prefix: '$', 
+      icon: <AttachMoney sx={{ fontSize: 44 }} />, 
+      change: monthlyIncome > 0 ? `+${((monthlyIncome - monthlyExpenses)/monthlyExpenses*100).toFixed(1)}%` : '+0%', 
+      positive: true, 
+      color: 'linear-gradient(135deg, #0066ff 0%, #00bfff 100%)',
+      glowColor: 'rgba(0,179,255,0.4)'
+    },
+    { 
+      title: 'Monthly Expenses', 
+      value: monthlyExpenses, 
+      prefix: '$', 
+      icon: <Payments sx={{ fontSize: 44 }} />, 
+      change: monthlyExpenses > 0 ? `-${Math.abs(((monthlyExpenses - monthlyIncome)/monthlyIncome*100)).toFixed(1)}%` : '-0%', 
+      positive: monthlyExpenses < monthlyIncome, 
+      color: 'linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%)',
+      glowColor: 'rgba(255,107,107,0.4)'
+    },
+    { 
+      title: 'Net Savings', 
+      value: monthlyIncome - monthlyExpenses, 
+      prefix: '$', 
+      icon: <TrendingUp sx={{ fontSize: 44 }} />, 
+      change: monthlyIncome - monthlyExpenses > 0 ? `+${((monthlyIncome - monthlyExpenses)/monthlyExpenses*100).toFixed(1)}%` : '+0%', 
+      positive: (monthlyIncome - monthlyExpenses) > 0, 
+      color: 'linear-gradient(135deg, #00c896 0%, #33d8b0 100%)',
+      glowColor: 'rgba(0,200,150,0.4)'
+    },
   ];
 
   const quickActions = [
@@ -173,7 +209,7 @@ const Dashboard = () => {
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          <CircularProgress size={60} sx={{ color: '#0066FF' }} />
+          <CircularProgress size={60} sx={{ cooulor: '#0066FF' }} />
         </motion.div>
       </Box>
     );
@@ -200,7 +236,50 @@ const Dashboard = () => {
   };
 
   return (
-    <Box ref={dashboardRef} sx={{ position: 'relative', overflow: 'hidden' }}>
+    <Box ref={dashboardRef} sx={{ 
+      position: 'relative', 
+      overflow: 'hidden',
+      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%)',
+      minHeight: '100vh'
+    }}>
+      {/* Premium ambient background effects */}
+      <Box sx={{
+        position: 'fixed',
+        top: '-10%',
+        right: '-5%',
+        width: '600px',
+        height: '600px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(0,102,255,0.12) 0%, rgba(0,102,255,0) 70%)',
+        filter: 'blur(60px)',
+        pointerEvents: 'none',
+        zIndex: 0
+      }} />
+      <Box sx={{
+        position: 'fixed',
+        bottom: '-15%',
+        left: '-10%',
+        width: '700px',
+        height: '700px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(0,200,150,0.1) 0%, rgba(0,200,150,0) 70%)',
+        filter: 'blur(80px)',
+        pointerEvents: 'none',
+        zIndex: 0
+      }} />
+      <Box sx={{
+        position: 'fixed',
+        top: '40%',
+        left: '30%',
+        width: '500px',
+        height: '500px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(255,200,87,0.08) 0%, rgba(255,200,87,0) 70%)',
+        filter: 'blur(70px)',
+        pointerEvents: 'none',
+        zIndex: 0
+      }} />
+
       {/* Scroll Progress Bar */}
       <motion.div
         style={{
@@ -208,36 +287,39 @@ const Dashboard = () => {
           top: 64,
           left: 0,
           right: 0,
-          height: 3,
-          background: 'linear-gradient(90deg, #0066FF, #00BFFF, #00C896)',
+          height: 4,
+          background: 'linear-gradient(90deg, #0066ff, #00c896, #ffc857)',
           transformOrigin: '0%',
           scaleX: scrollYProgress,
-          zIndex: 9998
+          zIndex: 9998,
+          boxShadow: '0 2px 10px rgba(0,102,255,0.5)'
         }}
       />
 
-      {/* Animated Background Particles */}
-      {[...Array(15)].map((_, i) => (
+      {/* Enhanced Animated Background Particles */}
+      {[...Array(20)].map((_, i) => (
         <motion.div
           key={i}
           style={{
             position: 'fixed',
-            width: Math.random() * 8 + 3,
-            height: Math.random() * 8 + 3,
+            width: Math.random() * 10 + 4,
+            height: Math.random() * 10 + 4,
             borderRadius: '50%',
-            background: `rgba(${Math.random() * 100 + 155}, ${Math.random() * 100 + 155}, 255, 0.15)`,
+            background: `rgba(${100 + Math.random() * 100}, ${150 + Math.random() * 80}, 255, ${0.1 + Math.random() * 0.2})`,
             left: `${Math.random() * 100}%`,
             top: `${Math.random() * 100}%`,
             pointerEvents: 'none',
-            zIndex: 0
+            zIndex: 0,
+            boxShadow: `0 0 ${Math.random() * 20 + 10}px rgba(0,102,255,0.3)`
           }}
           animate={{
-            y: [0, -40, 0],
-            opacity: [0.1, 0.4, 0.1],
-            x: mousePosition.x * (i + 0.5),
+            y: [0, -60, 0],
+            x: mousePosition.x * (i + 0.8),
+            opacity: [0.05, 0.3, 0.05],
+            scale: [1, 1.3, 1]
           }}
           transition={{
-            duration: Math.random() * 4 + 3,
+            duration: Math.random() * 6 + 4,
             repeat: Infinity,
             ease: "easeInOut"
           }}
@@ -256,10 +338,22 @@ const Dashboard = () => {
           <Box sx={{ mb: 5 }}>
             <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', md: 'center' }, mb: 2 }}>
               <Box>
-                <Typography variant="h3" component="h1" sx={{ mb: 1, fontWeight: 700, background: 'linear-gradient(135deg, #021024 0%, #063970 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                <Typography variant="h3" component="h1" sx={{ 
+                  mb: 1, 
+                  fontWeight: 800, 
+                  background: 'linear-gradient(135deg, #0f2744 0%, #1e4d8a 50%, #0066ff 100%)', 
+                  WebkitBackgroundClip: 'text', 
+                  WebkitTextFillColor: 'transparent',
+                  fontSize: { xs: '2rem', md: '2.5rem' },
+                  letterSpacing: '-0.02em'
+                }}>
                   Welcome back, {user?.firstName || 'User'}!
                 </Typography>
-                <Typography variant="body1" color="text.secondary" sx={{ fontSize: '1.1rem' }}>
+                <Typography variant="body1" color="text.secondary" sx={{ 
+                  fontSize: '1.15rem',
+                  color: '#64748b',
+                  fontWeight: 400
+                }}>
                   Here's your comprehensive financial overview for {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                 </Typography>
               </Box>
@@ -271,15 +365,21 @@ const Dashboard = () => {
                     size="small"
                     onClick={() => setSelectedTimeframe(period)}
                     sx={{
-                      borderRadius: 2,
-                      px: 3,
-                      py: 1,
+                      borderRadius: 3,
+                      px: 3.5,
+                      py: 1.2,
                       fontWeight: 600,
-                      background: selectedTimeframe === period ? 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)' : 'transparent',
-                      borderColor: 'rgba(0,102,255,0.5)',
-                      color: selectedTimeframe === period ? 'white' : '#0066FF',
+                      fontSize: '0.9rem',
+                      background: selectedTimeframe === period ? 'linear-gradient(135deg, #0066ff 0%, #00bfff 100%)' : 'transparent',
+                      borderColor: 'rgba(0,102,255,0.4)',
+                      color: selectedTimeframe === period ? 'white' : '#0066ff',
+                      boxShadow: selectedTimeframe === period ? '0 10px 25px -5px rgba(0,102,255,0.4)' : 'none',
+                      transform: selectedTimeframe === period ? 'translateY(-1px)' : 'none',
                       '&:hover': {
-                        background: selectedTimeframe === period ? 'linear-gradient(135deg, #0052cc 0%, #0099cc 100%)' : 'rgba(0,102,255,0.05)',
+                        background: selectedTimeframe === period ? 'linear-gradient(135deg, #0052cc 0%, #0099cc 100%)' : 'rgba(0,102,255,0.06)',
+                        borderColor: selectedTimeframe === period ? 'inherit' : 'rgba(0,102,255,0.6)',
+                        transform: 'translateY(-2px)',
+                        boxShadow: selectedTimeframe === period ? '0 12px 30px -5px rgba(0,102,255,0.5)' : '0 4px 12px rgba(0,0,0,0.05)'
                       }
                     }}
                   >
@@ -307,29 +407,33 @@ const Dashboard = () => {
                       height: '100%',
                       background: stat.color,
                       color: 'white',
-                      borderRadius: 4,
+                      borderRadius: 5,
                       position: 'relative',
                       overflow: 'hidden',
-                      boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+                      boxShadow: `0 25px 50px -12px ${stat.glowColor}, 0 20px 40px rgba(0,0,0,0.2)`,
+                      transform: 'translateZ(0)',
+                      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                       '&::before': {
                         content: '""',
                         position: 'absolute',
                         top: -50,
                         right: -50,
-                        width: 200,
-                        height: 200,
-                        background: 'rgba(255,255,255,0.1)',
-                        borderRadius: '50%'
+                        width: 220,
+                        height: 220,
+                        background: 'rgba(255,255,255,0.15)',
+                        borderRadius: '50%',
+                        filter: 'blur(20px)'
                       },
                       '&::after': {
                         content: '""',
                         position: 'absolute',
-                        bottom: -30,
-                        left: -30,
-                        width: 120,
-                        height: 120,
-                        background: 'rgba(255,255,255,0.08)',
-                        borderRadius: '50%'
+                        bottom: -40,
+                        left: -40,
+                        width: 150,
+                        height: 150,
+                        background: 'rgba(255,255,255,0.1)',
+                        borderRadius: '50%',
+                        filter: 'blur(15px)'
                       }
                     }}
                   >
@@ -393,14 +497,20 @@ const Dashboard = () => {
             sx={{
               p: 5,
               mb: 5,
-              background: 'rgba(255,255,255,0.7)',
-              backdropFilter: 'blur(20px)',
-              borderRadius: 4,
-              border: '1px solid rgba(0,102,255,0.1)',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.05)'
+              background: 'rgba(255,255,255,0.75)',
+              backdropFilter: 'blur(30px)',
+              borderRadius: 5,
+              border: '1px solid rgba(15,39,68,0.08)',
+              boxShadow: '0 20px 60px -15px rgba(0,0,0,0.1)'
             }}
           >
-            <Typography variant="h5" sx={{ mb: 4, fontWeight: 600, color: '#021024' }}>Quick Actions</Typography>
+            <Typography variant="h5" sx={{ 
+              mb: 4, 
+              fontWeight: 700, 
+              background: 'linear-gradient(135deg, #0f2744 0%, #0066ff 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}>Quick Actions</Typography>
             <Grid container spacing={3}>
               {quickActions.map((action, index) => (
                 <Grid item xs={12} sm={6} md={3} key={action.title}>
@@ -449,19 +559,30 @@ const Dashboard = () => {
                 sx={{
                   p: 5,
                   height: '100%',
-                  background: 'rgba(255,255,255,0.8)',
-                  backdropFilter: 'blur(20px)',
-                  borderRadius: 4,
-                  border: '1px solid rgba(0,102,255,0.1)',
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.05)'
+                  background: 'rgba(255,255,255,0.75)',
+                  backdropFilter: 'blur(30px)',
+                  borderRadius: 5,
+                  border: '1px solid rgba(15,39,68,0.08)',
+                  boxShadow: '0 20px 60px -15px rgba(0,0,0,0.1)'
                 }}
               >
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
                   <Box>
-                    <Typography variant="h5" sx={{ fontWeight: 600, color: '#021024', mb: 1 }}>Financial Overview</Typography>
+                    <Typography variant="h5" sx={{ 
+                      fontWeight: 700, 
+                      background: 'linear-gradient(135deg, #0f2744 0%, #0066ff 100%)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      mb: 1 
+                    }}>Financial Overview</Typography>
                     <Typography variant="body2" color="text.secondary">Track your income, expenses, and savings over time</Typography>
                   </Box>
-                  <IconButton>
+                  <IconButton sx={{ 
+                    background: 'rgba(0,102,255,0.05)',
+                    '&:hover': {
+                      background: 'rgba(0,102,255,0.1)'
+                    }
+                  }}>
                     <MoreHoriz />
                   </IconButton>
                 </Box>

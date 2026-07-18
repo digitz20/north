@@ -49,12 +49,11 @@ const menuItems = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
   { text: 'Accounts', icon: <AccountsIcon />, path: '/accounts' },
   { text: 'Transactions', icon: <TransactionsIcon />, path: '/transactions' },
-  { text: 'Transfer Money', icon: <TransferIcon />, path: '/transfer' },
-  { text: 'Withdraw Funds', icon: <WithdrawIcon />, path: '/withdraw' },
-  { text: 'Deposit Crypto', icon: <DepositIcon />, path: '/deposit' },
+  { text: 'Transfer', icon: <TransferIcon />, path: '/transfer' },
+  { text: 'Deposit', icon: <DepositIcon />, path: '/deposit' },
   { text: 'Cards', icon: <CardsIcon />, path: '/cards' },
   { text: 'Investments', icon: <InvestmentsIcon />, path: '/investments' },
-  { text: 'Loans', icon: <LoansIcon />, path: '/loans' },
+  { text: 'Loan/IRS Taxrefund', icon: <LoansIcon />, path: '/loans' },
   { text: 'Beneficiaries', icon: <BeneficiariesIcon />, path: '/beneficiaries' },
   { text: 'Notifications', icon: <NotificationsIcon />, path: '/notifications' },
   { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
@@ -111,11 +110,17 @@ const DashboardLayout = () => {
             selected={location.pathname === item.path}
             sx={{
               mx: 1,
-              borderRadius: 1,
-              mb: 0.5,
+              borderRadius: 2,
+              mb: 0.8,
+              transition: 'all 0.3s ease',
+              '&:hover:not(.Mui-selected)': {
+                backgroundColor: 'rgba(0,102,255,0.08)',
+                transform: 'translateX(4px)'
+              },
               '&.Mui-selected': {
-                backgroundColor: 'primary.main',
+                background: 'linear-gradient(135deg, #0066ff 0%, #00bfff 100%)',
                 color: 'white',
+                boxShadow: '0 8px 20px rgba(0,102,255,0.3)',
                 '& .MuiListItemIcon-root': {
                   color: 'white'
                 }

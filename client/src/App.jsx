@@ -14,7 +14,9 @@ const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Accounts = lazy(() => import('./pages/Accounts'));
 const Transactions = lazy(() => import('./pages/Transactions'));
-const Transfer = lazy(() => import('./pages/TransferMoney'));
+const Transfer = lazy(() => import('./pages/Transfer'));
+const LocalTransfer = lazy(() => import('./pages/LocalTransfer'));
+const InternationalTransfer = lazy(() => import('./pages/InternationalTransfer'));
 const Cards = lazy(() => import('./pages/Cards'));
 const Investments = lazy(() => import('./pages/Investments'));
 const Loans = lazy(() => import('./pages/Loans'));
@@ -22,7 +24,6 @@ const Beneficiaries = lazy(() => import('./pages/Beneficiaries'));
 const Notifications = lazy(() => import('./pages/Notifications'));
 const Settings = lazy(() => import('./pages/Settings'));
 const Profile = lazy(() => import('./pages/Profile'));
-const Withdraw = lazy(() => import('./pages/Withdraw'));
 const Deposit = lazy(() => import('./pages/Deposit'));
 
 function App() {
@@ -48,7 +49,8 @@ function App() {
             <Route path="/accounts" element={<Accounts />} />
             <Route path="/transactions" element={<Transactions />} />
             <Route path="/transfer" element={<Transfer />} />
-            <Route path="/withdraw" element={<Withdraw />} />
+            <Route path="/transfer/local" element={<LocalTransfer />} />
+            <Route path="/transfer/international" element={<InternationalTransfer />} />
             <Route path="/deposit" element={<Deposit />} />
             <Route path="/cards" element={<Cards />} />
             <Route path="/investments" element={<Investments />} />

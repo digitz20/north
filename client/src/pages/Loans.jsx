@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 import { Box, Typography, Paper, Grid, Button, Card, CardContent, CircularProgress, Alert, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Tab, Tabs, MenuItem, Stepper, Step, StepLabel, IconButton } from '@mui/material';
 import { Close } from '@mui/icons-material';
+import { motion } from 'framer-motion';
 import { getUserLoans, getAvailableLoanTypes, applyForLoan, makeLoanPayment, submitTaxRefundRequest } from '../store/slices/loanSlice';
 
 const Loans = () => {
@@ -142,15 +143,67 @@ const Loans = () => {
   }
 
   return (
-    <Box>
-      <Typography variant="h4" gutterBottom>Loans & IRS Tax Refunds</Typography>
-      
-      <Paper sx={{ mb: 4 }}>
-        <Tabs value={tabValue} onChange={handleTabChange} sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tab label="Loan Services" />
-          <Tab label="IRS Tax Refund Request" />
-        </Tabs>
-      </Paper>
+    <Box sx={{ 
+      position: 'relative', 
+      overflow: 'hidden',
+      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%)',
+      minHeight: '100vh',
+      p: { xs: 2, md: 0 }
+    }}>
+      {/* Premium ambient background effects */}
+      <Box sx={{
+        position: 'fixed',
+        top: '-5%',
+        right: '-10%',
+        width: '500px',
+        height: '500px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(0,200,150,0.1) 0%, rgba(0,200,150,0) 70%)',
+        filter: 'blur(60px)',
+        pointerEvents: 'none',
+        zIndex: 0
+      }} />
+      <Box sx={{
+        position: 'fixed',
+        bottom: '-10%',
+        left: '-5%',
+        width: '600px',
+        height: '600px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(0,102,255,0.08) 0%, rgba(0,102,255,0) 70%)',
+        filter: 'blur(70px)',
+        pointerEvents: 'none',
+        zIndex: 0
+      }} />
+      <Box sx={{ position: 'relative', zIndex: 1 }}>
+        <Typography variant="h4" sx={{ 
+          fontWeight: 700, 
+          background: 'linear-gradient(135deg, #0f2744 0%, #1e4d8a 50%, #0066ff 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          mb: 1,
+          gutterBottom: true
+        }}>Loans & IRS Tax Refunds</Typography>
+        
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <Paper sx={{ 
+            mb: 4,
+            borderRadius: 5,
+            background: 'rgba(255,255,255,0.75)',
+            backdropFilter: 'blur(30px)',
+            border: '1px solid rgba(15,39,68,0.08)',
+            boxShadow: '0 20px 60px -15px rgba(0,0,0,0.1)',
+            overflow: 'hidden'
+          }}>
+            <Tabs value={tabValue} onChange={handleTabChange} sx={{ borderBottom: 1, borderColor: 'divider' }}>
+              <Tab label="Loan Services" />
+              <Tab label="IRS Tax Refund Request" />
+            </Tabs>
+          </Paper>
 
       {tabValue === 0 && (
         <></>
@@ -638,7 +691,9 @@ const Loans = () => {
       </Dialog>
     </>
   )}
-</Box>
+        </motion.div>
+      </Box>
+    </Box>
 );
 };
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { 
   Box, Typography, Paper, Grid, Table, TableBody, TableCell, 
   TableContainer, TableHead, TableRow, CircularProgress, Alert,
@@ -385,9 +386,47 @@ const Investments = () => {
   const totalCurrent = investments.reduce((sum, inv) => sum + inv.currentValue, 0);
 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Typography variant="h4" gutterBottom>Investments</Typography>
+    <Box sx={{ 
+      position: 'relative', 
+      overflow: 'hidden',
+      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%)',
+      minHeight: '100vh',
+      p: { xs: 2, md: 0 }
+    }}>
+      {/* Premium ambient background effects */}
+      <Box sx={{
+        position: 'fixed',
+        top: '-5%',
+        right: '-10%',
+        width: '500px',
+        height: '500px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(0,200,150,0.1) 0%, rgba(0,200,150,0) 70%)',
+        filter: 'blur(60px)',
+        pointerEvents: 'none',
+        zIndex: 0
+      }} />
+      <Box sx={{
+        position: 'fixed',
+        bottom: '-10%',
+        left: '-5%',
+        width: '600px',
+        height: '600px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(0,102,255,0.08) 0%, rgba(0,102,255,0) 70%)',
+        filter: 'blur(70px)',
+        pointerEvents: 'none',
+        zIndex: 0
+      }} />
+      <Box sx={{ position: 'relative', zIndex: 1 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+          <Typography variant="h4" sx={{ 
+            fontWeight: 700, 
+            background: 'linear-gradient(135deg, #0f2744 0%, #1e4d8a 50%, #0066ff 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            mb: 1
+          }}>Investments</Typography>
         <Button
           variant="contained"
           startIcon={<Add />}
@@ -417,46 +456,171 @@ const Investments = () => {
         </Box>
       ) : (
         <>
-          <Grid container spacing={3} mb={4}>
+          <Grid container spacing={4} mb={5}>
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 3 }}>
-                <Typography variant="h6" color="text.secondary">Total Invested</Typography>
-                <Typography variant="h4">${totalInvested.toLocaleString()}</Typography>
-              </Paper>
+              <motion.div
+                whileHover={{ y: -8, scale: 1.02 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 4,
+                    background: 'linear-gradient(135deg, #0066ff 0%, #00bfff 100%)',
+                    color: 'white',
+                    borderRadius: 5,
+                    position: 'relative',
+                    overflow: 'hidden',
+                    boxShadow: '0 25px 50px -12px rgba(0,102,255,0.4), 0 20px 40px rgba(0,0,0,0.2)',
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      top: -50,
+                      right: -50,
+                      width: 220,
+                      height: 220,
+                      background: 'rgba(255,255,255,0.15)',
+                      borderRadius: '50%',
+                      filter: 'blur(20px)'
+                    },
+                    '&::after': {
+                      content: '""',
+                      position: 'absolute',
+                      bottom: -40,
+                      left: -40,
+                      width: 150,
+                      height: 150,
+                      background: 'rgba(255,255,255,0.1)',
+                      borderRadius: '50%',
+                      filter: 'blur(15px)'
+                    }
+                  }}
+                >
+                  <Box sx={{ position: 'relative', zIndex: 1 }}>
+                    <Typography variant="body1" sx={{ mb: 1, opacity: 0.9 }}>Total Invested</Typography>
+                    <Typography variant="h3" sx={{ fontWeight: 700 }}>${totalInvested.toLocaleString()}</Typography>
+                  </Box>
+                </Paper>
+              </motion.div>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 3 }}>
-                <Typography variant="h6" color="text.secondary">Current Value</Typography>
-                <Typography variant="h4" color={totalCurrent >= totalInvested ? "success.main" : "error.main"}>
-                  ${totalCurrent.toLocaleString()}
-                </Typography>
-              </Paper>
+              <motion.div
+                whileHover={{ y: -8, scale: 1.02 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 4,
+                    background: totalCurrent >= totalInvested 
+                      ? 'linear-gradient(135deg, #00c896 0%, #33d8b0 100%)' 
+                      : 'linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%)',
+                    color: 'white',
+                    borderRadius: 5,
+                    position: 'relative',
+                    overflow: 'hidden',
+                    boxShadow: totalCurrent >= totalInvested 
+                      ? '0 25px 50px -12px rgba(0,200,150,0.4), 0 20px 40px rgba(0,0,0,0.2)'
+                      : '0 25px 50px -12px rgba(255,107,107,0.4), 0 20px 40px rgba(0,0,0,0.2)',
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      top: -50,
+                      right: -50,
+                      width: 220,
+                      height: 220,
+                      background: 'rgba(255,255,255,0.15)',
+                      borderRadius: '50%',
+                      filter: 'blur(20px)'
+                    },
+                    '&::after': {
+                      content: '""',
+                      position: 'absolute',
+                      bottom: -40,
+                      left: -40,
+                      width: 150,
+                      height: 150,
+                      background: 'rgba(255,255,255,0.1)',
+                      borderRadius: '50%',
+                      filter: 'blur(15px)'
+                    }
+                  }}
+                >
+                  <Box sx={{ position: 'relative', zIndex: 1 }}>
+                    <Typography variant="body1" sx={{ mb: 1, opacity: 0.9 }}>Current Value</Typography>
+                    <Typography variant="h3" sx={{ fontWeight: 700 }}>${totalCurrent.toLocaleString()}</Typography>
+                    <Typography variant="body2" sx={{ mt: 1, opacity: 0.9 }}>
+                      {totalCurrent >= totalInvested ? '↑' : '↓'} {Math.abs(((totalCurrent - totalInvested)/totalInvested)*100).toFixed(2)}%
+                    </Typography>
+                  </Box>
+                </Paper>
+              </motion.div>
             </Grid>
           </Grid>
 
           {investments.length === 0 ? (
-            <Paper sx={{ p: 6, textAlign: 'center', borderRadius: 3 }}>
-              <Typography variant="h5" sx={{ mb: 2, color: '#666' }}>No investments found</Typography>
-              <Typography variant="body1" sx={{ mb: 4, color: '#888' }}>
-                You don't have any investments yet. Start investing to grow your wealth!
-              </Typography>
-              <Button
-                variant="contained"
-                startIcon={<Add />}
-                onClick={() => setOpen(true)}
-                sx={{
-                  background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
-                  textTransform: 'none',
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              <Paper sx={{ 
+                p: 8, 
+                textAlign: 'center', 
+                borderRadius: 5,
+                background: 'rgba(255,255,255,0.75)',
+                backdropFilter: 'blur(30px)',
+                border: '1px solid rgba(15,39,68,0.08)',
+                boxShadow: '0 20px 60px -15px rgba(0,0,0,0.1)'
+              }}>
+                <Typography variant="h5" sx={{ 
+                  mb: 2, 
                   fontWeight: 600,
-                  px: 4
-                }}
-              >
-                Create Your First Investment
-              </Button>
-            </Paper>
+                  background: 'linear-gradient(135deg, #0f2744 0%, #0066ff 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent'
+                }}>No investments found</Typography>
+                <Typography variant="body1" sx={{ mb: 5, color: '#64748b' }}>
+                  You don't have any investments yet. Start investing to grow your wealth!
+                </Typography>
+                <Button
+                  variant="contained"
+                  startIcon={<Add />}
+                  onClick={() => setOpen(true)}
+                  sx={{
+                    background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    px: 5,
+                    py: 1.5,
+                    borderRadius: 3,
+                    boxShadow: '0 12px 30px -10px rgba(0,102,255,0.4)',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 15px 40px -12px rgba(0,102,255,0.5)'
+                    }
+                  }}
+                >
+                  Create Your First Investment
+                </Button>
+              </Paper>
+            </motion.div>
           ) : (
-            <TableContainer component={Paper}>
-              <Table>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              <TableContainer component={Paper} sx={{
+                borderRadius: 5,
+                background: 'rgba(255,255,255,0.75)',
+                backdropFilter: 'blur(30px)',
+                border: '1px solid rgba(15,39,68,0.08)',
+                boxShadow: '0 20px 60px -15px rgba(0,0,0,0.1)',
+                overflow: 'hidden'
+              }}>
+                <Table>
                 <TableHead>
                   <TableRow>
                     <TableCell>Type</TableCell>
@@ -494,17 +658,33 @@ const Investments = () => {
                 </TableBody>
               </Table>
             </TableContainer>
+            </motion.div>
           )}
         </>
       )}
 
       {/* New Investment Dialog */}
-      <Dialog open={open} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+      <Dialog 
+        open={open} 
+        onClose={handleCloseDialog} 
+        maxWidth="md" 
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 5,
+            overflow: 'hidden',
+            background: 'rgba(255,255,255,0.95)',
+            backdropFilter: 'blur(30px)',
+            boxShadow: '0 50px 100px -20px rgba(0,0,0,0.3)'
+          }
+        }}
+      >
         <DialogTitle sx={{ 
           background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
           color: 'white',
           fontWeight: 700,
-          position: 'relative'
+          position: 'relative',
+          p: 3
         }}>
           Fund Your Investment
           <IconButton
@@ -1000,6 +1180,7 @@ const Investments = () => {
         </DialogContent>
       </Dialog>
     </Box>
+  </Box>
   );
 };
 
