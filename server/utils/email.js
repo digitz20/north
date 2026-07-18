@@ -359,6 +359,41 @@ class EmailService {
     });
   }
 
+  // Loan approval email
+  async sendLoanApprovalEmail(user, loan) {
+    const content = `
+      <p>Dear ${user.firstName} ${user.lastName},</p>
+      <p>Great news! Your loan application with NorthCrest Bank has been <strong>APPROVED</strong>. The funds have been successfully disbursed to your account.</p>
+      <div class="transaction-details">
+        <ul>
+          <li><strong>Loan ID:</strong> ${loan.loanId}</li>
+          <li><strong>Loan Type:</strong> ${loan.loanProduct?.name || 'Personal Loan'}</li>
+          <li><strong>Loan Amount:</strong> $${loan.amount.toFixed(2)}</li>
+          <li><strong>Interest Rate:</strong> ${loan.loanProduct?.interestRate || 0}% APR</li>
+          <li><strong>Loan Term:</strong> ${loan.term} months</li>
+          <li><strong>Monthly Payment (EMI):</strong> $${loan.monthlyPayment?.toFixed(2) || '0.00'}</li>
+          <li><strong>Total Repayment Amount:</strong> $${(loan.monthlyPayment * loan.term).toFixed(2)}</li>
+          <li><strong>Approval Date:</strong> ${new Date().toLocaleString()}</li>
+          <li><strong>First Payment Due Date:</strong> ${loan.firstPaymentDate?.toLocaleDateString()}</li>
+          <li><strong>Last Payment Date:</strong> ${loan.lastPaymentDate?.toLocaleDateString()}</li>
+          <li><strong>Disbursed To Account:</strong> ${loan.disbursementAccount?.accountNumber || 'N/A'}</li>
+        </ul>
+      </div>
+      <p>Your first monthly payment will be automatically deducted from your selected account on the due date. You can also make manual payments through your account dashboard at any time.</p>
+      <p>If you have any questions about your loan, please contact our loan support team at loans@northcrestbank.com or call 1-800-NORTHCREST. Our loan specialists are available Monday to Friday, 9AM to 6PM EST.</p>
+      <p>Thank you for choosing NorthCrest Bank as your lending partner. We look forward to supporting your financial journey!</p>
+      <p>Best regards,<br><strong>The NorthCrest Bank Lending Team</strong></p>
+    `;
+
+    const html = this.#getBaseTemplate(content, 'Congratulations! Your Loan Has Been Approved');
+
+    return this.sendEmail({
+      to: user.email,
+      subject: 'Congratulations! Your Loan Has Been Approved',
+      html
+    });
+  }
+
   stripHtml(html) {
     return html.replace(/<[^>]*>/g, '');
   }

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useLocation } from 'react-router-dom';
-import { Box, Typography, Paper, Grid, Button, Card, CardContent, CircularProgress, Alert, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Tab, Tabs, MenuItem } from '@mui/material';
+import { Box, Typography, Paper, Grid, Button, Card, CardContent, CircularProgress, Alert, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Tab, Tabs, MenuItem, Stepper, Step, StepLabel, IconButton } from '@mui/material';
+import { Close } from '@mui/icons-material';
 import { getUserLoans, getAvailableLoanTypes, applyForLoan, makeLoanPayment, submitTaxRefundRequest } from '../store/slices/loanSlice';
 
 const Loans = () => {
@@ -15,6 +16,8 @@ const Loans = () => {
   const [paymentAmount, setPaymentAmount] = useState('');
   const [selectedLoanType, setSelectedLoanType] = useState(null);
   const [loanAmount, setLoanAmount] = useState('');
+  const [loanApplicationStep, setLoanApplicationStep] = useState(0); // Track current step in loan application stepper
+  const [loanPaymentStep, setLoanPaymentStep] = useState(0); // Track current step in loan payment stepper
   
   // IRS Tax Refund form state
   const [irsForm, setIrsForm] = useState({
@@ -60,6 +63,7 @@ const Loans = () => {
   const handlePaymentClick = (loan) => {
     setSelectedLoan(loan);
     setPaymentAmount('');
+    setLoanPaymentStep(0); // Reset to first step when opening new payment
     setOpenPaymentDialog(true);
   };
 
@@ -76,6 +80,7 @@ const Loans = () => {
   const handleApplyClick = (loanType) => {
     setSelectedLoanType(loanType);
     setLoanAmount('');
+    setLoanApplicationStep(0); // Reset to first step when opening new application
     setOpenApplyDialog(true);
   };
 
@@ -314,53 +319,322 @@ const Loans = () => {
       )}
 
       {/* Payment Dialog */}
-      <Dialog open={openPaymentDialog} onClose={() => setOpenPaymentDialog(false)}>
-        <DialogTitle>Make Payment</DialogTitle>
-        <DialogContent>
-          <Typography variant="body1" sx={{ mb: 2 }}>
-            Loan: {selectedLoan?.type}
-          </Typography>
-          <Typography variant="body2" sx={{ mb: 2 }}>
-            Remaining amount: ${selectedLoan?.remaining}
-          </Typography>
-          <TextField
-            label="Payment Amount"
-            type="number"
-            fullWidth
-            value={paymentAmount}
-            onChange={(e) => setPaymentAmount(e.target.value)}
-            sx={{ mt: 2 }}
-          />
+      <Dialog open={openPaymentDialog} onClose={() => setOpenPaymentDialog(false)} maxWidth="md" fullWidth>
+        <DialogTitle sx={{ 
+          background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
+          color: 'white',
+          fontWeight: 700,
+          position: 'relative'
+        }}>
+          Make Loan Payment
+          <IconButton
+            aria-label="close"
+            onClick={() => setOpenPaymentDialog(false)}
+            sx={{ position: 'absolute', right: 8, top: 8, color: 'white' }}
+          >
+            <Close />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ pt: 4 }}>
+          {/* Loan Payment Stepper */}
+          <Stepper activeStep={loanPaymentStep} sx={{ mb: 4 }}>
+            {['Step 1: Review Payment Details', 'Step 2: Enter Payment Amount', 'Step 3: Confirm Payment'].map((label) => (
+              <Step key={label}>
+                <StepLabel>{label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+
+          {/* Step 1: Review Payment Details */}
+          {loanPaymentStep === 0 && (
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Typography variant="h5" gutterBottom fontWeight="bold">Step 1: Review Your Payment Details</Typography>
+                <Typography variant="body1" color="text.secondary" gutterBottom>Review the details of your loan before making a payment</Typography>
+              </Grid>
+              
+              <Grid item xs={12} md={6}>
+                <Card sx={{ p: 3, height: '100%' }}>
+                  <Typography variant="h6" gutterBottom>Loan Summary</Typography>
+                  <Box mt={2}>
+                    <Typography variant="body2" display="block" sx={{ mb: 1 }}><strong>Loan Type:</strong> {selectedLoan?.type}</Typography>
+                    <Typography variant="body2" display="block" sx={{ mb: 1 }}><strong>Remaining Balance:</strong> ${selectedLoan?.remaining?.toLocaleString()}</Typography>
+                  </Box>
+                </Card>
+              </Grid>
+              
+              <Grid item xs={12}>
+                <Button 
+                  variant="contained" 
+                  size="large" 
+                  fullWidth
+                  onClick={() => setLoanPaymentStep(1)}
+                  sx={{ background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)', py: 2, mt: 2, fontSize: '1.1rem' }}
+                >
+                  Continue to Enter Payment Amount →
+                </Button>
+              </Grid>
+            </Grid>
+          )}
+
+          {/* Step 2: Enter Payment Amount */}
+          {loanPaymentStep === 1 && (
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Typography variant="h5" gutterBottom fontWeight="bold">Step 2: Enter Your Payment Amount</Typography>
+                <Typography variant="body1" color="text.secondary" gutterBottom>Enter the amount you wish to pay towards your loan</Typography>
+              </Grid>
+              
+              <Grid item xs={12}>
+                <TextField
+                  label="Payment Amount (USD)"
+                  type="number"
+                  fullWidth
+                  value={paymentAmount}
+                  onChange={(e) => setPaymentAmount(e.target.value)}
+                  error={paymentAmount > selectedLoan?.remaining}
+                  helperText={paymentAmount > selectedLoan?.remaining ? `Maximum payment is $${selectedLoan?.remaining?.toLocaleString()}` : `Enter an amount up to $${selectedLoan?.remaining?.toLocaleString()}`}
+                  InputProps={{ inputProps: { min: 50, max: selectedLoan?.remaining, step: 0.01 } }}
+                  sx={{ mt: 1 }}
+                />
+              </Grid>
+
+              {/* Navigation buttons */}
+              <Grid item xs={6}>
+                <Button 
+                  variant="outlined" 
+                  size="large" 
+                  fullWidth
+                  onClick={() => setLoanPaymentStep(0)}
+                  sx={{ py: 2, mt: 2 }}
+                >
+                  ← Back to Review
+                </Button>
+              </Grid>
+              <Grid item xs={6}>
+                <Button 
+                  variant="contained" 
+                  size="large" 
+                  fullWidth
+                  onClick={() => setLoanPaymentStep(2)}
+                  disabled={!paymentAmount || paymentAmount > selectedLoan?.remaining || paymentAmount < 50}
+                  sx={{ background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)', py: 2, mt: 2, fontSize: '1.1rem' }}
+                >
+                  Continue to Confirm →
+                </Button>
+              </Grid>
+            </Grid>
+          )}
+
+          {/* Step 3: Submit Payment */}
+          {loanPaymentStep === 2 && (
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Typography variant="h5" gutterBottom fontWeight="bold">Step 3: Confirm Your Payment</Typography>
+                <Typography variant="body1" color="text.secondary" gutterBottom>Review your payment and submit</Typography>
+              </Grid>
+              
+              <Grid item xs={12}>
+                <Card sx={{ p: 3 }}>
+                  <Typography variant="h6" gutterBottom>Payment Summary</Typography>
+                  <Box mt={2}>
+                    <Typography variant="body2" display="block" sx={{ mb: 1 }}><strong>Loan Type:</strong> {selectedLoan?.type}</Typography>
+                    <Typography variant="body2" display="block" sx={{ mb: 1 }}><strong>Payment Amount:</strong> ${parseFloat(paymentAmount).toLocaleString()}</Typography>
+                    <Typography variant="body2" display="block" sx={{ mb: 1 }}><strong>New Remaining Balance:</strong> ${(selectedLoan?.remaining - parseFloat(paymentAmount)).toLocaleString()}</Typography>
+                  </Box>
+                </Card>
+              </Grid>
+
+              {/* Navigation buttons */}
+              <Grid item xs={6}>
+                <Button 
+                  variant="outlined" 
+                  size="large" 
+                  fullWidth
+                  onClick={() => setLoanPaymentStep(1)}
+                  sx={{ py: 2, mt: 2 }}
+                >
+                  ← Back to Edit
+                </Button>
+              </Grid>
+              <Grid item xs={6}>
+                <Button 
+                  variant="contained" 
+                  size="large" 
+                  fullWidth
+                  onClick={() => {
+                    handlePaymentSubmit();
+                    setOpenPaymentDialog(false);
+                    setLoanPaymentStep(0); // Reset stepper for next time
+                  }}
+                  sx={{ background: 'linear-gradient(135deg, #00AA33 0%, #00CC44 100%)', py: 2, mt: 2, fontSize: '1.1rem' }}
+                >
+                  ✅ Submit Payment
+                </Button>
+              </Grid>
+            </Grid>
+          )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenPaymentDialog(false)}>Cancel</Button>
-          <Button onClick={handlePaymentSubmit} variant="contained">Submit Payment</Button>
-        </DialogActions>
       </Dialog>
 
       {/* Apply Loan Dialog */}
-      <Dialog open={openApplyDialog} onClose={() => setOpenApplyDialog(false)}>
-        <DialogTitle>Apply for {selectedLoanType?.type}</DialogTitle>
-        <DialogContent>
-          <Typography variant="body1" sx={{ mb: 2 }}>
-            Interest rate: {selectedLoanType?.rate}% p.a.
-          </Typography>
-          <Typography variant="body2" sx={{ mb: 2 }}>
-            Maximum amount: ${selectedLoanType?.maxAmount?.toLocaleString()}
-          </Typography>
-          <TextField
-            label="Loan Amount"
-            type="number"
-            fullWidth
-            value={loanAmount}
-            onChange={(e) => setLoanAmount(e.target.value)}
-            sx={{ mt: 2 }}
-          />
+      <Dialog open={openApplyDialog} onClose={() => setOpenApplyDialog(false)} maxWidth="md" fullWidth>
+        <DialogTitle sx={{ 
+          background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
+          color: 'white',
+          fontWeight: 700,
+          position: 'relative'
+        }}>
+          Apply for {selectedLoanType?.type} Loan
+          <IconButton
+            aria-label="close"
+            onClick={() => setOpenApplyDialog(false)}
+            sx={{ position: 'absolute', right: 8, top: 8, color: 'white' }}
+          >
+            <Close />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ pt: 4 }}>
+          {/* Loan Application Stepper */}
+          <Stepper activeStep={loanApplicationStep} sx={{ mb: 4 }}>
+            {['Step 1: Review Loan Terms', 'Step 2: Enter Loan Details', 'Step 3: Submit Application'].map((label) => (
+              <Step key={label}>
+                <StepLabel>{label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+
+          {/* Step 1: Review Loan Terms */}
+          {loanApplicationStep === 0 && (
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Typography variant="h5" gutterBottom fontWeight="bold">Step 1: Review Your Loan Terms</Typography>
+                <Typography variant="body1" color="text.secondary" gutterBottom>Please review the terms of your {selectedLoanType?.type} loan before proceeding</Typography>
+              </Grid>
+              
+              <Grid item xs={12} md={6}>
+                <Card sx={{ p: 3, height: '100%' }}>
+                  <Typography variant="h6" gutterBottom>Loan Details</Typography>
+                  <Box mt={2}>
+                    <Typography variant="body2" display="block" sx={{ mb: 1 }}><strong>Loan Type:</strong> {selectedLoanType?.type}</Typography>
+                    <Typography variant="body2" display="block" sx={{ mb: 1 }}><strong>Interest Rate:</strong> {selectedLoanType?.rate}% p.a.</Typography>
+                    <Typography variant="body2" display="block" sx={{ mb: 1 }}><strong>Maximum Amount:</strong> ${selectedLoanType?.maxAmount?.toLocaleString()}</Typography>
+                  </Box>
+                </Card>
+              </Grid>
+              
+              <Grid item xs={12}>
+                <Button 
+                  variant="contained" 
+                  size="large" 
+                  fullWidth
+                  onClick={() => setLoanApplicationStep(1)}
+                  sx={{ background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)', py: 2, mt: 2, fontSize: '1.1rem' }}
+                >
+                  Continue to Enter Loan Amount →
+                </Button>
+              </Grid>
+            </Grid>
+          )}
+
+          {/* Step 2: Enter Loan Details */}
+          {loanApplicationStep === 1 && (
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Typography variant="h5" gutterBottom fontWeight="bold">Step 2: Enter Your Loan Details</Typography>
+                <Typography variant="body1" color="text.secondary" gutterBottom>Enter the amount you wish to borrow</Typography>
+              </Grid>
+              
+              <Grid item xs={12}>
+                <TextField
+                  label="Loan Amount (USD)"
+                  type="number"
+                  fullWidth
+                  value={loanAmount}
+                  onChange={(e) => setLoanAmount(e.target.value)}
+                  error={loanAmount > selectedLoanType?.maxAmount}
+                  helperText={loanAmount > selectedLoanType?.maxAmount ? `Maximum loan amount is $${selectedLoanType?.maxAmount?.toLocaleString()}` : `Enter an amount up to $${selectedLoanType?.maxAmount?.toLocaleString()}`}
+                  InputProps={{ inputProps: { min: 1000, max: selectedLoanType?.maxAmount, step: 0.01 } }}
+                  sx={{ mt: 1 }}
+                />
+              </Grid>
+
+              {/* Navigation buttons */}
+              <Grid item xs={6}>
+                <Button 
+                  variant="outlined" 
+                  size="large" 
+                  fullWidth
+                  onClick={() => setLoanApplicationStep(0)}
+                  sx={{ py: 2, mt: 2 }}
+                >
+                  ← Back to Review
+                </Button>
+              </Grid>
+              <Grid item xs={6}>
+                <Button 
+                  variant="contained" 
+                  size="large" 
+                  fullWidth
+                  onClick={() => setLoanApplicationStep(2)}
+                  disabled={!loanAmount || loanAmount > selectedLoanType?.maxAmount || loanAmount < 1000}
+                  sx={{ background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)', py: 2, mt: 2, fontSize: '1.1rem' }}
+                >
+                  Continue to Submit →
+                </Button>
+              </Grid>
+            </Grid>
+          )}
+
+          {/* Step 3: Submit Application */}
+          {loanApplicationStep === 2 && (
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Typography variant="h5" gutterBottom fontWeight="bold">Step 3: Submit Your Loan Application</Typography>
+                <Typography variant="body1" color="text.secondary" gutterBottom>Review your application and submit</Typography>
+              </Grid>
+              
+              <Grid item xs={12}>
+                <Card sx={{ p: 3 }}>
+                  <Typography variant="h6" gutterBottom>Application Summary</Typography>
+                  <Box mt={2}>
+                    <Typography variant="body2" display="block" sx={{ mb: 1 }}><strong>Loan Type:</strong> {selectedLoanType?.type}</Typography>
+                    <Typography variant="body2" display="block" sx={{ mb: 1 }}><strong>Requested Amount:</strong> ${parseFloat(loanAmount).toLocaleString()}</Typography>
+                    <Typography variant="body2" display="block" sx={{ mb: 1 }}><strong>Interest Rate:</strong> {selectedLoanType?.rate}% p.a.</Typography>
+                  </Box>
+                </Card>
+              </Grid>
+
+              {/* Navigation buttons */}
+              <Grid item xs={6}>
+                <Button 
+                  variant="outlined" 
+                  size="large" 
+                  fullWidth
+                  onClick={() => setLoanApplicationStep(1)}
+                  sx={{ py: 2, mt: 2 }}
+                >
+                  ← Back to Edit
+                </Button>
+              </Grid>
+              <Grid item xs={6}>
+                <Button 
+                  variant="contained" 
+                  size="large" 
+                  fullWidth
+                  onClick={() => {
+                    handleApplySubmit();
+                    setOpenApplyDialog(false);
+                    setLoanApplicationStep(0); // Reset stepper for next time
+                  }}
+                  sx={{ background: 'linear-gradient(135deg, #00AA33 0%, #00CC44 100%)', py: 2, mt: 2, fontSize: '1.1rem' }}
+                >
+                  ✅ Submit Application
+                </Button>
+              </Grid>
+            </Grid>
+          )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenApplyDialog(false)}>Cancel</Button>
-          <Button onClick={handleApplySubmit} variant="contained">Submit Application</Button>
-        </DialogActions>
       </Dialog>
     </>
   )}

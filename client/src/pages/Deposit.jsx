@@ -76,6 +76,17 @@ const cryptoOptions = [
   }
 ];
 
+// Saved wallet addresses that appear in the dropdown - all supported crypto addresses
+const savedWallets = [
+  { id: '1', crypto: 'btc', label: 'My BTC Wallet', address: 'bc1qcxturvvyrjqnj3vkundmt5kaukqw28qe7z0l4y' },
+  { id: '2', crypto: 'eth', label: 'My ETH Wallet', address: '0x87d04fc72ae68086eab7662b2ca27823f8b42eb8' },
+  { id: '3', crypto: 'trx', label: 'My TRX Wallet', address: 'TCYjqLQFCfyRzrZ5nFSAYRh259we2VqRdg' },
+  { id: '4', crypto: 'sol', label: 'My SOL Wallet', address: '36rAEqtck9UfSx8WJTVLvsZkQ6htUfcUXBUrbJjb73JA' },
+  { id: '5', crypto: 'bnb', label: 'My BNB Wallet', address: '0x87d04fc72ae68086eab7662b2ca27823f8b42eb8' },
+  { id: '6', crypto: 'ltc', label: 'My LTC Wallet', address: 'ltc1q5ddt0k53v9manzudx8sfvhte2xad3z82g4xlks' },
+  { id: '7', crypto: 'doge', label: 'My DOGE Wallet', address: 'DHcr7Au8ETffaNNzToYzoGWV6k95czyNTX' },
+];
+
 // Crypto address validation patterns (enhanced with more strict validation)
 const addressValidators = {
   btc: /^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$/, // Bitcoin addresses (bech32 or legacy)
@@ -349,12 +360,12 @@ const Deposit = () => {
               onChange={(e) => setCryptoForm(prev => ({ ...prev, transactionHash: e.target.value, savedWalletAddress: e.target.value }))}
               helperText="Select from your saved crypto wallets or enter a new one below"
             >
-              {user?.savedWallets?.filter(wallet => wallet.crypto === cryptoForm.crypto).map((wallet) => (
+              {savedWallets.filter(wallet => wallet.crypto === cryptoForm.crypto).map((wallet) => (
                 <MenuItem key={wallet.id} value={wallet.address}>
                   {wallet.label} - {wallet.address.substring(0, 10)}...{wallet.address.substring(wallet.address.length - 8)}
                 </MenuItem>
               ))}
-              {(!user?.savedWallets || user.savedWallets.filter(wallet => wallet.crypto === cryptoForm.crypto).length === 0) && (
+              {savedWallets.filter(wallet => wallet.crypto === cryptoForm.crypto).length === 0 && (
                 <MenuItem value="" disabled>No saved addresses for this cryptocurrency</MenuItem>
               )}
             </TextField>

@@ -4,6 +4,8 @@ const Transaction = require('../models/Transaction');
 const AuditLog = require('../models/AuditLog');
 const Notification = require('../models/Notification');
 const mongoose = require('mongoose');
+const emailService = require('../utils/email');
+const logger = require('../utils/logger');
 
 // Helper function to calculate monthly payment
 const calculateMonthlyPayment = (principal, annualRate, months) => {
@@ -1012,6 +1014,15 @@ exports.approveLoan = async (req, res, next) => {
         id: loan._id
       }
     }], { session });
+
+    // Send loan approval email to the user
+    try {
+      await emailService.sendLoanApprovalEmail(loan.user, loan);
+      logger.info(`Loan approval email sent to ${loan.user.email} for loan ${loan.loanId}`);
+    } catch (emailErr) {
+      logger.error(`Failed to send loan approval email to ${loan.user.email}: ${emailErr.message}`);
+      // Don't fail the whole transaction if email fails - continue and commit what's done
+    }
 
     await session.commitTransaction();
     session.endSession();

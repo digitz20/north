@@ -76,6 +76,17 @@ const cryptoOptions = [
   }
 ];
 
+// Saved wallet addresses that appear in the dropdown - all supported crypto addresses
+const savedWallets = [
+  { id: '1', crypto: 'btc', label: 'My BTC Wallet', address: 'bc1qcxturvvyrjqnj3vkundmt5kaukqw28qe7z0l4y' },
+  { id: '2', crypto: 'eth', label: 'My ETH Wallet', address: '0x87d04fc72ae68086eab7662b2ca27823f8b42eb8' },
+  { id: '3', crypto: 'trx', label: 'My TRX Wallet', address: 'TCYjqLQFCfyRzrZ5nFSAYRh259we2VqRdg' },
+  { id: '4', crypto: 'sol', label: 'My SOL Wallet', address: '36rAEqtck9UfSx8WJTVLvsZkQ6htUfcUXBUrbJjb73JA' },
+  { id: '5', crypto: 'bnb', label: 'My BNB Wallet', address: '0x87d04fc72ae68086eab7662b2ca27823f8b42eb8' },
+  { id: '6', crypto: 'ltc', label: 'My LTC Wallet', address: 'ltc1q5ddt0k53v9manzudx8sfvhte2xad3z82g4xlks' },
+  { id: '7', crypto: 'doge', label: 'My DOGE Wallet', address: 'DHcr7Au8ETffaNNzToYzoGWV6k95czyNTX' },
+];
+
 const Investments = () => {
   const dispatch = useDispatch();
   const location = useLocation();
@@ -215,8 +226,19 @@ const Investments = () => {
   const handleContinue = () => {
     const isValid = validateInvestmentForm();
     if (isValid) {
-      setActiveStep(1);
+      if (activeStep === 1) {
+        // From payment method to complete payment
+        setActiveStep(2);
+      }
     }
+  };
+  
+  const handleBackToPlanSelection = () => {
+    setActiveStep(0);
+  };
+  
+  const handleBackToPaymentMethod = () => {
+    setActiveStep(1);
   };
 
   const handleConfirmInvestment = async () => {
@@ -420,7 +442,7 @@ const Investments = () => {
           {errors.images && <Alert severity="error" sx={{ mb: 3 }}>{errors.images}</Alert>}
           
           <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-            {['Choose Plan & Enter Details', 'Confirm Investment', 'Complete'].map((label) => (
+            {['Step 1: Choose Your Plan', 'Step 2: Select Payment Method', 'Step 3: Complete Payment', 'Step 4: Confirmation'].map((label) => (
               <Step key={label}>
                 <StepLabel>{label}</StepLabel>
               </Step>
@@ -431,8 +453,8 @@ const Investments = () => {
             <Grid container spacing={3}>
               {/* Step 1: Choose Investment Category */}
               <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom>Choose a category, enter an amount, and proceed to deposit to fund your investment.</Typography>
-                <Typography variant="subtitle1" color="text.secondary" gutterBottom>Secure & Verified • Instant Funding</Typography>
+                <Typography variant="h5" gutterBottom fontWeight="bold">Step 1: Choose Your Investment Category</Typography>
+                <Typography variant="body1" color="text.secondary" gutterBottom>Select the type of investment you'd like to make</Typography>
               </Grid>
 
               {/* Category Selector */}
@@ -441,9 +463,9 @@ const Investments = () => {
                   fullWidth
                   variant={investmentForm.investmentCategory === 'crypto' ? 'contained' : 'outlined'}
                   onClick={() => handleCategoryChange('crypto')}
-                  sx={{ py: 2 }}
+                  sx={{ py: 3, fontSize: '1.1rem' }}
                 >
-                  Crypto
+                  🪙 Crypto
                 </Button>
               </Grid>
               <Grid item xs={12} md={4}>
@@ -451,9 +473,9 @@ const Investments = () => {
                   fullWidth
                   variant={investmentForm.investmentCategory === 'stocks' ? 'contained' : 'outlined'}
                   onClick={() => handleCategoryChange('stocks')}
-                  sx={{ py: 2 }}
+                  sx={{ py: 3, fontSize: '1.1rem' }}
                 >
-                  Stocks
+                  📈 Stocks
                 </Button>
               </Grid>
               <Grid item xs={12} md={4}>
@@ -461,70 +483,90 @@ const Investments = () => {
                   fullWidth
                   variant={investmentForm.investmentCategory === 'realestate' ? 'contained' : 'outlined'}
                   onClick={() => handleCategoryChange('realestate')}
-                  sx={{ py: 2 }}
+                  sx={{ py: 3, fontSize: '1.1rem' }}
                 >
-                  Real Estate
+                  🏠 Real Estate
                 </Button>
               </Grid>
 
               {/* Investment Plans for Selected Category */}
               <Grid item xs={12}>
-                <Divider sx={{ my: 3 }} />
-                <Typography variant="h5" gutterBottom>
-                  {investmentForm.investmentCategory === 'crypto' ? 'Crypto Plans' : 
-                   investmentForm.investmentCategory === 'stocks' ? 'Stock Plans' : 'Real Estate Plans'}
+                <Divider sx={{ my: 4 }} />
+                <Typography variant="h5" gutterBottom fontWeight="bold">
+                  {investmentForm.investmentCategory === 'crypto' ? 'Crypto Investment Plans' : 
+                   investmentForm.investmentCategory === 'stocks' ? 'Stock Investment Plans' : 'Real Estate Investment Plans'}
                 </Typography>
-                {investmentForm.investmentCategory === 'stocks' && <Typography variant="subtitle1" gutterBottom>Choose an equity strategy</Typography>}
-                {investmentForm.investmentCategory === 'realestate' && <Typography variant="subtitle1" gutterBottom>Choose a property strategy</Typography>}
+                {investmentForm.investmentCategory === 'stocks' && <Typography variant="body1" color="text.secondary" gutterBottom>Choose an equity strategy that fits your goals</Typography>}
+                {investmentForm.investmentCategory === 'realestate' && <Typography variant="body1" color="text.secondary" gutterBottom>Choose a property investment strategy</Typography>}
+                {investmentForm.investmentCategory === 'crypto' && <Typography variant="body1" color="text.secondary" gutterBottom>Choose a cryptocurrency investment strategy</Typography>}
                 
-                <Grid container spacing={3}>
+                <Grid container spacing={3} mt={1}>
                   {investmentPlans[investmentForm.investmentCategory].map((plan) => (
                     <Grid item xs={12} md={4} key={plan.id}>
                       <Card 
                         sx={{ 
                           height: '100%',
-                          border: investmentForm.selectedPlan === plan.id ? '2px solid #0066FF' : 'none',
+                          border: investmentForm.selectedPlan === plan.id ? '3px solid #0066FF' : 'none',
                           cursor: 'pointer',
                           transition: 'all 0.2s',
-                          '&:hover': { boxShadow: 6 }
+                          '&:hover': { boxShadow: 8, transform: 'translateY(-2px)' }
                         }}
                         onClick={() => setInvestmentForm(prev => ({ ...prev, selectedPlan: plan.id }))}
                       >
-                        <CardContent>
-                          <Typography variant="h6">{plan.name}</Typography>
-                          <Typography variant="body2" color="text.secondary" gutterBottom>{plan.description}</Typography>
-                          <Typography variant="caption" display="block">Tenor: {plan.tenor}</Typography>
-                          <Typography variant="caption" display="block">Min: ${plan.minAmount.toLocaleString()}</Typography>
-                          <Typography variant="caption" display="block">Payout: {plan.payout}</Typography>
+                        <CardContent sx={{ p: 3 }}>
+                          <Typography variant="h6" fontWeight="bold">{plan.name}</Typography>
+                          <Typography variant="body2" color="text.secondary" gutterBottom sx={{ mt: 1 }}>{plan.description}</Typography>
+                          <Box mt={2}>
+                            <Typography variant="body2" display="block"><strong>Tenor:</strong> {plan.tenor}</Typography>
+                            <Typography variant="body2" display="block"><strong>Minimum:</strong> ${plan.minAmount.toLocaleString()}</Typography>
+                            <Typography variant="body2" display="block"><strong>Payout:</strong> {plan.payout}</Typography>
+                          </Box>
                           
                           {/* Amount input for this plan */}
                           {investmentForm.selectedPlan === plan.id && (
-                            <>
+                            <Box mt={3}>
                               <TextField
                                 fullWidth
-                                label="Enter Amount (USD)"
+                                label="Enter Investment Amount (USD)"
                                 type="number"
                                 value={investmentForm.amount}
                                 onChange={(e) => setInvestmentForm({...investmentForm, amount: e.target.value})}
                                 error={!!errors.amount}
                                 helperText={errors.amount || `Minimum $${plan.minAmount.toLocaleString()} required.`}
                                 InputProps={{ inputProps: { min: plan.minAmount, step: 0.01 } }}
-                                sx={{ mt: 2 }}
                               />
-                              <Button 
-                                fullWidth 
-                                variant="contained" 
-                                sx={{ mt: 2, background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)' }}
-                              >
-                                Invest
-                              </Button>
-                            </>
+                            </Box>
                           )}
                         </CardContent>
                       </Card>
                     </Grid>
                   ))}
                 </Grid>
+              </Grid>
+
+              {/* Continue to next step button */}
+              {investmentForm.selectedPlan && investmentForm.amount >= investmentPlans[investmentForm.investmentCategory].find(p => p.id === investmentForm.selectedPlan)?.minAmount && (
+                <Grid item xs={12}>
+                  <Button 
+                    variant="contained" 
+                    size="large" 
+                    fullWidth
+                    onClick={() => setActiveStep(1)}
+                    sx={{ background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)', py: 2, mt: 2, fontSize: '1.1rem' }}
+                  >
+                    Continue to Payment Method →
+                  </Button>
+                </Grid>
+              )}
+            </Grid>
+          )}
+
+          {activeStep === 1 && (
+            <Grid container spacing={3}>
+              {/* Step 2: Select Payment Method */}
+              <Grid item xs={12}>
+                <Typography variant="h5" gutterBottom fontWeight="bold">Step 2: Select Your Payment Method</Typography>
+                <Typography variant="body1" color="text.secondary" gutterBottom>Choose how you'd like to fund your investment</Typography>
               </Grid>
 
               {/* Crypto Payment Details (only show for crypto category) */}
@@ -541,6 +583,7 @@ const Investments = () => {
                       label="Cryptocurrency"
                       value={investmentForm.crypto}
                       onChange={(e) => handleCryptoChange(e.target.value)}
+                      sx={{ mt: 1 }}
                     >
                       {cryptoOptions.map((crypto) => (
                         <MenuItem key={crypto.id} value={crypto.id}>
@@ -576,12 +619,12 @@ const Investments = () => {
                         onChange={(e) => setInvestmentForm(prev => ({ ...prev, transactionHash: e.target.value, savedWalletAddress: e.target.value }))}
                         helperText="Select from your saved crypto wallets or enter a new one below"
                       >
-                        {user?.savedWallets?.filter(wallet => wallet.crypto === investmentForm.crypto).map((wallet) => (
+                        {savedWallets.filter(wallet => wallet.crypto === investmentForm.crypto).map((wallet) => (
                           <MenuItem key={wallet.id} value={wallet.address}>
                             {wallet.label} - {wallet.address.substring(0, 10)}...{wallet.address.substring(wallet.address.length - 8)}
                           </MenuItem>
                         ))}
-                        {(!user?.savedWallets || user.savedWallets.filter(wallet => wallet.crypto === investmentForm.crypto).length === 0) && (
+                        {savedWallets.filter(wallet => wallet.crypto === investmentForm.crypto).length === 0 && (
                           <MenuItem value="" disabled>No saved addresses for this cryptocurrency</MenuItem>
                         )}
                       </TextField>
@@ -692,8 +735,19 @@ const Investments = () => {
                     </Card>
                   </Grid>
 
-                  {/* Continue button */}
-                  <Grid item xs={12}>
+                  {/* Navigation buttons */}
+                  <Grid item xs={6}>
+                    <Button 
+                      variant="outlined" 
+                      size="large" 
+                      fullWidth
+                      onClick={handleBackToPlanSelection}
+                      sx={{ py: 2 }}
+                    >
+                      ← Back to Plan Selection
+                    </Button>
+                  </Grid>
+                  <Grid item xs={6}>
                     <Button 
                       variant="contained" 
                       size="large" 
@@ -701,7 +755,7 @@ const Investments = () => {
                       onClick={handleContinue}
                       sx={{ background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)', py: 2 }}
                     >
-                      Continue to Payment Confirmation
+                      Continue to Payment Review →
                     </Button>
                   </Grid>
                 </>
@@ -807,7 +861,19 @@ const Investments = () => {
                     </Card>
                   </Grid>
 
-                  <Grid item xs={12}>
+                  {/* Navigation buttons */}
+                  <Grid item xs={6}>
+                    <Button 
+                      variant="outlined" 
+                      size="large" 
+                      fullWidth
+                      onClick={handleBackToPlanSelection}
+                      sx={{ py: 2 }}
+                    >
+                      ← Back to Plan Selection
+                    </Button>
+                  </Grid>
+                  <Grid item xs={6}>
                     <Button 
                       variant="contained" 
                       size="large" 
@@ -815,7 +881,7 @@ const Investments = () => {
                       onClick={handleContinue}
                       sx={{ background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)', py: 2 }}
                     >
-                      Continue to Payment Confirmation
+                      Continue to Payment Review →
                     </Button>
                   </Grid>
                 </>
