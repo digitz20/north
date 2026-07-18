@@ -8,7 +8,11 @@ const {
   deleteUser,
   getSystemLogs
 } = require('../controllers/adminController');
+const { login } = require('../controllers/authController');
 const { protect, authorize } = require('../middlewares/auth');
+
+// Admin public login route
+router.route('/login').post(login);
 
 // Admin-only routes (all routes require admin or super-admin)
 router.route('/dashboard')
