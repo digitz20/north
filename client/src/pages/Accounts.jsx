@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 import {
   CreditCard, AttachMoney, ArrowForward, Visibility, SwapHoriz,
-  TrendingUp, Security, MonitorHeart, Person
+  TrendingUp, Security, MonitorHeart, Person, Settings
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
