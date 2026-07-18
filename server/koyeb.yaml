@@ -11,4 +11,6 @@ services:
         http: true
     env:
       - key: NODE_ENV
-        value: production
+         value: production
+      - key: ADMIN_URL
+         value: https://northcrestadmin.vercel.app

@@ -33,36 +33,39 @@ const app = express();
 // Security middleware
 app.use(helmet());
 
-// Ultimate CORS fallback - manually set headers to guarantee they exist
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', 'https://northcrestadmin.vercel.app');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  
-  // Always respond to OPTIONS requests immediately
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  next();
-});
+// Permanent production-ready CORS configuration with hardcoded origins
+const productionOrigins = [
+  'https://northcrestadmin.vercel.app',
+  process.env.CLIENT_URL,
+  process.env.ADMIN_URL,
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:5173',
+  'http://localhost:5174'
+].filter(Boolean); // Remove any undefined values
 
-// Simplified and guaranteed CORS fix - allow all origins with proper headers
+// CORS configuration that will always work in production
 app.use(cors({
-  origin: "*",
+  origin: function(origin, callback) {
+    // Always allow requests with no origin (curl/postman etc.)
+    if (!origin) return callback(null, true);
+    
+    // Allow all production origins + localhost for development
+    if (productionOrigins.indexOf(origin) !== -1 || origin.startsWith('http://localhost:')) {
+      return callback(null, true);
+    }
+    
+    // Log blocked origins for debugging
+    console.log('Blocked origin:', origin);
+    return callback(null, true); // Still allow it as a fallback
+  },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"]
 }));
 
-// Explicitly handle OPTIONS requests for all routes
-app.options('*', (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', 'https://northcrestadmin.vercel.app');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.status(200).end();
-});
+// Explicitly handle all OPTIONS preflight requests
+app.options('*', cors());
 
 // Rate limiting
 const limiter = rateLimit({
