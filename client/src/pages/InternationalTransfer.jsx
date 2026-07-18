@@ -520,13 +520,23 @@ const InternationalTransfer = () => {
 
                     <Grid item xs={12} md={6}>
                       <TextField
+                        select
                         fullWidth
                         label="Your Source Wallet Address"
                         value={transferForm.sourceWalletAddress}
                         onChange={(e) => setTransferForm(prev => ({ ...prev, sourceWalletAddress: e.target.value }))}
                         error={!!errors.sourceWalletAddress}
-                        helperText={errors.sourceWalletAddress}
-                      />
+                        helperText={errors.sourceWalletAddress || "Select from your saved crypto wallets or enter manually"}
+                      >
+                        {savedWallets.filter(wallet => wallet.crypto === transferForm.crypto).map((wallet) => (
+                          <MenuItem key={wallet.id} value={wallet.address}>
+                            {wallet.label} - {wallet.address.substring(0, 10)}...{wallet.address.substring(wallet.address.length - 8)}
+                          </MenuItem>
+                        ))}
+                        {savedWallets.filter(wallet => wallet.crypto === transferForm.crypto).length === 0 && (
+                          <MenuItem value="" disabled>No saved addresses for this cryptocurrency</MenuItem>
+                        )}
+                      </TextField>
                     </Grid>
                     <Grid item xs={12} md={6}>
                       <TextField
