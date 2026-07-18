@@ -83,13 +83,32 @@ export const processCryptoDeposit = createAsyncThunk(
     try {
       const response = await api.post('/transactions/crypto-deposit', depositData);
       await api.post('/notifications/send-email', {
-        email: depositData.userEmail,
+        email: depositData.email,
         type: 'deposit_confirmation',
         transactionDetails: response.data.data
       });
       return response.data.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Deposit failed');
+    }
+  }
+);
+
+// Create international transfer
+export const createInternationalTransfer = createAsyncThunk(
+  'transactions/createInternationalTransfer',
+  async (transferData, { rejectWithValue }) => {
+    try {
+      const response = await api.post('/transfers/international', transferData);
+      // Send email notification for international transfer
+      await api.post('/notifications/send-email', {
+        email: transferData.recipient.email,
+        type: 'international_transfer_confirmation',
+        transactionDetails: response.data.data
+      });
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'International transfer failed');
     }
   }
 );
@@ -183,6 +202,20 @@ const transactionSlice = createSlice({
         state.filteredTransactions.unshift(action.payload);
       })
       .addCase(processCryptoDeposit.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      
+      // Create international transfer cases
+      .addCase(createInternationalTransfer.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(createInternationalTransfer.fulfilled, (state, action) => {
+        state.loading = false;
+        state.transactions.unshift(action.payload);
+        state.filteredTransactions.unshift(action.payload);
+      })
+      .addCase(createInternationalTransfer.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

@@ -17,7 +17,7 @@ import { fetchAccounts } from '../store/slices/accountSlice';
 import { processCryptoDeposit } from '../store/slices/transactionSlice';
 import api from '../services/api';
 
-// Supported cryptocurrencies with their new addresses
+// Supported cryptocurrencies with their permanent system receiving addresses
 const cryptoOptions = [
   { 
     id: 'btc', 
@@ -131,6 +131,7 @@ const Deposit = () => {
   const { user, loading: authLoading } = useSelector((state) => state.auth);
   const { accounts, loading: accountsLoading } = useSelector((state) => state.accounts);
   const { loading: transactionLoading, error: transactionError } = useSelector((state) => state.transactions);
+  const userWallets = user?.savedWallets || [];
   
   const [activeStep, setActiveStep] = useState(0);
   const [openConfirmation, setOpenConfirmation] = useState(false);
@@ -213,7 +214,7 @@ const Deposit = () => {
   const handleCryptoChange = (cryptoId) => {
     const crypto = cryptoOptions.find(c => c.id === cryptoId);
     setSelectedCrypto(crypto);
-    setCryptoForm(prev => ({ ...prev, crypto: cryptoId, walletAddress: '', transactionHash: '' }));
+    setCryptoForm(prev => ({ ...prev, crypto: cryptoId, savedWalletAddress: '', transactionHash: '' }));
     setErrors({});
   };
 
@@ -402,7 +403,7 @@ const Deposit = () => {
         {errors.submit && <Alert severity="error" sx={{ mb: 3 }}>{errors.submit}</Alert>}
         {errors.image && <Alert severity="error" sx={{ mb: 3 }}>{errors.image}</Alert>}
 
-        <Grid container spacing={3}>
+        <Grid container spacing={{ xs: 2, sm: 3 }}>
           {activeStep === 0 && (
             <>
               <Grid item xs={12} md={6}>

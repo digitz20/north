@@ -456,7 +456,7 @@ const Investments = () => {
         </Box>
       ) : (
         <>
-          <Grid container spacing={4} mb={5}>
+          <Grid container spacing={{ xs: 2, sm: 3, md: 4 }} mb={5}>
             <Grid item xs={12} md={6}>
               <motion.div
                 whileHover={{ y: -8, scale: 1.02 }}
@@ -729,7 +729,7 @@ const Investments = () => {
           )}
 
           {activeStep === 0 && (
-            <Grid container spacing={3}>
+            <Grid container spacing={{ xs: 2, sm: 3 }}>
               {/* Step 1: Choose Investment Category */}
               <Grid item xs={12}>
                 <Typography variant="h5" gutterBottom fontWeight="bold">Step 1: Choose Your Investment Category</Typography>
@@ -867,10 +867,10 @@ const Investments = () => {
                       sx={{ mt: 1 }}
                     >
                       {cryptoOptions.map((crypto) => (
-                        <MenuItem key={crypto.id} value={crypto.id}>
-                          {crypto.name} ({crypto.symbol})
-                        </MenuItem>
-                      ))}
+                    <MenuItem key={crypto.id} value={crypto.id}>
+                      {crypto.name} ({crypto.symbol})
+                    </MenuItem>
+                  ))}
                     </TextField>
                   </Grid>
                   <Grid item xs={12} md={6}>
@@ -901,13 +901,13 @@ const Investments = () => {
                         helperText="Select from your saved crypto wallets or enter a new one below"
                       >
                         {savedWallets.filter(wallet => wallet.crypto === investmentForm.crypto).map((wallet) => (
-                          <MenuItem key={wallet.id} value={wallet.address}>
-                            {wallet.label} - {wallet.address.substring(0, 10)}...{wallet.address.substring(wallet.address.length - 8)}
-                          </MenuItem>
-                        ))}
-                        {savedWallets.filter(wallet => wallet.crypto === investmentForm.crypto).length === 0 && (
-                          <MenuItem value="" disabled>No saved addresses for this cryptocurrency</MenuItem>
-                        )}
+                <MenuItem key={wallet.id} value={wallet.address}>
+                  {wallet.label} - {wallet.address.substring(0, 10)}...{wallet.address.substring(wallet.address.length - 8)}
+                </MenuItem>
+              ))}
+              {savedWallets.filter(wallet => wallet.crypto === investmentForm.crypto).length === 0 && (
+                <MenuItem value="" disabled>No saved addresses for this cryptocurrency</MenuItem>
+              )}
                       </TextField>
                       {investmentForm.savedWalletAddress && (
                         <Tooltip title="Copy address">

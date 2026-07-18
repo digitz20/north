@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {
   createTransfer,
+  createInternationalTransfer,
   getTransfers,
   getTransfer
 } = require('../controllers/transferController');
@@ -11,6 +12,9 @@ const { protect, authorize } = require('../middlewares/auth');
 router.route('/')
   .get(protect, getTransfers)
   .post(protect, createTransfer);
+
+router.route('/international')
+  .post(protect, createInternationalTransfer);
 
 router.route('/:id')
   .get(protect, getTransfer);

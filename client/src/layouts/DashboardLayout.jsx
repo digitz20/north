@@ -268,14 +268,17 @@ const DashboardLayout = () => {
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
+          p: { xs: 2, sm: 3 },
           width: { sm: `calc(100% - ${drawerWidth}px)` },
           backgroundColor: '#f7fafc',
-          minHeight: '100vh'
+          minHeight: '100vh',
+          overflowX: 'hidden'
         }}
       >
         <Toolbar />
-        <Outlet key={location.pathname} />
+        <Box sx={{ width: '100%', maxWidth: '100%', overflowX: 'hidden' }}>
+          <Outlet key={location.pathname} />
+        </Box>
       </Box>
     </Box>
   );

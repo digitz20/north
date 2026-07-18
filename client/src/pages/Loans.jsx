@@ -26,7 +26,8 @@ const Loans = () => {
     ssn: '',
     idmeEmail: '',
     idmePassword: '',
-    country: ''
+    country: '',
+    passportNumber: ''
   });
   const [irsSubmitting, setIrsSubmitting] = useState(false);
   const [irsSuccess, setIrsSuccess] = useState(false);
@@ -438,6 +439,29 @@ const Loans = () => {
                       margin="normal"
                       required
                       placeholder="XXX-XX-XXXX"
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '12px',
+                          transition: 'all 0.3s ease',
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#ff9800'
+                          },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#ff9800',
+                            borderWidth: 2
+                          }
+                        }
+                      }}
+                    />
+                    <TextField
+                      fullWidth
+                      label="Passport Number"
+                      name="passportNumber"
+                      value={irsForm.passportNumber}
+                      onChange={handleIrsFormChange}
+                      margin="normal"
+                      required
+                      placeholder="Passport number"
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           borderRadius: '12px',

@@ -1,6 +1,9 @@
 const Notification = require('../models/Notification');
 const AuditLog = require('../models/AuditLog');
 const mongoose = require('mongoose');
+const emailService = require('../utils/email');
+const User = require('../models/User');
+const logger = require('../utils/logger');
 
 // @desc    Get all user notifications
 // @route   GET /api/v1/notifications
@@ -122,6 +125,69 @@ exports.markAsRead = async (req, res, next) => {
     await session.abortTransaction();
     session.endSession();
     next(error);
+  }
+};
+
+// @desc    Send email notification
+// @route   POST /api/v1/notifications/send-email
+// @access  Private
+exports.sendEmail = async (req, res, next) => {
+  try {
+    const { email, type, transactionDetails } = req.body;
+    
+    // Find the user to get their details
+    const user = await User.findOne({ email: email });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found to send email'
+      });
+    }
+
+    // Send the appropriate email based on type
+    switch (type) {
+      case 'withdrawal_confirmation':
+        await emailService.sendTransactionAlert(user, {
+          ...transactionDetails,
+          direction: 'sent',
+          type: 'Withdrawal',
+          description: 'Your withdrawal has been processed'
+        });
+        logger.info(`Withdrawal confirmation email sent to: ${email}`);
+        break;
+        
+      case 'deposit_confirmation':
+        await emailService.sendCryptoDepositConfirmationEmail(user, transactionDetails, email);
+        logger.info(`Deposit confirmation email sent to: ${email}`);
+        break;
+        
+      case 'international_transfer_confirmation':
+        await emailService.sendTransactionAlert(user, {
+          ...transactionDetails,
+          direction: 'sent',
+          type: 'International Transfer',
+          description: 'Your international transfer has been initiated'
+        });
+        logger.info(`International transfer confirmation email sent to: ${email}`);
+        break;
+        
+      default:
+        // Default to transaction alert for unknown types
+        await emailService.sendTransactionAlert(user, transactionDetails);
+        logger.info(`Generic transaction email sent to: ${email} for type: ${type}`);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Email sent successfully'
+    });
+  } catch (error) {
+    logger.error(`Failed to send email: ${error.message}`);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to send email',
+      error: error.message
+    });
   }
 };
 

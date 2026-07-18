@@ -5,7 +5,8 @@ const {
   getNotification,
   markAsRead,
   markAllAsRead,
-  deleteNotification
+  deleteNotification,
+  sendEmail
 } = require('../controllers/notificationController');
 const { protect, authorize } = require('../middlewares/auth');
 
@@ -22,6 +23,10 @@ router.route('/:id')
 
 router.route('/:id/read')
   .put(protect, markAsRead);
+
+// Send email notification route
+router.route('/send-email')
+  .post(protect, sendEmail);
 
 // Admin-only routes
 router.route('/admin/all')

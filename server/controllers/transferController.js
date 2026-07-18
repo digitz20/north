@@ -3,7 +3,10 @@ const Account = require('../models/Account');
 const Transaction = require('../models/Transaction');
 const AuditLog = require('../models/AuditLog');
 const Notification = require('../models/Notification');
+const User = require('../models/User');
 const mongoose = require('mongoose');
+const emailService = require('../utils/email');
+const logger = require('../utils/logger');
 
 // @desc    Get all user transfers
 // @route   GET /api/v1/transfers
@@ -207,6 +210,94 @@ exports.createTransfer = async (req, res, next) => {
     res.status(201).json({
       success: true,
       message: 'Transfer completed successfully',
+      data: transfer[0]
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    next(error);
+  }
+};
+
+// @desc    Create international transfer
+// @route   POST /api/v1/transfers/international
+// @access  Private
+exports.createInternationalTransfer = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const { amount, destinationAccountId, method, source, recipient, proofs } = req.body;
+    
+    // Find destination account
+    const account = await Account.findById(destinationAccountId).session(session);
+    if (!account) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({
+        success: false,
+        message: 'Destination account not found'
+      });
+    }
+
+    // Verify account belongs to user
+    if (account.user.toString() !== req.user.id) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to use this account'
+      });
+    }
+
+    // Create transfer record
+    const transfer = await Transfer.create([{
+      amount,
+      sourceAccount: account._id,
+      destinationAccount: destinationAccountId,
+      transferType: 'international',
+      method,
+      sourceDetails: source,
+      recipientDetails: recipient,
+      proofs,
+      status: 'pending',
+      initiatedBy: req.user.id
+    }], { session });
+
+    // Create notification
+    await Notification.create([{
+      user: req.user.id,
+      type: 'international-transfer-initiated',
+      title: 'International Transfer Initiated',
+      message: `Your international transfer of $${amount} to ${recipient.name} has been initiated.`,
+      relatedModel: 'Transfer',
+      relatedId: transfer[0]._id
+    }], { session });
+
+    // Send confirmation email
+    const user = await User.findById(req.user.id).session(session);
+    if (user) {
+      await emailService.sendTransactionAlert(user, {
+        ...transfer[0].toObject(),
+        direction: 'sent',
+        type: 'International Transfer',
+        description: `Your international transfer to ${recipient.name} has been initiated`
+      });
+    }
+
+    await AuditLog.create([{
+      user: req.user.id,
+      action: 'international_transfer_initiated',
+      description: `User initiated international transfer of $${amount} via ${method}`,
+      ipAddress: req.ip
+    }], { session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(201).json({
+      success: true,
+      message: 'International transfer initiated successfully',
       data: transfer[0]
     });
   } catch (error) {

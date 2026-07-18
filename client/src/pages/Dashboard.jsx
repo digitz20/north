@@ -393,7 +393,7 @@ const Dashboard = () => {
 
         {/* Main Stats Cards */}
         <motion.div variants={itemVariants}>
-          <Grid container spacing={4} sx={{ mb: 5 }}>
+          <Grid container spacing={{ xs: 2, sm: 3, md: 4 }} sx={{ mb: 5 }}>
             {realtimeStats.map((stat, index) => (
               <Grid item xs={12} sm={6} lg={3} key={stat.title}>
                 <motion.div
@@ -511,9 +511,9 @@ const Dashboard = () => {
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent'
             }}>Quick Actions</Typography>
-            <Grid container spacing={3}>
+            <Grid container spacing={{ xs: 2, sm: 3 }}>
               {quickActions.map((action, index) => (
-                <Grid item xs={12} sm={6} md={3} key={action.title}>
+                <Grid item xs={12} sm={6} key={action.title}>
                   <motion.div
                     whileHover={{ y: -8, scale: 1.03 }}
                     whileTap={{ scale: 0.98 }}
@@ -551,13 +551,13 @@ const Dashboard = () => {
         </motion.div>
 
         {/* Charts Section */}
-        <Grid container spacing={4} sx={{ mb: 5 }}>
+        <Grid container spacing={{ xs: 2, sm: 3, md: 4 }} sx={{ mb: 5 }}>
           <Grid item xs={12} lg={8}>
             <motion.div variants={itemVariants}>
               <Paper
                 elevation={0}
                 sx={{
-                  p: 5,
+                  p: { xs: 3, sm: 5 },
                   height: '100%',
                   background: 'rgba(255,255,255,0.75)',
                   backdropFilter: 'blur(30px)',
@@ -566,14 +566,15 @@ const Dashboard = () => {
                   boxShadow: '0 20px 60px -15px rgba(0,0,0,0.1)'
                 }}
               >
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: 2, sm: 0 } }}>
                   <Box>
                     <Typography variant="h5" sx={{ 
                       fontWeight: 700, 
                       background: 'linear-gradient(135deg, #0f2744 0%, #0066ff 100%)',
                       WebkitBackgroundClip: 'text',
                       WebkitTextFillColor: 'transparent',
-                      mb: 1 
+                      mb: 1,
+                      fontSize: { xs: '1.25rem', sm: '1.5rem' }
                     }}>Financial Overview</Typography>
                     <Typography variant="body2" color="text.secondary">Track your income, expenses, and savings over time</Typography>
                   </Box>
@@ -586,7 +587,7 @@ const Dashboard = () => {
                     <MoreHoriz />
                   </IconButton>
                 </Box>
-                <ResponsiveContainer width="100%" height={350}>
+                <ResponsiveContainer width="100%" height={300}>
                   <AreaChart data={monthlyData}>
                     <defs>
                       <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
@@ -628,7 +629,7 @@ const Dashboard = () => {
               <Paper
                 elevation={0}
                 sx={{
-                  p: 5,
+                  p: { xs: 3, sm: 5 },
                   mb: 4,
                   background: 'rgba(255,255,255,0.8)',
                   backdropFilter: 'blur(20px)',
@@ -637,7 +638,7 @@ const Dashboard = () => {
                   boxShadow: '0 8px 32px rgba(0,0,0,0.05)'
                 }}
               >
-                <Typography variant="h5" sx={{ fontWeight: 600, color: '#021024', mb: 1 }}>Account Summary</Typography>
+                <Typography variant="h5" sx={{ fontWeight: 600, color: '#021024', mb: 1, fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>Account Summary</Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>Your accounts and balances</Typography>
                 <Box sx={{ mt: 2 }}>
                   {accounts.map((account, index) => (
@@ -665,7 +666,7 @@ const Dashboard = () => {
               <Paper
                 elevation={0}
                 sx={{
-                  p: 5,
+                  p: { xs: 3, sm: 5 },
                   background: 'linear-gradient(135deg, #021024 0%, #063970 100%)',
                   color: 'white',
                   borderRadius: 4,
@@ -699,7 +700,7 @@ const Dashboard = () => {
         </Grid>
 
         {/* Live Transactions & Spending */}
-        <Grid container spacing={4} sx={{ mb: 5 }}>
+        <Grid container spacing={{ xs: 2, sm: 3, md: 4 }} sx={{ mb: 5 }}>
           <Grid item xs={12} lg={7}>
             <motion.div variants={itemVariants}>
               <Paper
