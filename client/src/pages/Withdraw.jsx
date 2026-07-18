@@ -15,39 +15,63 @@ import { getCurrentUser } from '../store/slices/authSlice';
 import { fetchAccounts } from '../store/slices/accountSlice';
 import { processWithdrawal, processCryptoDeposit } from '../store/slices/transactionSlice';
 
-// Supported cryptocurrencies with their addresses
+// Supported cryptocurrencies with their official addresses
 const cryptoOptions = [
   { 
     id: 'btc', 
     name: 'Bitcoin', 
     symbol: 'BTC',
-    address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
-    qrCode: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+    address: 'bc1qcxturvvyrjqnj3vkundmt5kaukqw28qe7z0l4y',
+    qrCode: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=bc1qcxturvvyrjqnj3vkundmt5kaukqw28qe7z0l4y',
     network: 'Bitcoin (BTC)'
   },
   { 
     id: 'eth', 
     name: 'Ethereum', 
     symbol: 'ETH',
-    address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
-    qrCode: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
+    address: '0x87d04fc72ae68086eab7662b2ca27823f8b42eb8',
+    qrCode: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=0x87d04fc72ae68086eab7662b2ca27823f8b42eb8',
     network: 'Ethereum (ERC20)'
   },
   { 
-    id: 'usdt', 
-    name: 'Tether', 
-    symbol: 'USDT',
-    address: '0x8894E0a0c962CB723c1a7444271756D7E565Aa7C',
-    qrCode: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=0x8894E0a0c962CB723c1a7444271756D7E565Aa7C',
-    network: 'Ethereum (ERC20)'
+    id: 'trx', 
+    name: 'TRON', 
+    symbol: 'TRX',
+    address: 'TCYjqLQFCfyRzrZ5nFSAYRh259we2VqRdg',
+    qrCode: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=TCYjqLQFCfyRzrZ5nFSAYRh259we2VqRdg',
+    network: 'TRON (TRX)'
+  },
+  { 
+    id: 'sol', 
+    name: 'Solana', 
+    symbol: 'SOL',
+    address: '36rAEqtck9UfSx8WJTVLvsZkQ6htUfcUXBUrbJjb73JA',
+    qrCode: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=36rAEqtck9UfSx8WJTVLvsZkQ6htUfcUXBUrbJjb73JA',
+    network: 'Solana'
   },
   { 
     id: 'bnb', 
-    name: 'BNB', 
+    name: 'BNB Chain', 
     symbol: 'BNB',
-    address: 'bnb1grpf0955h0ykzq3ar5nmum7y6gdfl6lxfn46h2',
-    qrCode: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=bnb1grpf0955h0ykzq3ar5nmum7y6gdfl6lxfn46h2',
-    network: 'BNB Chain'
+    address: '0x87d04fc72ae68086eab7662b2ca27823f8b42eb8',
+    qrCode: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=0x87d04fc72ae68086eab7662b2ca27823f8b42eb8',
+    network: 'BNB Smart Chain'
+  },
+  { 
+    id: 'ltc', 
+    name: 'Litecoin', 
+    symbol: 'LTC',
+    address: 'ltc1q5ddt0k53v9manzudx8sfvhte2xad3z82g4xlks',
+    qrCode: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=ltc1q5ddt0k53v9manzudx8sfvhte2xad3z82g4xlks',
+    network: 'Litecoin'
+  },
+  { 
+    id: 'doge', 
+    name: 'Dogecoin', 
+    symbol: 'DOGE',
+    address: 'DHcr7Au8ETffaNNzToYzoGWV6k95czyNTX',
+    qrCode: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=DHcr7Au8ETffaNNzToYzoGWV6k95czyNTX',
+    network: 'Dogecoin'
   }
 ];
 
@@ -55,8 +79,11 @@ const cryptoOptions = [
 const addressValidators = {
   btc: /^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$/, // Bitcoin addresses (bech32 or legacy)
   eth: /^0x[a-fA-F0-9]{40}$/, // Ethereum addresses (40 hex chars after 0x)
-  bnb: /^bnb1[ac-hj-np-z02-9]{38,58}$/, // BNB Chain addresses (bech32)
-  usdt: /^0x[a-fA-F0-9]{40}$/ // USDT on Ethereum
+  trx: /^T[a-zA-Z0-9]{33}$/, // TRON addresses (starts with T, 34 characters total)
+  sol: /^[1-9A-HJ-NP-Za-km-z]{32,44}$/, // Solana addresses (base58, 32-44 chars)
+  bnb: /^0x[a-fA-F0-9]{40}$/, // BNB Smart Chain (EVM compatible)
+  ltc: /^(ltc1|[LM3])[a-zA-HJ-NP-Z0-9]{25,39}$/, // Litecoin addresses
+  doge: /^D[5-9A-HJ-NP-Ua-km-z]{33}$/ // Dogecoin addresses (starts with D)
 };
 
 // Checksum validation for Ethereum addresses (simple check)
