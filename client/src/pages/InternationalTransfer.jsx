@@ -261,34 +261,27 @@ const InternationalTransfer = () => {
     navigate('/transactions');
   };
 
-  const transferMethods = [
+  const displayTransferMethods = [
     {
-      id: 'wire',
+      id: 'wire-transfer',
       title: 'Wire Transfer',
-      description: 'Transfer funds directly to international bank accounts.',
+      description: 'Same-day wire transfer to international bank accounts.',
       icon: <AccountBalance sx={{ fontSize: 40 }} />,
       color: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)'
     },
     {
-      id: 'crypto',
+      id: 'crypto-transfer',
       title: 'Cryptocurrency',
       description: 'Send funds to your cryptocurrency wallet.',
       icon: <CurrencyBitcoin sx={{ fontSize: 40 }} />,
       color: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'
     },
     {
-      id: 'paypal',
-      title: 'PayPal',
-      description: 'Transfer funds to your PayPal account.',
+      id: 'bank-transfer',
+      title: 'Bank Transfer',
+      description: 'SWIFT/SEPA transfer to global bank accounts.',
       icon: <Payments sx={{ fontSize: 40 }} />,
       color: 'linear-gradient(135deg, #003087 0%, #009cde 100%)'
-    },
-    {
-      id: 'wise',
-      title: 'Wise Transfer',
-      description: 'Transfer with lower fees using Wise.',
-      icon: <Money sx={{ fontSize: 40 }} />,
-      color: 'linear-gradient(135deg, #00b86d 0%, #80e0bb 100%)'
     }
   ];
 
@@ -369,7 +362,7 @@ const InternationalTransfer = () => {
             </Typography>
 
             <Grid container spacing={{ xs: 2, sm: 3 }}>
-              {transferMethods.map((method, index) => (
+              {displayTransferMethods.map((method, index) => (
                 <Grid item xs={12} md={6} key={method.id}>
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
