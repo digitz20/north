@@ -485,10 +485,10 @@ const Loans = () => {
                           borderRadius: '12px',
                           transition: 'all 0.3s ease',
                           '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#00c896'
+                            borderColor: '#0066ff'
                           },
                           '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#00c896',
+                            borderColor: '#0066ff',
                             borderWidth: 2
                           }
                         }
@@ -508,10 +508,10 @@ const Loans = () => {
                           borderRadius: '12px',
                           transition: 'all 0.3s ease',
                           '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#00c896'
+                            borderColor: '#0066ff'
                           },
                           '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#00c896',
+                            borderColor: '#0066ff',
                             borderWidth: 2
                           }
                         }

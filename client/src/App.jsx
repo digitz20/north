@@ -5,6 +5,7 @@ import LoadingSpinner from './components/LoadingSpinner';
 import ProtectedRoute from './components/ProtectedRoute';
 import AuthLayout from './layouts/AuthLayout';
 import DashboardLayout from './layouts/DashboardLayout';
+import { SocketProvider } from './contexts/SocketContext';
 
 // Lazy load all page components for code splitting
 const Landing = lazy(() => import('./pages/Landing'));
@@ -30,8 +31,9 @@ function App() {
   const { isAuthenticated } = useSelector((state) => state.auth);
 
   return (
-    <Suspense fallback={<LoadingSpinner fullPage size={60} />}>
-      <Routes>
+    <SocketProvider>
+      <Suspense fallback={<LoadingSpinner fullPage size={60} />}>
+        <Routes>
         {/* Public landing page */}
         <Route path="/" element={!isAuthenticated ? <Landing /> : <Navigate to="/dashboard" replace />} />
         
@@ -62,10 +64,11 @@ function App() {
           </Route>
         </Route>
 
-        {/* Catch-all redirect */}
-        <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/"} replace />} />
-      </Routes>
-    </Suspense>
+          {/* Catch-all redirect */}
+          <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/"} replace />} />
+        </Routes>
+      </Suspense>
+    </SocketProvider>
   );
 }
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../store/slices/authSlice';
@@ -20,6 +20,9 @@ import {
   MenuItem,
   Divider
 } from '@mui/material';
+
+// Lazy load the chat widget to implement code splitting
+const LiveSupportChat = lazy(() => import('../components/support/LiveSupportChat'));
 import {
   Dashboard as DashboardIcon,
   AccountBalance as AccountsIcon,
@@ -280,6 +283,11 @@ const DashboardLayout = () => {
           <Outlet key={location.pathname} />
         </Box>
       </Box>
+      
+      {/* Live Support Chat Widget - lazy loaded for performance */}
+      <Suspense fallback={null}>
+        <LiveSupportChat />
+      </Suspense>
     </Box>
   );
 };

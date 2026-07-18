@@ -1,46 +1,151 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import {
   Box,
   Typography,
   Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
+  Grid,
+  Tab,
+  Tabs,
   Chip,
   Button,
   IconButton,
   Dialog,
-  DialogActions,
   DialogContent,
-  DialogTitle,
   TextField,
-  Grid
+  Avatar,
+  Badge,
+  Tooltip,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemAvatar,
+  Divider,
+  InputAdornment,
+  CircularProgress
 } from '@mui/material';
-import VisibilityIcon from '@mui/icons-material/Visibility';
+import ChatIcon from '@mui/icons-material/Chat';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
+import CloseIcon from '@mui/icons-material/Close';
+import SendIcon from '@mui/icons-material/Send';
+import SearchIcon from '@mui/icons-material/Search';
+import PersonIcon from '@mui/icons-material/Person';
+import PhoneIcon from '@mui/icons-material/Phone';
+import EmailIcon from '@mui/icons-material/Email';
+import TransferWithinAStationIcon from '@mui/icons-material/TransferWithinAStation';
+import MarkUnreadIcon from '@mui/icons-material/MarkUnread';
+import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
 import api from '../services/api';
+import { useSocket } from '../contexts/SocketContext';
 
-const SupportTickets = () => {
+const LiveSupportConsole = () => {
   const location = useLocation();
+  const { user } = useSelector(state => state.auth);
+  const { socket, isConnected, joinChat, leaveChat, sendMessage, emitTyping, emitStopTyping, markMessageAsRead } = useSocket();
+  const messagesEndRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
+  
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedTicket, setSelectedTicket] = useState(null);
-  const [openDialog, setOpenDialog] = useState(false);
+  const [openChat, setOpenChat] = useState(false);
   const [replyMessage, setReplyMessage] = useState('');
+  const [activeTab, setActiveTab] = useState(0);
+  const [typingUser, setTypingUser] = useState(null);
+  const [unreadCounts, setUnreadCounts] = useState({});
+  const [searchTerm, setSearchTerm] = useState('');
+  const [ticketMessages, setTicketMessages] = useState({});
 
   useEffect(() => {
     setLoading(true);
     fetchTickets();
   }, [location.pathname]);
 
+  useEffect(() => {
+    // Join support-team room to receive all chat events
+    if (socket && user) {
+      socket.emit('joinSupportTeam', user._id);
+    }
+    
+    return () => {
+      if (socket && user) {
+        socket.emit('leaveSupportTeam', user._id);
+      }
+    };
+  }, [socket, user]);
+
+  useEffect(() => {
+    // Listen for real-time message events
+    if (socket) {
+      socket.on('newMessage', (data) => {
+        updateTicketMessages(data.ticketId, data.message);
+        
+        // Update unread count if the ticket is not the active one
+        if (selectedTicket?._id !== data.ticketId) {
+          setUnreadCounts(prev => ({
+            ...prev,
+            [data.ticketId]: (prev[data.ticketId] || 0) + 1
+          }));
+        } else {
+          // Mark message as read if we're in the chat
+          markMessageAsRead(data.ticketId, data.message._id);
+        }
+        
+        // Auto-scroll to bottom if we're in the chat
+        if (selectedTicket?._id === data.ticketId) {
+          scrollToBottom();
+        }
+      });
+
+      socket.on('typing', (data) => {
+        if (data.ticketId === selectedTicket?._id) {
+          setTypingUser(data.userId);
+        }
+      });
+
+      socket.on('stopTyping', (data) => {
+        if (data.ticketId === selectedTicket?._id) {
+          setTypingUser(null);
+        }
+      });
+
+      socket.on('ticketUpdated', (updatedTicket) => {
+        setTickets(prev => prev.map(t => t._id === updatedTicket._id ? updatedTicket : t));
+      });
+    }
+
+    return () => {
+      if (socket) {
+        socket.off('newMessage');
+        socket.off('typing');
+        socket.off('stopTyping');
+        socket.off('ticketUpdated');
+      }
+    };
+  }, [socket, selectedTicket]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
   const fetchTickets = async () => {
     try {
       const response = await api.get('/admin/support-tickets');
       setTickets(response.data);
+      
+      // Initialize message history
+      const messages = {};
+      response.data.forEach(ticket => {
+        if (ticket.messages) {
+          messages[ticket._id] = ticket.messages;
+        } else {
+          messages[ticket._id] = [];
+        }
+      });
+      setTicketMessages(messages);
+      
       setLoading(false);
     } catch (error) {
       console.error('Error fetching support tickets:', error);
@@ -48,144 +153,591 @@ const SupportTickets = () => {
     }
   };
 
-  const handleViewTicket = (ticket) => {
+  const updateTicketMessages = (ticketId, newMessage) => {
+    setTicketMessages(prev => ({
+      ...prev,
+      [ticketId]: [...(prev[ticketId] || []), newMessage]
+    }));
+  };
+
+  const handleOpenChat = async (ticket) => {
     setSelectedTicket(ticket);
-    setOpenDialog(true);
+    setOpenChat(true);
+    setUnreadCounts(prev => ({ ...prev, [ticket._id]: 0 })); // Reset unread count
+    joinChat(ticket._id); // Join the chat room
+    
+    // Mark all existing messages as read
+    if (ticketMessages[ticket._id]) {
+      ticketMessages[ticket._id].forEach(msg => {
+        if (!msg.read && msg.sender !== user._id) {
+          markMessageAsRead(ticket._id, msg._id);
+        }
+      });
+    }
+    scrollToBottom();
+  };
+
+  const handleCloseChat = () => {
+    if (selectedTicket) {
+      leaveChat(selectedTicket._id);
+    }
+    setOpenChat(false);
+    setSelectedTicket(null);
+    setReplyMessage('');
+    setTypingUser(null);
+  };
+
+  const handleAcceptTicket = async (ticket) => {
+    try {
+      await api.patch(`/admin/support-tickets/${ticket._id}`, {
+        status: 'active',
+        assignedTo: user._id
+      });
+      handleOpenChat(ticket);
+      fetchTickets();
+    } catch (error) {
+      console.error('Error accepting ticket:', error);
+    }
   };
 
   const handleCloseTicket = async (ticketId) => {
     try {
-      await api.patch(`/admin/support-tickets/${ticketId}`, { 
+      await api.patch(`/admin/support-tickets/${ticketId}`, {
         status: 'closed',
-        adminReply: replyMessage
+        closedAt: new Date()
       });
-      setOpenDialog(false);
-      setReplyMessage('');
+      handleCloseChat();
       fetchTickets();
     } catch (error) {
       console.error('Error closing ticket:', error);
     }
   };
 
+  const handleReopenTicket = async (ticketId) => {
+    try {
+      await api.patch(`/admin/support-tickets/${ticketId}`, {
+        status: 'active'
+      });
+      fetchTickets();
+    } catch (error) {
+      console.error('Error reopening ticket:', error);
+    }
+  };
+
+  const handleSendMessage = () => {
+    if (!replyMessage.trim() || !selectedTicket) return;
+
+    const messageData = {
+      ticketId: selectedTicket._id,
+      message: replyMessage.trim(),
+      sender: user._id,
+      senderName: user.name,
+      senderRole: 'admin',
+      timestamp: new Date()
+    };
+
+    sendMessage(messageData);
+    updateTicketMessages(selectedTicket._id, messageData);
+    setReplyMessage('');
+    emitStopTyping(selectedTicket._id);
+    scrollToBottom();
+  };
+
+  const handleTyping = (e) => {
+    setReplyMessage(e.target.value);
+    
+    // Emit typing event with debounce
+    if (selectedTicket) {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      emitTyping(selectedTicket._id);
+      
+      typingTimeoutRef.current = setTimeout(() => {
+        emitStopTyping(selectedTicket._id);
+      }, 2000);
+    }
+  };
+
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
+  };
+
+  const filteredTickets = tickets.filter(ticket => {
+    // Filter by tab
+    if (activeTab === 1 && ticket.status !== 'waiting') return false;
+    if (activeTab === 2 && ticket.status !== 'active') return false;
+    if (activeTab === 3 && ticket.status !== 'closed') return false;
+    
+    // Filter by search term
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        ticket.user?.name?.toLowerCase().includes(searchLower) ||
+        ticket._id.toLowerCase().includes(searchLower) ||
+        ticket.subject?.toLowerCase().includes(searchLower)
+      );
+    }
+    return true;
+  });
+
+  const getStatusChip = (status) => {
+    const statusConfig = {
+      waiting: { color: 'warning', icon: <HourglassEmptyIcon fontSize="small" />, label: 'Waiting' },
+      active: { color: 'success', icon: <PlayCircleFilledIcon fontSize="small" />, label: 'Active' },
+      closed: { color: 'default', icon: <CloseIcon fontSize="small" />, label: 'Closed' }
+    };
+    const config = statusConfig[status] || statusConfig.waiting;
+    
+    return (
+      <Chip
+        label={config.label}
+        color={config.color}
+        size="small"
+        icon={config.icon}
+        sx={{ minWidth: 90 }}
+      />
+    );
+  };
+
   if (loading) {
-    return <Typography>Loading support tickets...</Typography>;
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        Support Tickets
+      <Typography variant="h4" gutterBottom sx={{ mb: 3, fontWeight: 600 }}>
+        Live Support Console
       </Typography>
 
-      <Paper sx={{ p: 2 }}>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Ticket ID</TableCell>
-                <TableCell>Subject</TableCell>
-                <TableCell>User</TableCell>
-                <TableCell>Priority</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Created At</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {tickets.map((ticket) => (
-                <TableRow key={ticket._id}>
-                  <TableCell>{ticket._id}</TableCell>
-                  <TableCell>{ticket.subject}</TableCell>
-                  <TableCell>{ticket.user?.name}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={ticket.priority}
-                      color={ticket.priority === 'high' ? 'error' : ticket.priority === 'medium' ? 'warning' : 'default'}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={ticket.status}
-                      color={ticket.status === 'open' ? 'success' : ticket.status === 'in-progress' ? 'warning' : 'default'}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell>{new Date(ticket.createdAt).toLocaleDateString()}</TableCell>
-                  <TableCell>
-                    <IconButton onClick={() => handleViewTicket(ticket)}>
-                      <VisibilityIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Paper>
+      {/* Connection Status */}
+      <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Badge
+          variant="dot"
+          color={isConnected ? "success" : "error"}
+          sx={{ '& .MuiBadge-dot': { width: 12, height: 12 } }}
+        >
+          <ChatIcon color="action" />
+        </Badge>
+        <Typography variant="body2" color="text.secondary">
+          {isConnected ? 'Connected to chat server' : 'Disconnected - reconnecting...'}
+        </Typography>
+      </Box>
 
-      {/* Ticket Details Dialog */}
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="md" fullWidth>
-        <DialogTitle>Ticket Details</DialogTitle>
-        <DialogContent>
-          {selectedTicket && (
-            <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid item xs={12}>
-                <Typography variant="subtitle2">Subject</Typography>
-                <Typography>{selectedTicket.subject}</Typography>
-              </Grid>
-              <Grid item xs={12}>
-                <Typography variant="subtitle2">User Message</Typography>
-                <Typography>{selectedTicket.message}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography variant="subtitle2">Priority</Typography>
-                <Chip
-                  label={selectedTicket.priority}
-                  color={selectedTicket.priority === 'high' ? 'error' : 'warning'}
-                  size="small"
+      <Grid container spacing={3}>
+        {/* Main Chat List Panel */}
+        <Grid item xs={12} md={8}>
+          <Paper sx={{ p: 2, borderRadius: 2, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+            {/* Search Bar */}
+            <TextField
+              fullWidth
+              placeholder="Search tickets by user, ID, or subject..."
+              variant="outlined"
+              size="small"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              sx={{ mb: 2 }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                )
+              }}
+            />
+
+            {/* Tabs */}
+            <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+              <Tabs value={activeTab} onChange={handleTabChange} variant="scrollable" scrollButtons="auto">
+                <Tab label={`All (${tickets.length})`} />
+                <Tab 
+                  label={`Waiting (${tickets.filter(t => t.status === 'waiting').length})`} 
+                  sx={{ '&.Mui-selected': { color: 'warning.main' } }}
                 />
-              </Grid>
-              <Grid item xs={6}>
-                <Typography variant="subtitle2">Status</Typography>
-                <Chip
-                  label={selectedTicket.status}
-                  color={selectedTicket.status === 'open' ? 'success' : 'warning'}
-                  size="small"
+                <Tab 
+                  label={`Active (${tickets.filter(t => t.status === 'active').length})`}
+                  sx={{ '&.Mui-selected': { color: 'success.main' } }}
                 />
-              </Grid>
-              {selectedTicket.status !== 'closed' && (
-                <Grid item xs={12} sx={{ mt: 2 }}>
-                  <TextField
-                    label="Admin Reply"
-                    fullWidth
-                    multiline
-                    rows={4}
-                    value={replyMessage}
-                    onChange={(e) => setReplyMessage(e.target.value)}
-                    placeholder="Enter your reply to the user..."
-                  />
-                </Grid>
+                <Tab label={`Closed (${tickets.filter(t => t.status === 'closed').length})`} />
+              </Tabs>
+            </Box>
+
+            {/* Ticket List */}
+            <List sx={{ maxHeight: '60vh', overflow: 'auto' }}>
+              {filteredTickets.length === 0 ? (
+                <Box sx={{ textAlign: 'center', py: 8, color: 'text.secondary' }}>
+                  <HourglassEmptyIcon sx={{ fontSize: 48, mb: 2, opacity: 0.5 }} />
+                  <Typography>No tickets found in this category</Typography>
+                </Box>
+              ) : (
+                filteredTickets.map((ticket) => (
+                  <React.Fragment key={ticket._id}>
+                    <ListItem
+                      alignItems="flex-start"
+                      sx={{
+                        borderRadius: 1,
+                        mb: 1,
+                        backgroundColor: unreadCounts[ticket._id] ? 'rgba(0,102,255,0.05)' : 'transparent',
+                        '&:hover': { backgroundColor: 'rgba(0,0,0,0.04)' },
+                        transition: 'background-color 0.2s'
+                      }}
+                      secondaryAction={
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          {unreadCounts[ticket._id] > 0 && (
+                            <Chip
+                              label={unreadCounts[ticket._id]}
+                              color="primary"
+                              size="small"
+                              sx={{ minWidth: 30 }}
+                            />
+                          )}
+                          {ticket.status === 'waiting' && (
+                            <Button
+                              variant="contained"
+                              size="small"
+                              onClick={() => handleAcceptTicket(ticket)}
+                              sx={{ background: 'linear-gradient(135deg, #0066ff 0%, #00bfff 100%)' }}
+                            >
+                              Accept
+                            </Button>
+                          )}
+                          {(ticket.status === 'active' || ticket.status === 'closed') && (
+                            <IconButton onClick={() => ticket.status === 'active' ? handleOpenChat(ticket) : null}>
+                              <ChatIcon color={ticket.status === 'active' ? 'primary' : 'disabled'} />
+                            </IconButton>
+                          )}
+                        </Box>
+                      }
+                    >
+                      <ListItemAvatar>
+                        <Avatar sx={{ bgcolor: ticket.status === 'active' ? '#0066ff' : ticket.status === 'waiting' ? '#ff9800' : '#9e9e9e' }}>
+                          <PersonIcon />
+                        </Avatar>
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 0.5 }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                              {ticket.user?.name || 'Unknown User'}
+                            </Typography>
+                            {getStatusChip(ticket.status)}
+                            {ticket.assignedTo && ticket.assignedTo._id === user._id && (
+                              <Chip
+                                label="Assigned to you"
+                                size="small"
+                                color="primary"
+                                variant="outlined"
+                              />
+                            )}
+                          </Box>
+                        }
+                        secondary={
+                          <Box>
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                              <strong>#{ticket._id}</strong> • {ticket.subject}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              Created: {new Date(ticket.createdAt).toLocaleString()}
+                              {ticket.lastMessageAt && ` • Last message: ${new Date(ticket.lastMessageAt).toLocaleTimeString()}`}
+                            </Typography>
+                          </Box>
+                        }
+                      />
+                    </ListItem>
+                    <Divider variant="inset" component="li" />
+                  </React.Fragment>
+                ))
               )}
+            </List>
+          </Paper>
+        </Grid>
+
+        {/* Stats Sidebar */}
+        <Grid item xs={12} md={4}>
+          <Paper sx={{ p: 3, borderRadius: 2, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', mb: 3 }}>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>Live Stats</Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={6}>
+                <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'warning.light', borderRadius: 1 }}>
+                  <Typography variant="h4" sx={{ fontWeight: 700, color: 'warning.dark' }}>
+                    {tickets.filter(t => t.status === 'waiting').length}
+                  </Typography>
+                  <Typography variant="body2">Waiting</Typography>
+                </Box>
+              </Grid>
+              <Grid item xs={6}>
+                <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'success.light', borderRadius: 1 }}>
+                  <Typography variant="h4" sx={{ fontWeight: 700, color: 'success.dark' }}>
+                    {tickets.filter(t => t.status === 'active').length}
+                  </Typography>
+                  <Typography variant="body2">Active</Typography>
+                </Box>
+              </Grid>
             </Grid>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDialog(false)}>Close</Button>
-          {selectedTicket?.status !== 'closed' && (
-            <Button 
-              startIcon={<CheckCircleIcon />} 
-              color="success" 
-              onClick={() => handleCloseTicket(selectedTicket._id)}
-              disabled={!replyMessage}
+          </Paper>
+
+          {/* Quick Actions */}
+          <Paper sx={{ p: 3, borderRadius: 2, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>Quick Actions</Typography>
+            <List>
+              <ListItem button>
+                <ListItemIcon><TransferWithinAStationIcon /></ListItemIcon>
+                <ListItemText primary="Transfer Chat" secondary="Move to another agent" />
+              </ListItem>
+              <Divider />
+              <ListItem button>
+                <ListItemIcon><MarkUnreadIcon /></ListItemIcon>
+                <ListItemText primary="Mark as Unread" secondary="Flag for follow-up" />
+              </ListItem>
+            </List>
+          </Paper>
+        </Grid>
+      </Grid>
+
+      {/* Chat Dialog */}
+      <Dialog
+        open={openChat}
+        onClose={handleCloseChat}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            height: '85vh',
+            maxHeight: '800px',
+            borderRadius: 3,
+            overflow: 'hidden'
+          }
+        }}
+      >
+        {selectedTicket && (
+          <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            {/* Chat Header */}
+            <Box
+              sx={{
+                p: 2,
+                background: 'linear-gradient(135deg, #0066ff 0%, #00bfff 100%)',
+                color: 'white',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}
             >
-              Close Ticket
-            </Button>
-          )}
-        </DialogActions>
+              <Box>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  Chat with {selectedTicket.user?.name}
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  #{selectedTicket._id} • {selectedTicket.subject}
+                  {typingUser && <span style={{ marginLeft: 10, fontStyle: 'italic' }}>typing...</span>}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {selectedTicket.status !== 'closed' ? (
+                  <Button
+                    variant="contained"
+                    size="small"
+                    onClick={() => handleCloseTicket(selectedTicket._id)}
+                    sx={{ bgcolor: 'rgba(255,255,255,0.2)', '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' } }}
+                  >
+                    Close Chat
+                  </Button>
+                ) : (
+                  <Button
+                    variant="contained"
+                    size="small"
+                    onClick={() => handleReopenTicket(selectedTicket._id)}
+                    sx={{ bgcolor: 'rgba(255,255,255,0.2)', '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' } }}
+                  >
+                    Reopen
+                  </Button>
+                )}
+                <IconButton onClick={handleCloseChat} sx={{ color: 'white' }}>
+                  <CloseIcon />
+                </IconButton>
+              </Box>
+            </Box>
+
+            <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+              {/* Customer Info Sidebar */}
+              <Box sx={{ width: 280, borderRight: 1, borderColor: 'divider', p: 2, bgcolor: '#fafafa' }}>
+                <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600, color: 'text.secondary' }}>
+                  CUSTOMER DETAILS
+                </Typography>
+                
+                <Box sx={{ mb: 3, textAlign: 'center' }}>
+                  <Avatar
+                    sx={{
+                      width: 80,
+                      height: 80,
+                      bgcolor: '#0066ff',
+                      fontSize: 32,
+                      mx: 'auto',
+                      mb: 1
+                    }}
+                  >
+                    {selectedTicket.user?.name?.charAt(0) || 'U'}
+                  </Avatar>
+                  <Typography variant="h6">{selectedTicket.user?.name}</Typography>
+                  <Chip
+                    label="Verified"
+                    size="small"
+                    color="success"
+                    icon={<CheckCircleIcon fontSize="small" />}
+                    sx={{ mt: 1 }}
+                  />
+                </Box>
+
+                <List disablePadding>
+                  <ListItem sx={{ px: 0, py: 1 }}>
+                    <EmailIcon fontSize="small" sx={{ mr: 2, color: 'text.secondary' }} />
+                    <ListItemText
+                      primary={selectedTicket.user?.email}
+                      secondary="Email"
+                      primaryTypographyProps={{ variant: 'body2' }}
+                    />
+                  </ListItem>
+                  <ListItem sx={{ px: 0, py: 1 }}>
+                    <PhoneIcon fontSize="small" sx={{ mr: 2, color: 'text.secondary' }} />
+                    <ListItemText
+                      primary={selectedTicket.user?.phone || 'Not provided'}
+                      secondary="Phone"
+                      primaryTypographyProps={{ variant: 'body2' }}
+                    />
+                  </ListItem>
+                  <ListItem sx={{ px: 0, py: 1 }}>
+                    <PersonIcon fontSize="small" sx={{ mr: 2, color: 'text.secondary' }} />
+                    <ListItemText
+                      primary={selectedTicket.user?.accountType || 'Standard'}
+                      secondary="Account Type"
+                      primaryTypographyProps={{ variant: 'body2' }}
+                    />
+                  </ListItem>
+                </List>
+
+                <Divider sx={{ my: 2 }} />
+
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: 'text.secondary' }}>
+                  TICKET INFO
+                </Typography>
+                <Box sx={{ mb: 1 }}>
+                  <Typography variant="caption" color="text.secondary">Priority</Typography>
+                  <Chip
+                    label={selectedTicket.priority}
+                    size="small"
+                    color={selectedTicket.priority === 'high' ? 'error' : selectedTicket.priority === 'medium' ? 'warning' : 'default'}
+                    sx={{ ml: 1 }}
+                  />
+                </Box>
+                <Typography variant="caption" color="text.secondary" display="block">
+                  Created: {new Date(selectedTicket.createdAt).toLocaleString()}
+                </Typography>
+                {selectedTicket.updatedAt && (
+                  <Typography variant="caption" color="text.secondary" display="block">
+                    Last updated: {new Date(selectedTicket.updatedAt).toLocaleString()}
+                  </Typography>
+                )}
+              </Box>
+
+              {/* Messages Area */}
+              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', bgcolor: '#f7fafc' }}>
+                <Box sx={{ flex: 1, overflow: 'auto', p: 3 }}>
+                  {(ticketMessages[selectedTicket._id] || []).map((msg, index) => {
+                    const isAgent = msg.senderRole === 'admin';
+                    return (
+                      <Box
+                        key={index}
+                        sx={{
+                          display: 'flex',
+                          justifyContent: isAgent ? 'flex-end' : 'flex-start',
+                          mb: 2
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            maxWidth: '70%',
+                            p: 2,
+                            borderRadius: 2,
+                            bgcolor: isAgent ? '#0066ff' : 'white',
+                            color: isAgent ? 'white' : 'text.primary',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                            position: 'relative'
+                          }}
+                        >
+                          <Typography variant="body2" sx={{ mb: 0.5 }}>{msg.message}</Typography>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              justifyContent: 'flex-end',
+                              alignItems: 'center',
+                              gap: 0.5
+                            }}
+                          >
+                            <Typography
+                              variant="caption"
+                              sx={{ opacity: 0.7 }}
+                            >
+                              {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </Typography>
+                            {isAgent && msg.read && (
+                              <CheckCircleIcon fontSize="small" sx={{ fontSize: 14, opacity: 0.8 }} />
+                            )}
+                          </Box>
+                        </Box>
+                      </Box>
+                    );
+                  })}
+                  <div ref={messagesEndRef} />
+                </Box>
+
+                {/* Message Input */}
+                <Box sx={{ p: 2, bgcolor: 'white', borderTop: 1, borderColor: 'divider' }}>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <TextField
+                      fullWidth
+                      placeholder="Type your message..."
+                      variant="outlined"
+                      size="small"
+                      value={replyMessage}
+                      onChange={handleTyping}
+                      onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                      disabled={selectedTicket.status === 'closed'}
+                    />
+                    <IconButton
+                      color="primary"
+                      onClick={handleSendMessage}
+                      disabled={!replyMessage.trim() || selectedTicket.status === 'closed'}
+                      sx={{
+                        background: 'linear-gradient(135deg, #0066ff 0%, #00bfff 100%)',
+                        color: 'white',
+                        '&:hover': {
+                          background: 'linear-gradient(135deg, #0052cc 0%, #0099cc 100%)'
+                        },
+                        '&.Mui-disabled': {
+                          background: '#e0e0e0',
+                          color: '#9e9e9e'
+                        }
+                      }}
+                    >
+                      <SendIcon />
+                    </IconButton>
+                  </Box>
+                  {selectedTicket.status === 'closed' && (
+                    <Typography variant="caption" color="error" sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
+                      This chat is closed. Reopen to send messages.
+                    </Typography>
+                  )}
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+        )}
       </Dialog>
     </Box>
   );
 };
 
-export default SupportTickets;
+export default LiveSupportConsole;

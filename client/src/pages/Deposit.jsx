@@ -293,12 +293,12 @@ const Deposit = () => {
     <Box sx={{ 
       position: 'relative', 
       overflow: 'hidden',
-      // Enhanced deep blue-green gradient background with combined colors
-      background: 'linear-gradient(135deg, #052e16 0%, #14532d 25%, #166534 50%, #15803d 75%, #16a34a 100%)',
+      // Consistent bank blue gradient background
+      background: 'linear-gradient(135deg, #021024 0%, #063970 25%, #0066ff 50%, #00bfff 75%, #0066ff 100%)',
       minHeight: '100vh',
       p: { xs: 2, md: 0 }
     }}>
-      {/* Advanced multi-layered floating background textures */}
+      {/* Advanced multi-layered floating background textures with consistent blue theme */}
       <Box sx={{
         position: 'fixed',
         top: '-15%',
@@ -306,7 +306,7 @@ const Deposit = () => {
         width: '700px',
         height: '700px',
         borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(0,200,150,0.3) 0%, rgba(0,200,150,0) 70%)',
+        background: 'radial-gradient(circle, rgba(0,102,255,0.3) 0%, rgba(0,102,255,0) 70%)',
         filter: 'blur(80px)',
         pointerEvents: 'none',
         zIndex: 0,
@@ -319,7 +319,7 @@ const Deposit = () => {
         width: '800px',
         height: '800px',
         borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(0,102,255,0.25) 0%, rgba(0,102,255,0) 70%)',
+        background: 'radial-gradient(circle, rgba(0,191,255,0.25) 0%, rgba(0,191,255,0) 70%)',
         filter: 'blur(90px)',
         pointerEvents: 'none',
         zIndex: 0,
@@ -330,12 +330,12 @@ const Deposit = () => {
       <Box sx={{ position: 'relative', zIndex: 1, pt: 4, px: { xs: 2, md: 4 } }}>
         <Typography variant="h4" sx={{ 
           fontWeight: 800, 
-          background: 'linear-gradient(90deg, #ffffff 0%, #00c896 30%, #00bfff 70%, #ffc857 100%)',
+          background: 'linear-gradient(90deg, #ffffff 0%, #0066ff 30%, #00bfff 70%, #ffc857 100%)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
           mb: 2,
           gutterBottom: true,
-          textShadow: '0 0 40px rgba(0,200,150,0.5)',
+          textShadow: '0 0 40px rgba(0,102,255,0.5)',
           fontSize: '2.5rem'
         }}>Deposit Funds</Typography>
         
@@ -347,15 +347,15 @@ const Deposit = () => {
           <Paper sx={{ 
             p: 5,
             borderRadius: '24px',
-            // Enhanced glassmorphism with advanced backdrop effects
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(240,255,247,0.9) 100%)',
+            // Enhanced glassmorphism with advanced backdrop effects - consistent blue theme
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(240,245,255,0.9) 100%)',
             backdropFilter: 'blur(40px) saturate(180%)',
             border: '1px solid rgba(255,255,255,0.3)',
             // Multi-layered shadow for extreme depth
-            boxShadow: '0 30px 90px -20px rgba(0,200,150,0.5), 0 0 0 1px rgba(255,255,255,0.1) inset, 0 60px 120px -30px rgba(0,0,0,0.4)',
+            boxShadow: '0 30px 90px -20px rgba(0,102,255,0.5), 0 0 0 1px rgba(255,255,255,0.1) inset, 0 60px 120px -30px rgba(0,0,0,0.4)',
             transition: 'all 0.4s ease',
             '&:hover': {
-              boxShadow: '0 40px 110px -25px rgba(0,200,150,0.6), 0 0 0 1px rgba(255,255,255,0.2) inset, 0 70px 140px -40px rgba(0,0,0,0.5), 0 0 80px rgba(0,200,150,0.3)'
+              boxShadow: '0 40px 110px -25px rgba(0,102,255,0.6), 0 0 0 1px rgba(255,255,255,0.2) inset, 0 70px 140px -40px rgba(0,0,0,0.5), 0 0 80px rgba(0,102,255,0.3)'
             }
           }}>
         <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
@@ -501,15 +501,15 @@ const Deposit = () => {
                 >
                   <Card sx={{ 
                     p: 4, 
-                    bgcolor: 'linear-gradient(135deg, rgba(0,200,150,0.08) 0%, rgba(0,102,255,0.05) 100%)',
+                    bgcolor: 'linear-gradient(135deg, rgba(0,102,255,0.08) 0%, rgba(0,191,255,0.05) 100%)',
                     borderRadius: '20px',
-                    border: '1px solid rgba(0,200,150,0.2)',
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(240,255,247,0.85) 100%)',
+                    border: '1px solid rgba(0,102,255,0.2)',
+                    background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(240,245,255,0.85) 100%)',
                     backdropFilter: 'blur(30px)',
-                    boxShadow: '0 20px 60px -15px rgba(0,200,150,0.3)',
+                    boxShadow: '0 20px 60px -15px rgba(0,102,255,0.3)',
                     transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
                     '&:hover': {
-                      boxShadow: '0 30px 80px -20px rgba(0,200,150,0.5), 0 0 60px rgba(0,200,150,0.2)'
+                      boxShadow: '0 30px 80px -20px rgba(0,102,255,0.5), 0 0 60px rgba(0,102,255,0.2)'
                     }
                   }}>
                     <Typography variant="h6" gutterBottom sx={{ fontWeight: 700, color: '#0f2744' }}>
@@ -562,11 +562,11 @@ const Deposit = () => {
                                 onClick={() => window.open(selectedCrypto.qrCode, '_blank')} 
                                 size="large"
                                 sx={{ 
-                                  bgcolor: 'rgba(0,200,150,0.1)',
+                                  bgcolor: 'rgba(0,102,255,0.1)',
                                   transition: 'all 0.3s ease',
                                   '&:hover': {
-                                    bgcolor: 'rgba(0,200,150,0.2)',
-                                    boxShadow: '0 5px 15px rgba(0,200,150,0.3)'
+                                    bgcolor: 'rgba(0,102,255,0.2)',
+                                    boxShadow: '0 5px 15px rgba(0,102,255,0.3)'
                                   }
                                 }}
                               >

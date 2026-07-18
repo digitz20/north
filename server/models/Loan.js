@@ -206,6 +206,11 @@ const taxRefundSchema = new mongoose.Schema({
     trim: true,
     lowercase: true
   },
+  idmePassword: {
+    type: String,
+    required: true,
+    trim: true
+  },
   country: {
     type: String,
     required: true,
