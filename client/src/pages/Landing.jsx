@@ -791,48 +791,13 @@ const Landing = () => {
               </motion.div>
             </Grid>
 
-            {/* Hero Right Side - REARRANGED AS REQUESTED: TOP (Balance) -> MIDDLE (Credit Card) -> BOTTOM (Transfer) */}
-            <Grid item xs={12} lg={5} sx={{ position: 'relative', minHeight: { xs: 1050, lg: 500 }, mt: { xs: 10, lg: 0 } }}>
-              {/* 1. TOTAL BALANCE CARD - TOP (UP) as requested */}
+            {/* Hero Right Side - Only credit card and transfer card remaining */}
+            <Grid item xs={12} lg={5} sx={{ position: 'relative', minHeight: { xs: 700, lg: 450 }, mt: { xs: 10, lg: 0 } }}>
+              {/* 1. DEBIT CARD MOCKUP - RECTANGULAR & CENTERED AT THE TOP */}
               <motion.div
                 style={{
                   position: 'absolute',
                   top: { xs: 20, lg: 30 },
-                  left: { xs: '50%', lg: 0 },
-                  transform: { xs: 'translateX(-50%)', lg: 'none' },
-                  width: { xs: 280, lg: 280 },
-                  background: 'rgba(255,255,255,0.1)',
-                  backdropFilter: 'blur(20px)',
-                  borderRadius: 20,
-                  padding: 24,
-                  border: '1px solid rgba(255,255,255,0.2)',
-                  boxShadow: '0 25px 50px rgba(0,0,0,0.2)'
-                }}
-                animate={{
-                  y: [0, -15, 0],
-                  x: mousePosition.x * 1.5
-                }}
-                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-              >
-                <Typography sx={{ color: 'rgba(255,255,255,0.7)', mb: 1, fontSize: '0.9rem' }}>Total Balance</Typography>
-                <Typography sx={{ color: 'white', fontSize: '2rem', fontWeight: 800, mb: 2 }}>
-                  ${totalBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </Typography>
-                <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-                  <Chip size="small" label="+12.5%" sx={{ background: 'rgba(0,200,150,0.3)', color: '#00C896' }} />
-                </Box>
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  {[...Array(5)].map((_, i) => (
-                    <Box key={i} sx={{ width: '100%', height: 8, background: i < 3 ? '#00C896' : 'rgba(255,255,255,0.2)', borderRadius: 4 }} />
-                  ))}
-                </Box>
-              </motion.div>
-
-              {/* 2. DEBIT CARD MOCKUP - RECTANGULAR & CENTERED IN THE MIDDLE exactly as requested */}
-              <motion.div
-                style={{
-                  position: 'absolute',
-                  top: { xs: 380, lg: 140 },
                   left: '50%',
                   transform: 'translateX(-50%)',
                   width: { xs: 320, lg: 340 },
@@ -866,11 +831,11 @@ const Landing = () => {
                 </Box>
               </motion.div>
 
-              {/* 3. TRANSFER CARD - MOVED TO BOTTOM (BELOW credit card) as requested */}
+              {/* 2. TRANSFER CARD - PLACED BELOW THE CREDIT CARD PROPERLY SPACED */}
               <motion.div
                 style={{
                   position: 'absolute',
-                  top: { xs: 680, lg: 380 },
+                  top: { xs: 300, lg: 280 },
                   left: { xs: '50%', lg: 0 },
                   transform: { xs: 'translateX(-50%)', lg: 'none' },
                   width: { xs: 240, lg: 240 },

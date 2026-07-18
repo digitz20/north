@@ -154,25 +154,10 @@ const Profile = () => {
 
             <Typography variant="h6" gutterBottom>Account Summary</Typography>
             <Grid container spacing={3}>
-              <Grid item xs={6}>
+              <Grid item xs={12} sm={6}>
                 <Paper sx={{ p: 2, bgcolor: 'primary.light', color: 'white' }}>
                   <Typography variant="body2">Total Accounts</Typography>
                   <Typography variant="h4">{totalAccounts}</Typography>
-                </Paper>
-              </Grid>
-              <Grid item xs={6}>
-                <Paper sx={{ p: 2, bgcolor: 'success.light', color: 'white' }}>
-                  <Typography variant="body2">Total Balance</Typography>
-                  <Typography variant="h4">
-                    <CountUp
-                      start={0}
-                      end={totalBalance}
-                      duration={2}
-                      prefix="$"
-                      separator=","
-                      decimals={2}
-                    />
-                  </Typography>
                 </Paper>
               </Grid>
             </Grid>
