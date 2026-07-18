@@ -44,8 +44,15 @@ const AdminDashboard = () => {
         api.get('/admin/transactions/recent')
       ]);
       
-      setStats(statsResponse.data);
-      setRecentTransactions(transactionsResponse.data);
+      // Backend wraps data in .data property, so extract correctly
+      setStats(statsResponse.data.data || {
+        totalUsers: 0,
+        totalAccounts: 0,
+        totalTransactions: 0,
+        openTickets: 0
+      });
+      // Ensure we get the actual array from the backend response
+      setRecentTransactions(transactionsResponse.data.data || []);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);

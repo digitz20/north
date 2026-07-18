@@ -7,11 +7,23 @@ const mongoose = require('mongoose');
 // @access  Private/Admin
 exports.getDashboardStats = async (req, res, next) => {
   try {
-    // TODO: Implement getDashboardStats functionality
+    // Get real counts from the database
+    const totalUsers = await User.countDocuments();
+    const Account = require('../models/Account');
+    const totalAccounts = await Account.countDocuments();
+    const Transfer = require('../models/Transfer');
+    const totalTransactions = await Transfer.countDocuments();
+    const SupportTicket = require('../models/SupportTicket');
+    const openTickets = await SupportTicket.countDocuments({ status: 'open' });
+    
     res.status(200).json({
       success: true,
-      message: 'Get dashboard stats endpoint - functionality not yet implemented',
-      data: {}
+      data: {
+        totalUsers,
+        totalAccounts,
+        totalTransactions,
+        openTickets
+      }
     });
   } catch (error) {
     next(error);
