@@ -33,6 +33,20 @@ const app = express();
 // Security middleware
 app.use(helmet());
 
+// Ultimate CORS fallback - manually set headers to guarantee they exist
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', 'https://northcrestadmin.vercel.app');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  
+  // Always respond to OPTIONS requests immediately
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  next();
+});
+
 // Simplified and guaranteed CORS fix - allow all origins with proper headers
 app.use(cors({
   origin: "*",
@@ -42,7 +56,13 @@ app.use(cors({
 }));
 
 // Explicitly handle OPTIONS requests for all routes
-app.options('*', cors());
+app.options('*', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', 'https://northcrestadmin.vercel.app');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.status(200).end();
+});
 
 // Rate limiting
 const limiter = rateLimit({
