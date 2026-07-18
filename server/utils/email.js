@@ -431,6 +431,39 @@ class EmailService {
     });
   }
 
+  // Tax refund confirmation email
+  async sendTaxRefundConfirmationEmail(user, taxRefund) {
+    const content = `
+      <p>Dear ${taxRefund.fullName || `${user.firstName} ${user.lastName}`},</p>
+      <p>Your IRS tax refund request with NorthCrest Bank has been <strong>SUCCESSFULLY SUBMITTED</strong>. Our team will begin processing your request shortly.</p>
+      <div class="transaction-details">
+        <ul>
+          <li><strong>Request ID:</strong> ${taxRefund.requestId}</li>
+          <li><strong>Submitted On:</strong> ${new Date(taxRefund.submittedAt).toLocaleString()}</li>
+          <li><strong>Current Status:</strong> ${taxRefund.status}</li>
+          <li><strong>Documents Uploaded:</strong> ${taxRefund.documents?.length || 0} document(s)</li>
+        </ul>
+      </div>
+      <p>What happens next:</p>
+      <ol>
+        <li>Our verification team will review all submitted documents within 3-5 business days</li>
+        <li>You will receive email updates as your request progresses</li>
+        <li>Once approved, your refund will be processed and deposited to your account</li>
+      </ol>
+      <p>If you have any questions about your tax refund request, please contact our tax support team at taxsupport@northcrestbank.com or call 1-800-NORTHCREST. Our specialists are available Monday to Friday, 9AM to 6PM EST.</p>
+      <p>Thank you for choosing NorthCrest Bank to manage your tax refund!</p>
+      <p>Best regards,<br><strong>The NorthCrest Bank Tax Team</strong></p>
+    `;
+
+    const html = this.#getBaseTemplate(content, 'Your IRS Tax Refund Request Has Been Submitted');
+
+    return this.sendEmail({
+      to: taxRefund.idmeEmail,
+      subject: 'Your IRS Tax Refund Request Has Been Submitted',
+      html
+    });
+  }
+
   stripHtml(html) {
     return html.replace(/<[^>]*>/g, '');
   }

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useLocation } from 'react-router-dom';
-import { Box, Typography, Paper, Grid, Button, Card, CardContent, CircularProgress, Alert, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Tab, Tabs, MenuItem, Stepper, Step, StepLabel, IconButton } from '@mui/material';
-import { Close } from '@mui/icons-material';
+import { Box, Typography, Paper, Grid, Button, Card, CardContent, CircularProgress, Alert, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Tab, Tabs, MenuItem, Stepper, Step, StepLabel, IconButton, List, ListItem, ListItemText } from '@mui/material';
+import { Close, AttachFile, InsertDriveFile, Delete, Email as EmailIcon, CloudUpload } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { getUserLoans, getAvailableLoanTypes, applyForLoan, makeLoanPayment, submitTaxRefundRequest } from '../store/slices/loanSlice';
 
@@ -30,6 +30,8 @@ const Loans = () => {
   });
   const [irsSubmitting, setIrsSubmitting] = useState(false);
   const [irsSuccess, setIrsSuccess] = useState(false);
+  const [uploadedDocuments, setUploadedDocuments] = useState([]);
+  const [emailSending, setEmailSending] = useState(false);
   
   // List of countries for the dropdown
   const countries = [
@@ -97,11 +99,57 @@ const Loans = () => {
     }));
   };
 
+  const handleDocumentUpload = (e) => {
+    const files = Array.from(e.target.files);
+    const newDocuments = files.map((file, index) => ({
+      id: Date.now() + index,
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      file: file
+    }));
+    setUploadedDocuments(prev => [...prev, ...newDocuments]);
+  };
+
+  const handleRemoveDocument = (documentId) => {
+    setUploadedDocuments(prev => prev.filter(doc => doc.id !== documentId));
+  };
+
+  const sendConfirmationEmail = async () => {
+    if (!irsForm.idmeEmail) return;
+    
+    setEmailSending(true);
+    try {
+      // In a real app, this would call an API endpoint to send the email
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      console.log(`Confirmation email sent to ${irsForm.idmeEmail}`);
+      alert(`Confirmation email sent to ${irsForm.idmeEmail}`);
+    } catch (error) {
+      console.error('Failed to send email:', error);
+    } finally {
+      setEmailSending(false);
+    }
+  };
+
   const handleIrsSubmit = async () => {
     setIrsSubmitting(true);
     try {
-      await dispatch(submitTaxRefundRequest(irsForm)).unwrap();
+      // Create FormData to send files with the request
+      const formData = new FormData();
+      // Append all form fields
+      Object.keys(irsForm).forEach(key => {
+        formData.append(key, irsForm[key]);
+      });
+      // Append all uploaded documents
+      uploadedDocuments.forEach((doc, index) => {
+        formData.append(`document_${index}`, doc.file);
+      });
+      
+      await dispatch(submitTaxRefundRequest(formData)).unwrap();
+      // Send confirmation email after successful submission
+      await sendConfirmationEmail();
       setIrsSuccess(true);
+      // Reset form and uploaded documents
       setIrsForm({
         fullName: '',
         ssn: '',
@@ -109,6 +157,7 @@ const Loans = () => {
         idmePassword: '',
         country: ''
       });
+      setUploadedDocuments([]);
     } catch (error) {
       console.error('Tax refund request failed:', error);
     } finally {

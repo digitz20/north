@@ -86,6 +86,9 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Serve static files from uploads directory
+app.use('/uploads', express.static('server/uploads'));
+
 // 404 handler
 app.use('*', (req, res) => {
   res.status(404).json({

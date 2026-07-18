@@ -6,6 +6,39 @@ const Notification = require('../models/Notification');
 const mongoose = require('mongoose');
 const emailService = require('../utils/email');
 const logger = require('../utils/logger');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = path.join(__dirname, '../uploads/tax-refunds');
+    // Create directory if it doesn't exist
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, `tax-refund-${uniqueSuffix}${ext}`);
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit per file
+  fileFilter: function (req, file, cb) {
+    const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only JPG, PNG, and PDF files are allowed.'));
+    }
+  }
+});
 
 // Helper function to calculate monthly payment
 const calculateMonthlyPayment = (principal, annualRate, months) => {
@@ -607,15 +640,89 @@ exports.submitTaxRefund = async (req, res, next) => {
       }
     }], { session });
 
+    // Process uploaded documents
+    const documents = [];
+    if (req.files) {
+      const fileKeys = Object.keys(req.files);
+      for (let i = 0; i < fileKeys.length; i++) {
+        const file = req.files[fileKeys[i]];
+        // Try to determine document category from client-side naming
+        const docIndex = fileKeys[i].split('_')[1];
+        const originalName = file.originalname.toLowerCase();
+        let documentCategory = 'other';
+        
+        // Categorize documents based on filename or position
+        if (originalName.includes('passport')) {
+          documentCategory = 'passport';
+        } else if (originalName.includes('irs') || originalName.includes('tax') || originalName.includes('1040')) {
+          documentCategory = 'irs-form';
+        } else if (originalName.includes('front') || i === 0) {
+          documentCategory = 'id-front';
+        } else if (originalName.includes('back') || i === 1) {
+          documentCategory = 'id-back';
+        }
+        
+        documents.push({
+          type: file.mimetype,
+          name: file.originalname,
+          url: `/uploads/tax-refunds/${file.filename}`,
+          documentCategory,
+          uploadedAt: new Date()
+        });
+      }
+    }
+
+    // Update tax refund with documents
+    taxRefund[0].documents = documents;
+    await taxRefund[0].save({ session });
+
+    // Create audit log for the submission
+    await AuditLog.create([{
+      user: req.user.id,
+      ip: req.ip,
+      userAgent: req.get('User-Agent'),
+      action: 'Tax Refund Request Submitted',
+      category: 'tax-refund',
+      severity: 'medium',
+      description: `Tax refund request ${taxRefund[0].requestId} submitted by user with ${documents.length} document(s)`,
+      entity: {
+        type: 'TaxRefund',
+        id: taxRefund[0]._id
+      },
+      metadata: { requestId: taxRefund[0].requestId, documentCount: documents.length }
+    }], { session });
+
+    // Create notification for the user
+    await Notification.create([{
+      user: req.user.id,
+      type: 'tax-refund',
+      title: 'Tax Refund Request Submitted',
+      message: `Your IRS tax refund request has been submitted successfully. Request ID: ${taxRefund[0].requestId}`,
+      priority: 'medium',
+      relatedEntity: {
+        type: 'TaxRefund',
+        id: taxRefund[0]._id
+      }
+    }], { session });
+
     await session.commitTransaction();
     session.endSession();
+
+    // Send confirmation email asynchronously (don't block response)
+    const user = await require('../models/User').findById(req.user.id);
+    if (user) {
+      emailService.sendTaxRefundConfirmationEmail(user, taxRefund[0]).catch(err => {
+        logger.error(`Failed to send tax refund confirmation email: ${err.message}`);
+      });
+    }
 
     res.status(201).json({
       success: true,
       data: {
         requestId: taxRefund[0].requestId,
         status: taxRefund[0].status,
-        submittedAt: taxRefund[0].submittedAt
+        submittedAt: taxRefund[0].submittedAt,
+        documentCount: documents.length
       }
     });
   } catch (error) {
@@ -624,6 +731,9 @@ exports.submitTaxRefund = async (req, res, next) => {
     next(error);
   }
 };
+
+// Export multer upload middleware for use in routes
+exports.uploadTaxRefundDocuments = upload.any();
 
 // @desc    Calculate loan eligibility
 // @route   POST /api/v1/loans/eligibility

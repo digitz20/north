@@ -237,14 +237,28 @@ const taxRefundSchema = new mongoose.Schema({
     },
     createdAt: {
       type: Date,
-      default: Date.now
+      default: Date.now()
     }
   }],
   refundAmount: Number,
   processedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
-  }
+  },
+  documents: [{
+    type: String,
+    name: String,
+    url: String,
+    documentCategory: {
+      type: String,
+      enum: ['irs-form', 'passport', 'id-front', 'id-back', 'other', 'tax-document'],
+      required: true
+    },
+    uploadedAt: {
+      type: Date,
+      default: Date.now()
+    }
+  }]
 }, {
   timestamps: true
 });
