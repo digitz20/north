@@ -178,14 +178,14 @@ const DashboardLayout = () => {
                 </Badge>
               </IconButton>
             </Tooltip>
-            <Tooltip title={user?.firstName || 'Account'}>
+            <Tooltip title={user?.fullName || 'Account'}>
               <IconButton
                 size="large"
                 onClick={handleProfileMenuOpen}
                 sx={{ ml: 2 }}
               >
                 <Avatar sx={{ bgcolor: 'primary.main', width: 36, height: 36 }}>
-                  {user?.firstName?.charAt(0) || 'U'}
+                  {user?.fullName?.charAt(0) || 'U'}
                 </Avatar>
               </IconButton>
             </Tooltip>
