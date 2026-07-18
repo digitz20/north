@@ -33,6 +33,19 @@ const Login = () => {
   
   const redirectTo = location.state?.from?.pathname || '/dashboard';
 
+  // Load saved credentials if remember me was checked previously
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('rememberedEmail');
+    const savedPassword = localStorage.getItem('rememberedPassword');
+    const savedRememberMe = localStorage.getItem('rememberMe') === 'true';
+    
+    if (savedRememberMe && savedEmail && savedPassword) {
+      setEmail(savedEmail);
+      setPassword(savedPassword);
+      setRememberMe(true);
+    }
+  }, []);
+
   const handleResendVerification = async () => {
     if (!email) {
       return;
@@ -61,6 +74,17 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (email && password) {
+      // If remember me is checked, save credentials to localStorage
+      if (rememberMe) {
+        localStorage.setItem('rememberedEmail', email);
+        localStorage.setItem('rememberedPassword', password);
+        localStorage.setItem('rememberMe', 'true');
+      } else {
+        // If remember me is not checked, clear any saved credentials
+        localStorage.removeItem('rememberedEmail');
+        localStorage.removeItem('rememberedPassword');
+        localStorage.setItem('rememberMe', 'false');
+      }
       dispatch(login({ email, password }));
     }
   };
