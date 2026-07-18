@@ -36,6 +36,22 @@ const Profile = () => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
+  // Track created blob URLs to prevent memory leaks
+  const createdBlobUrls = useRef([]);
+
+  useEffect(() => {
+    // Cleanup function to revoke all created blob URLs when component unmounts
+    return () => {
+      createdBlobUrls.current.forEach(url => {
+        try {
+          URL.revokeObjectURL(url);
+        } catch (e) {
+          console.warn('Cleanup: Could not revoke profile photo blob URL:', e);
+        }
+      });
+    };
+  }, []);
+
   const handleFileChange = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -46,20 +62,27 @@ const Profile = () => {
     setUploading(true);
 
     try {
-      // For now, we'll create a local object URL for preview
-      // In a production app, you would upload to cloudinary first and get a URL
-      const imageUrl = URL.createObjectURL(file);
+      // Convert file to base64 to persist it properly in the database
+      // This prevents blob URL ERR_FILE_NOT_FOUND errors when navigating/refreshing
+      const reader = new FileReader();
       
-      // Send to our backend API using the configured axios instance
-      const response = await api.put('/auth/profile-picture', { profilePicture: imageUrl });
+      const fileToBase64 = (file) => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = (error) => reject(error);
+      });
 
-      // axios automatically throws errors for non-2xx status codes,
-      // so if we reach here, the request was successful
+      const base64Image = await fileToBase64(file);
+      
+      // Send base64 image to our backend API - this persists permanently
+      const response = await api.put('/auth/profile-picture', { profilePicture: base64Image });
 
       setUploadSuccess('Profile picture updated successfully!');
       dispatch(getCurrentUser()); // Refresh user data
     } catch (error) {
-      setUploadError(error.message);
+      console.error('Profile picture upload error:', error);
+      setUploadError('Failed to upload profile picture. Please try again.');
     } finally {
       setUploading(false);
     }
