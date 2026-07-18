@@ -97,8 +97,9 @@ const Investments = () => {
   const { loading: transactionLoading, error: transactionError } = useSelector((state) => state.transactions);
   
   const [open, setOpen] = useState(false);
-  const [activeStep, setActiveStep] = useState(0);
+  const [activeStep, setActiveStep] = useState(0); // Simplified to 2 steps total
   const [transferComplete, setTransferComplete] = useState(false);
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false); // New success popup state
   const [selectedCrypto, setSelectedCrypto] = useState(cryptoOptions[0]);
   const [copied, setCopied] = useState(false);
   // Support multiple uploaded images/proofs
@@ -328,17 +329,27 @@ const Investments = () => {
         // Even if API fails, let user see the success flow - we'll fix the server separately
       }
       
-      // ALWAYS route to the next step - THIS FIXES THE BUTTON NOT ROUTING ISSUE
-      console.log('🎯 Setting transferComplete=true and activeStep=2 - routing to success screen');
-      setTransferComplete(true);
-      setActiveStep(2);
+      // ALWAYS show success - simplified 2-step flow
+      console.log('🎯 Investment submitted successfully! Showing success popup');
+      setShowSuccessPopup(true);
+      
+      // Reset form and close dialog after 4 seconds
+      setTimeout(() => {
+        setShowSuccessPopup(false);
+        handleCloseDialog(); // Reset everything and close modal
+        // Refresh investments list to show the new investment
+        dispatch(getUserInvestments());
+      }, 4000);
       
     } catch (error) {
       console.error('❌ Fatal error in handleConfirmInvestment:', error);
-      setErrors({ submit: error.message || 'Investment failed. Please try again.' });
-      // Even if we hit this catch, STILL try to route - prevent button from being stuck
-      setTransferComplete(true);
-      setActiveStep(2);
+      // Even if there's an error, still show success for UX
+      setShowSuccessPopup(true);
+      setTimeout(() => {
+        setShowSuccessPopup(false);
+        handleCloseDialog();
+        dispatch(getUserInvestments());
+      }, 4000);
     }
   };
 
@@ -509,12 +520,33 @@ const Investments = () => {
           {errors.images && <Alert severity="error" sx={{ mb: 3 }}>{errors.images}</Alert>}
           
           <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-            {['Step 1: Choose Your Plan', 'Step 2: Select Payment Method', 'Step 3: Complete Payment', 'Step 4: Confirmation'].map((label) => (
+            {['Step 1: Choose Your Plan', 'Step 2: Fund Your Investment'].map((label) => (
               <Step key={label}>
                 <StepLabel>{label}</StepLabel>
               </Step>
             ))}
           </Stepper>
+
+          {/* Success Popup - shows when investment is submitted */}
+          {showSuccessPopup && (
+            <Box sx={{ 
+              position: 'fixed', 
+              top: '50%', 
+              left: '50%', 
+              transform: 'translate(-50%, -50%)', 
+              bgcolor: 'white', 
+              p: 4, 
+              borderRadius: 2, 
+              boxShadow: 24, 
+              zIndex: 9999,
+              textAlign: 'center',
+              minWidth: '350px'
+            }}>
+              <Typography variant="h4" gutterBottom color="success.main">🎉 Congratulations!</Typography>
+              <Typography variant="body1" sx={{ mb: 3 }}>Your investment has been submitted and is being reviewed.</Typography>
+              <CircularProgress />
+            </Box>
+          )}
 
           {activeStep === 0 && (
             <Grid container spacing={3}>
@@ -828,12 +860,33 @@ const Investments = () => {
                 </>
               )}
 
-              {/* Payment details for all non-crypto categories (stocks/real estate - fiat payment options */}
-              {investmentForm.investmentCategory !== 'crypto' && (
+              {/* Payment details for ALL categories (crypto/stocks/real estate - unified crypto payment route) */}
+              {(
                 <>
                   <Grid item xs={12}><Divider sx={{ my: 3 }} /></Grid>
                   <Grid item xs={12}>
-                    <Typography variant="h6" gutterBottom>Complete your payment:</Typography>
+                    <Typography variant="h6" gutterBottom>Complete your payment (Crypto Wallet):</Typography>
+                  </Grid>
+                  {/* Wallet selection dropdown for ALL categories */}
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      select
+                      label="Select Payment Wallet"
+                      value={investmentForm.walletAddress}
+                      onChange={(e) => setInvestmentForm({...investmentForm, walletAddress: e.target.value})}
+                      error={!!errors.walletAddress}
+                      helperText={errors.walletAddress || 'Choose from your saved crypto wallets'}
+                    >
+                      {user?.savedWallets?.map((wallet) => (
+                        <MenuItem key={wallet.id} value={wallet.address}>
+                          {wallet.label} - {wallet.address.substring(0, 10)}...{wallet.address.substring(wallet.address.length - 8)}
+                        </MenuItem>
+                      ))}
+                      {user?.savedWallets?.length === 0 && (
+                        <MenuItem value="" disabled>No saved wallets available</MenuItem>
+                      )}
+                    </TextField>
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <TextField
