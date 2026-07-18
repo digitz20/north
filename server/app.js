@@ -33,32 +33,9 @@ const app = express();
 // Security middleware
 app.use(helmet());
 
-// Permanent production-ready CORS configuration with hardcoded origins
-const productionOrigins = [
-  'https://northcrestadmin.vercel.app',
-  process.env.CLIENT_URL,
-  process.env.ADMIN_URL,
-  'http://localhost:3000',
-  'http://localhost:3001',
-  'http://localhost:5173',
-  'http://localhost:5174'
-].filter(Boolean); // Remove any undefined values
-
-// CORS configuration that will always work in production
+// Ultimate CORS fix - allow everything for production deployment
 app.use(cors({
-  origin: function(origin, callback) {
-    // Always allow requests with no origin (curl/postman etc.)
-    if (!origin) return callback(null, true);
-    
-    // Allow all production origins + localhost for development
-    if (productionOrigins.indexOf(origin) !== -1 || origin.startsWith('http://localhost:')) {
-      return callback(null, true);
-    }
-    
-    // Log blocked origins for debugging
-    console.log('Blocked origin:', origin);
-    return callback(null, true); // Still allow it as a fallback
-  },
+  origin: true,
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"]
@@ -76,9 +53,16 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// Request parsing
+// Request parsing - MUST come before any middleware that reads req.body!
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Log all incoming requests for debugging
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} from origin: ${req.get('Origin') || 'unknown'}`);
+  console.log('Request body:', req.body);
+  next();
+});
 
 // Logging
 if (process.env.NODE_ENV === 'development') {
