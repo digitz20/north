@@ -13,7 +13,8 @@ const {
   deleteTaxRefund,
   getAllLoans,
   approveLoan,
-  rejectLoan
+  rejectLoan,
+  getLoanTypes
 } = require('../controllers/loanController');
 const { protect, authorize } = require('../middlewares/auth');
 
@@ -24,6 +25,9 @@ router.route('/')
 
 router.route('/eligibility')
   .post(protect, calculateEligibility);
+
+router.route('/types')
+  .get(protect, getLoanTypes);
 
 router.route('/:id')
   .get(protect, getLoan);
