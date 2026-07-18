@@ -226,9 +226,25 @@ const Investments = () => {
   const handleContinue = () => {
     const isValid = validateInvestmentForm();
     if (isValid) {
-      if (activeStep === 1) {
-        // From payment method to complete payment
-        setActiveStep(2);
+      if (activeStep === 0) {
+        // From plan selection (step 0) to payment method (step 1) - this is what "Continue to Payment Review" button should do
+        setActiveStep(1);
+        // Smooth scroll to the new content
+        setTimeout(() => {
+          window.scrollTo({
+            top: document.querySelector('[role="dialog"]')?.offsetTop || 0,
+            behavior: 'smooth'
+          });
+        }, 100);
+      } else if (activeStep === 1) {
+        // From payment method (step 1) to confirmation, which will show the confirm & submit button
+        // The UI already has the confirmation section rendered when activeStep === 1, so we just ensure it's visible
+        setTimeout(() => {
+          const confirmSection = document.querySelector('.MuiDialogActions-root');
+          if (confirmSection) {
+            confirmSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 100);
       }
     }
   };

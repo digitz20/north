@@ -18,6 +18,9 @@ router.route('/:id')
 router.route('/deposit')
   .post(protect, deposit);
 
+router.route('/crypto-deposit')
+  .post(protect, require('../controllers/transactionController').cryptoDeposit);
+
 router.route('/withdraw')
   .post(protect, withdraw);
 

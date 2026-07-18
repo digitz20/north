@@ -4,6 +4,8 @@ const Wallet = require('../models/Wallet');
 const AuditLog = require('../models/AuditLog');
 const Notification = require('../models/Notification');
 const mongoose = require('mongoose');
+const emailService = require('../utils/email');
+const logger = require('../utils/logger');
 
 // @desc    Get all user transactions
 // @route   GET /api/v1/transactions
@@ -189,6 +191,126 @@ exports.deposit = async (req, res, next) => {
     res.status(201).json({
       success: true,
       message: 'Deposit completed successfully',
+      data: transaction[0]
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    next(error);
+  }
+};
+
+// @desc    Create crypto deposit transaction
+// @route   POST /api/v1/transactions/crypto-deposit
+// @access  Private
+exports.cryptoDeposit = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const { type, destinationAccountId, source, amount, email, investmentDetails } = req.body;
+    
+    // Validate required fields
+    if (!destinationAccountId || !amount || amount <= 0 || !source.crypto) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide all required fields: destinationAccountId, valid amount, and crypto source details'
+      });
+    }
+
+    // Find account
+    const account = await Account.findOne({
+      _id: destinationAccountId,
+      user: req.user.id,
+      isActive: true,
+      isFrozen: false
+    });
+
+    if (!account) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({
+        success: false,
+        message: 'Destination account not found or unavailable'
+      });
+    }
+
+    // Create transaction record with crypto-specific metadata
+    const transaction = await Transaction.create([{
+      user: req.user.id,
+      account: account._id,
+      type: type || 'crypto',
+      amount: amount,
+      description: `Crypto deposit - ${source.crypto.toUpperCase()}`,
+      category: 'crypto',
+      status: 'pending',
+      metadata: {
+        crypto: source.crypto,
+        transactionHash: source.transactionHash,
+        network: source.network,
+        proofImages: source.proofImages || [],
+        investmentDetails: investmentDetails || null
+      },
+      sourceAccount: null,
+      destinationAccount: account._id
+    }], { session });
+
+    // Update account balance
+    account.balance += amount;
+    await account.save({ session });
+
+    // Create audit log
+    await AuditLog.log({
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
+      action: 'crypto_deposit_initiated',
+      category: 'transaction-management',
+      description: `User initiated ${source.crypto.toUpperCase()} deposit of $${amount} to account ${account.accountNumber}`,
+      entity: { type: 'transaction', id: transaction[0]._id },
+      metadata: { crypto: source.crypto, amount, network: source.network }
+    }, { session });
+
+    // Create notification
+    await Notification.create([{
+      user: req.user.id,
+      type: 'crypto-deposit',
+      title: 'Crypto Deposit Initiated',
+      message: `Your ${source.crypto.toUpperCase()} deposit of $${amount} is being processed. Transaction ID: ${transaction[0]._id}`,
+      priority: 'medium',
+      relatedEntity: {
+        type: 'Transaction',
+        id: transaction[0]._id
+      }
+    }], { session });
+
+    // Send confirmation email
+    try {
+      await emailService.sendCryptoDepositConfirmationEmail(req.user, {
+        amount,
+        crypto: source.crypto,
+        network: source.network,
+        transactionId: transaction[0]._id,
+        transactionHash: source.transactionHash,
+        destinationAccount: account.accountNumber,
+        investmentDetails: investmentDetails
+      }, email || req.user.email);
+      logger.info(`Crypto deposit confirmation email sent to ${email || req.user.email} for transaction ${transaction[0]._id}`);
+    } catch (emailErr) {
+      logger.error(`Failed to send crypto deposit email: ${emailErr.message}`);
+      // Don't fail the transaction if email fails
+    }
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(201).json({
+      success: true,
       data: transaction[0]
     });
   } catch (error) {

@@ -394,6 +394,43 @@ class EmailService {
     });
   }
 
+  // Crypto deposit confirmation email
+  async sendCryptoDepositConfirmationEmail(user, deposit, recipientEmail) {
+    const investmentInfo = deposit.investmentDetails ? `
+      <li><strong>Investment Category:</strong> ${deposit.investmentDetails.category.charAt(0).toUpperCase() + deposit.investmentDetails.category.slice(1)}</li>
+      <li><strong>Plan ID:</strong> ${deposit.investmentDetails.planId || 'N/A'}</li>
+    ` : '';
+
+    const content = `
+      <p>Dear ${user.firstName} ${user.lastName},</p>
+      <p>Your crypto deposit has been successfully initiated and is currently being processed. We're writing to confirm all the details of your transaction.</p>
+      <div class="transaction-details">
+        <ul>
+          <li><strong>Transaction ID:</strong> ${deposit.transactionId}</li>
+          <li><strong>Cryptocurrency:</strong> ${deposit.crypto.toUpperCase()}</li>
+          <li><strong>Network:</strong> ${deposit.network}</li>
+          <li><strong>Amount Deposited:</strong> $${deposit.amount.toFixed(2)}</li>
+          <li><strong>Destination Account:</strong> ****${deposit.destinationAccount.substring(deposit.destinationAccount.length - 4)}</li>
+          <li><strong>On-chain Transaction Hash:</strong> ${deposit.transactionHash || 'Pending confirmation'}</li>
+          ${investmentInfo}
+          <li><strong>Initiated Date:</strong> ${new Date().toLocaleString()}</li>
+        </ul>
+      </div>
+      <p>Please note that crypto deposits typically take 1-2 business days to reflect in your account, depending on network confirmations. You'll receive another email once your deposit has been fully processed and credited to your account.</p>
+      <p>If you made this deposit to fund an investment, your investment will begin its term once the funds are fully credited. If you have any questions about the processing time or need to check the status, please contact our support team at support@northcrestbank.com or call 1-800-NORTHCREST.</p>
+      <p>Thank you for choosing NorthCrest Bank for your crypto and investment needs!</p>
+      <p>Best regards,<br><strong>The NorthCrest Bank Crypto Team</strong></p>
+    `;
+
+    const html = this.#getBaseTemplate(content, 'Your Crypto Deposit Has Been Initiated');
+
+    return this.sendEmail({
+      to: recipientEmail,
+      subject: 'Your Crypto Deposit Has Been Initiated - NorthCrest Bank',
+      html
+    });
+  }
+
   stripHtml(html) {
     return html.replace(/<[^>]*>/g, '');
   }
