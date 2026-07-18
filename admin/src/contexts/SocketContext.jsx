@@ -13,9 +13,10 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
-    if (token) {
+    // Only connect if we have a valid token (not null/undefined)
+    if (token && token !== 'undefined' && token !== 'null') {
       // Initialize socket connection
-      const newSocket = io('https://established-vanny-digitz-b5fdc94b.koyeb.app', {
+      const newSocket = io(process.env.REACT_APP_API_URL || 'https://established-vanny-digitz-b5fdc94b.koyeb.app', {
         auth: { token },
         query: { token },
         reconnection: true,

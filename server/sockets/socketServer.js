@@ -51,7 +51,7 @@ const checkRateLimit = (userId) => {
 const initializeSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: [process.env.CLIENT_URL, process.env.ADMIN_URL],
+      origin: true,
       methods: ['GET', 'POST'],
       credentials: true
     }
