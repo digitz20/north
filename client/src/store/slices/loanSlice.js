@@ -39,7 +39,7 @@ export const getUserLoans = createAsyncThunk(
     try {
       const response = await api.get('/loans');
       // Format all loans for UI
-      const formattedLoans = response.data.data.loans.map(formatLoanForUI);
+      const formattedLoans = response.data.data.map(formatLoanForUI);
       return { ...response.data.data, loans: formattedLoans };
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch loans');

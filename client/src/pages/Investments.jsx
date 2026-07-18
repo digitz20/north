@@ -311,7 +311,7 @@ const Investments = () => {
       )}
 
       {/* Loading State */}
-      {loading ? (
+      {investmentsLoading || authLoading || accountsLoading || transactionLoading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
           <CircularProgress size={60} />
         </Box>
