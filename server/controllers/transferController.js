@@ -265,12 +265,4 @@ exports.deleteTransfer = async (req, res, next) => {
   }
 };
 
-module.exports = {
-  getUserTransfers,
-  getUserTransfer,
-  createTransfer,
-  getAllTransfers,
-  getTransfer,
-  updateTransfer,
-  deleteTransfer
-};
+// All functions already exported with exports.* syntax above, no need for redundant module.exports

@@ -317,13 +317,4 @@ exports.deleteAdminAccount = async (req, res, next) => {
   }
 };
 
-module.exports = {
-  getAccounts,
-  getAccount,
-  createAccount,
-  updateAccount,
-  deleteAccount,
-  getAdminAccounts,
-  updateAdminAccount,
-  deleteAdminAccount
-};
+// All functions already exported with exports.* syntax above, no need for redundant module.exports
