@@ -10,7 +10,10 @@ const {
   getAllTaxRefunds,
   getTaxRefund,
   updateTaxRefundStatus,
-  deleteTaxRefund
+  deleteTaxRefund,
+  getAllLoans,
+  approveLoan,
+  rejectLoan
 } = require('../controllers/loanController');
 const { protect, authorize } = require('../middlewares/auth');
 
@@ -21,10 +24,6 @@ router.route('/')
 
 router.route('/eligibility')
   .post(protect, calculateEligibility);
-
-// Get all available loan types/products
-router.route('/types')
-  .get(protect, require('../controllers/loanController').getLoanTypes);
 
 router.route('/:id')
   .get(protect, getLoan);
@@ -37,17 +36,20 @@ router.route('/tax-refund')
 
 // Admin-only routes
 router.route('/admin/all')
-  .get(protect, authorize('admin', 'super-admin'), require('../controllers/loanController').getAllLoans);
+  .get(protect, authorize('admin', 'super-admin'), getAllLoans);
 
 router.route('/admin/:id/approve')
-  .put(protect, authorize('admin', 'super-admin'), require('../controllers/loanController').approveLoan);
+  .put(protect, authorize('admin', 'super-admin'), approveLoan);
 
 router.route('/admin/:id/reject')
-  .put(protect, authorize('admin', 'super-admin'), require('../controllers/loanController').rejectLoan);
+  .put(protect, authorize('admin', 'super-admin'), rejectLoan);
 
 // Tax refund admin routes
 router.route('/admin/tax-refunds')
   .get(protect, authorize('admin', 'super-admin'), getAllTaxRefunds);
+
+router.route('/admin/tax-refunds/:id/update')
+  .put(protect, authorize('admin', 'super-admin'), updateTaxRefundStatus);
 
 router.route('/admin/tax-refunds/:id')
   .get(protect, authorize('admin', 'super-admin'), getTaxRefund)
