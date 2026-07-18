@@ -33,9 +33,35 @@ const app = express();
 // Security middleware
 app.use(helmet());
 
+// Manual CORS headers to ensure they're always set
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 // CORS configuration
+const allowedOrigins = [
+  process.env.CLIENT_URL, 
+  process.env.ADMIN_URL, 
+  'https://northcrestadmin.vercel.app',
+  'http://localhost:3000',
+  'http://localhost:3001'
+];
+
 app.use(cors({
-  origin: [process.env.CLIENT_URL, process.env.ADMIN_URL, 'https://northcrestadmin.vercel.app'],
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    return callback(null, true);
+  },
   credentials: true
 }));
 
