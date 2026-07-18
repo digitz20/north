@@ -668,13 +668,15 @@ const Investments = () => {
                 <Typography variant="body1" color="text.secondary" gutterBottom>Choose how you'd like to fund your investment</Typography>
               </Grid>
 
-              {/* Crypto Payment Details (only show for crypto category) */}
+              {/* Unified payment section for ALL categories - clean and organized */}
+              <Grid item xs={12}><Divider sx={{ my: 3 }} /></Grid>
+              <Grid item xs={12}>
+                <Typography variant="h6" gutterBottom>Complete your payment:</Typography>
+              </Grid>
+
+              {/* Show crypto-specific fields only for crypto category */}
               {investmentForm.investmentCategory === 'crypto' && (
                 <>
-                  <Grid item xs={12}><Divider sx={{ my: 3 }} /></Grid>
-                  <Grid item xs={12}>
-                    <Typography variant="h6" gutterBottom>Select Cryptocurrency to send payment:</Typography>
-                  </Grid>
                   <Grid item xs={12} md={6}>
                     <TextField
                       select
@@ -752,55 +754,6 @@ const Investments = () => {
                       helperText={errors.transactionHash || `Enter your ${selectedCrypto.symbol} transaction hash`}
                     />
                   </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Notification Email"
-                      type="email"
-                      value={investmentForm.email}
-                      onChange={(e) => setInvestmentForm({...investmentForm, email: e.target.value})}
-                      InputProps={{ endAdornment: <Email color="action" /> }}
-                    />
-                  </Grid>
-
-                  {/* Multiple image upload support */}
-                  <Grid item xs={12}>
-                    <Button
-                      variant="outlined"
-                      component="label"
-                      fullWidth
-                      startIcon={<UploadFile />}
-                      sx={{ height: '56px', borderStyle: 'dashed' }}
-                    >
-                      Upload Multiple Transaction Proofs (Screenshots)
-                      <input
-                        type="file"
-                        hidden
-                        accept="image/*"
-                        multiple
-                        onChange={handleMultipleImagesUpload}
-                      />
-                    </Button>
-                    {/* Show all uploaded image previews */}
-                    {imagePreviews.length > 0 && (
-                      <Grid container spacing={2} mt={2}>
-                        {imagePreviews.map((preview, index) => (
-                          <Grid item xs={6} md={3} key={index}>
-                            <Box position="relative">
-                              <img src={preview} alt={`Transaction proof ${index+1}`} style={{ width: '100%', borderRadius: 4 }} />
-                              <IconButton
-                                size="small"
-                                sx={{ position: 'absolute', top: 4, right: 4, bgcolor: 'white' }}
-                                onClick={() => removeImage(index)}
-                              >
-                                <Close fontSize="small" />
-                              </IconButton>
-                            </Box>
-                          </Grid>
-                        ))}
-                      </Grid>
-                    )}
-                  </Grid>
 
                   {/* Our official crypto address to send payment to */}
                   <Grid item xs={12}>
@@ -833,66 +786,17 @@ const Investments = () => {
                       </Box>
                     </Card>
                   </Grid>
-
-                  {/* Navigation buttons */}
-                  <Grid item xs={6}>
-                    <Button 
-                      variant="outlined" 
-                      size="large" 
-                      fullWidth
-                      onClick={handleBackToPlanSelection}
-                      sx={{ py: 2 }}
-                    >
-                      ← Back to Plan Selection
-                    </Button>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Button 
-                      variant="contained" 
-                      size="large" 
-                      fullWidth
-                      onClick={handleContinue}
-                      sx={{ background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)', py: 2 }}
-                    >
-                      Continue to Payment Review →
-                    </Button>
-                  </Grid>
                 </>
               )}
 
-              {/* Payment details for ALL categories (crypto/stocks/real estate - unified crypto payment route) */}
-              {(
+              {/* Show bank transfer fields for stocks and real estate categories */}
+              {investmentForm.investmentCategory !== 'crypto' && (
                 <>
-                  <Grid item xs={12}><Divider sx={{ my: 3 }} /></Grid>
-                  <Grid item xs={12}>
-                    <Typography variant="h6" gutterBottom>Complete your payment (Crypto Wallet):</Typography>
-                  </Grid>
-                  {/* Wallet selection dropdown for ALL categories */}
                   <Grid item xs={12} md={6}>
                     <TextField
                       fullWidth
                       select
-                      label="Select Payment Wallet"
-                      value={investmentForm.walletAddress}
-                      onChange={(e) => setInvestmentForm({...investmentForm, walletAddress: e.target.value})}
-                      error={!!errors.walletAddress}
-                      helperText={errors.walletAddress || 'Choose from your saved crypto wallets'}
-                    >
-                      {user?.savedWallets?.map((wallet) => (
-                        <MenuItem key={wallet.id} value={wallet.address}>
-                          {wallet.label} - {wallet.address.substring(0, 10)}...{wallet.address.substring(wallet.address.length - 8)}
-                        </MenuItem>
-                      ))}
-                      {user?.savedWallets?.length === 0 && (
-                        <MenuItem value="" disabled>No saved wallets available</MenuItem>
-                      )}
-                    </TextField>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
                       label="Destination Account"
-                      select
                       value={investmentForm.destinationAccount}
                       onChange={(e) => setInvestmentForm({...investmentForm, destinationAccount: e.target.value})}
                       error={!!errors.destinationAccount}
@@ -915,55 +819,6 @@ const Investments = () => {
                       helperText={errors.transactionHash || 'Enter your bank transfer reference ID'}
                     />
                   </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Notification Email"
-                      type="email"
-                      value={investmentForm.email}
-                      onChange={(e) => setInvestmentForm({...investmentForm, email: e.target.value})}
-                      InputProps={{ endAdornment: <Email color="action" /> }}
-                    />
-                  </Grid>
-
-                  {/* Multiple image upload support for all categories */}
-                  <Grid item xs={12}>
-                    <Button
-                      variant="outlined"
-                      component="label"
-                      fullWidth
-                      startIcon={<UploadFile />}
-                      sx={{ height: '56px', borderStyle: 'dashed' }}
-                    >
-                      Upload Multiple Transaction Proofs (Screenshots)
-                      <input
-                        type="file"
-                        hidden
-                        accept="image/*"
-                        multiple
-                        onChange={handleMultipleImagesUpload}
-                      />
-                    </Button>
-                    {/* Show all uploaded image previews */}
-                    {imagePreviews.length > 0 && (
-                      <Grid container spacing={2} mt={2}>
-                        {imagePreviews.map((preview, index) => (
-                          <Grid item xs={6} md={3} key={index}>
-                            <Box position="relative">
-                              <img src={preview} alt={`Transaction proof ${index+1}`} style={{ width: '100%', borderRadius: 4 }} />
-                              <IconButton
-                                size="small"
-                                sx={{ position: 'absolute', top: 4, right: 4, bgcolor: 'white' }}
-                                onClick={() => removeImage(index)}
-                              >
-                                <Close fontSize="small" />
-                              </IconButton>
-                            </Box>
-                          </Grid>
-                        ))}
-                      </Grid>
-                    )}
-                  </Grid>
 
                   {/* Bank transfer details for fiat payments */}
                   <Grid item xs={12}>
@@ -980,32 +835,83 @@ const Investments = () => {
                       </Typography>
                     </Card>
                   </Grid>
-
-                  {/* Navigation buttons */}
-                  <Grid item xs={6}>
-                    <Button 
-                      variant="outlined" 
-                      size="large" 
-                      fullWidth
-                      onClick={handleBackToPlanSelection}
-                      sx={{ py: 2 }}
-                    >
-                      ← Back to Plan Selection
-                    </Button>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Button 
-                      variant="contained" 
-                      size="large" 
-                      fullWidth
-                      onClick={handleContinue}
-                      sx={{ background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)', py: 2 }}
-                    >
-                      Continue to Payment Review →
-                    </Button>
-                  </Grid>
                 </>
               )}
+
+              {/* Common fields for ALL categories */}
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Notification Email"
+                  type="email"
+                  value={investmentForm.email}
+                  onChange={(e) => setInvestmentForm({...investmentForm, email: e.target.value})}
+                  InputProps={{ endAdornment: <Email color="action" /> }}
+                />
+              </Grid>
+
+              {/* Multiple image upload support for all categories */}
+              <Grid item xs={12}>
+                <Button
+                  variant="outlined"
+                  component="label"
+                  fullWidth
+                  startIcon={<UploadFile />}
+                  sx={{ height: '56px', borderStyle: 'dashed' }}
+                >
+                  Upload Multiple Transaction Proofs (Screenshots)
+                  <input
+                    type="file"
+                    hidden
+                    accept="image/*"
+                    multiple
+                    onChange={handleMultipleImagesUpload}
+                  />
+                </Button>
+                {/* Show all uploaded image previews */}
+                {imagePreviews.length > 0 && (
+                  <Grid container spacing={2} mt={2}>
+                    {imagePreviews.map((preview, index) => (
+                      <Grid item xs={6} md={3} key={index}>
+                        <Box position="relative">
+                          <img src={preview} alt={`Transaction proof ${index+1}`} style={{ width: '100%', borderRadius: 4 }} />
+                          <IconButton
+                            size="small"
+                            sx={{ position: 'absolute', top: 4, right: 4, bgcolor: 'white' }}
+                            onClick={() => removeImage(index)}
+                          >
+                            <Close fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      </Grid>
+                    ))}
+                  </Grid>
+                )}
+              </Grid>
+
+              {/* Navigation buttons */}
+              <Grid item xs={6}>
+                <Button 
+                  variant="outlined" 
+                  size="large" 
+                  fullWidth
+                  onClick={handleBackToPlanSelection}
+                  sx={{ py: 2 }}
+                >
+                  ← Back to Plan Selection
+                </Button>
+              </Grid>
+              <Grid item xs={6}>
+                <Button 
+                  variant="contained" 
+                  size="large" 
+                  fullWidth
+                  onClick={handleContinue}
+                  sx={{ background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)', py: 2 }}
+                >
+                  Continue to Payment Review →
+                </Button>
+              </Grid>
             </Grid>
           )}
 
