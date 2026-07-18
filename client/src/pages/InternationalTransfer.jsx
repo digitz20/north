@@ -97,7 +97,7 @@ const savedWallets = [
 // Permanent transfer methods (never removed - permanent feature)
 const transferMethods = [
   { id: 'bank-transfer', name: 'Bank Transfer', icon: '🏦', description: 'SWIFT/SEPA transfer' },
-  { id: 'crypto-transfer', name: 'Cryptocurrency', icon: '₿', description: 'Crypto wallet transfer' },
+  { id: 'crypto-transfer', name: 'Cryptocurrency', icon: '₿', description: 'Deposit crypto from your wallet' },
   { id: 'wire-transfer', name: 'Wire Transfer', icon: '💻', description: 'Same-day wire transfer' }
 ];
 
@@ -145,8 +145,7 @@ const InternationalTransfer = () => {
     crypto: 'btc'
   });
 
-  // Generate unique transaction ID for crypto deposits
-  const [transactionId] = useState('6a5b73552d571f3c71d860c4');
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -184,17 +183,11 @@ const InternationalTransfer = () => {
     if (!transferForm.amount || parseFloat(transferForm.amount) <= 0) {
       newErrors.amount = 'Please enter a valid amount';
     }
-    if (!transferForm.destinationAccount) {
-      newErrors.destinationAccount = 'Please select or enter a destination account';
-    }
     
     // Crypto-specific validation
     if (transferForm.method === 'crypto-transfer') {
       if (!transferForm.sourceWalletAddress || transferForm.sourceWalletAddress === 'new') {
         newErrors.sourceWalletAddress = 'Please enter your source wallet address';
-      }
-      if (!transferForm.transactionHash) {
-        newErrors.transactionHash = 'Please enter your transaction hash';
       }
       if (uploadedProofs.length === 0) {
         newErrors.proofs = 'Please upload at least one proof of transaction';
@@ -244,16 +237,15 @@ const InternationalTransfer = () => {
     if (transferForm.method === 'crypto-transfer') {
       const depositData = {
         amount: parseFloat(transferForm.amount),
-        destinationAccountId: transferForm.destinationAccount,
         walletAddress: transferForm.sourceWalletAddress,
-        transactionHash: transferForm.transactionHash,
         crypto: transferForm.crypto,
         email: transferForm.recipientEmail,
-        transactionId: transactionId,
         proofs: uploadedProofs.map(file => file.name)
       };
       
       await dispatch(processCryptoDeposit(depositData));
+      // After successful deposit, move to completion step
+      setActiveStep(2);
     } else {
       // Use regular international transfer API for bank/wire transfers
       const transferData = {
@@ -275,6 +267,9 @@ const InternationalTransfer = () => {
       };
       
       await dispatch(createInternationalTransfer(transferData));
+      setOpenTransferDialog(false);
+      setActiveStep(0);
+      navigate('/transactions');
     }
   };
 
@@ -289,7 +284,7 @@ const InternationalTransfer = () => {
     {
       id: 'crypto-transfer',
       title: 'Cryptocurrency',
-      description: 'Send funds to your cryptocurrency wallet.',
+      description: 'Deposit cryptocurrency to your account using your crypto wallet.',
       icon: <CurrencyBitcoin sx={{ fontSize: 40 }} />,
       color: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'
     },
@@ -461,27 +456,73 @@ const InternationalTransfer = () => {
               ))}
             </Stepper>
 
-            {/* Step 1: Enter Deposit Details */}
-            {activeStep === 0 && transferForm.method === 'crypto-transfer' && (
+            {/* Step 1: Enter Deposit Details - Show QR Code and address first */}
+            {activeStep === 0 && transferForm.method === 'crypto-transfer' && selectedCrypto && (
               <Grid container spacing={3} sx={{ mt: 1 }}>
-                {/* Transaction ID display */}
+                {/* Show QR Code and wallet address immediately */}
                 <Grid item xs={12}>
-                  <Paper sx={{ p: 2, bgcolor: 'rgba(0,102,255,0.05)', border: '1px solid rgba(0,102,255,0.1)' }}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>Transaction ID</Typography>
-                    <Typography variant="body1" sx={{ fontFamily: 'monospace', color: '#0066FF' }}>{transactionId}</Typography>
+                  <Paper sx={{ p: 3, bgcolor: 'rgba(0,200,150,0.05)', border: '1px solid rgba(0,200,150,0.2)', borderRadius: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: '#00c896' }}>
+                      Send your {selectedCrypto.name} to our official address:
+                    </Typography>
+                    
+                    <Grid container spacing={3}>
+                      <Grid item xs={12} md={6}>
+                        {/* QR Code placeholder */}
+                        <Box sx={{ 
+                          width: 200, 
+                          height: 200, 
+                          bgcolor: 'white', 
+                          border: '1px solid #ccc',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          borderRadius: 2,
+                          mb: 2
+                        }}>
+                          <Typography variant="body2" color="text.secondary">QR Code</Typography>
+                        </Box>
+                        <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Scan to send {selectedCrypto.symbol}</Typography>
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <Box sx={{ mb: 2 }}>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>Wallet Address:</Typography>
+                          <Typography variant="body2" sx={{ wordBreak: 'break-all', fontFamily: 'monospace' }}>
+                            {selectedCrypto.address}
+                          </Typography>
+                          <Tooltip title={copied ? "Copied!" : "Copy address"}>
+                            <IconButton 
+                              color="primary"
+                              onClick={() => copyToClipboard(selectedCrypto.address)}
+                              size="small"
+                            >
+                              <ContentCopy />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                        <Box>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>Network:</Typography>
+                          <Typography variant="body1" color="primary">{selectedCrypto.network}</Typography>
+                        </Box>
+                      </Grid>
+                    </Grid>
                   </Paper>
                 </Grid>
 
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Destination Account"
-                    value={transferForm.destinationAccount}
-                    onChange={(e) => setTransferForm(prev => ({ ...prev, destinationAccount: e.target.value }))}
-                    error={!!errors.destinationAccount}
-                    helperText={errors.destinationAccount}
-                    placeholder="Enter your destination account number"
-                  />
+                    label="Cryptocurrency"
+                    value={transferForm.crypto}
+                    onChange={(e) => handleCryptoChange(e.target.value)}
+                    select
+                  >
+                    {cryptoOptions.map((crypto) => (
+                      <MenuItem key={crypto.id} value={crypto.id}>
+                        {crypto.name} ({crypto.symbol})
+                      </MenuItem>
+                    ))}
+                  </TextField>
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
@@ -494,23 +535,6 @@ const InternationalTransfer = () => {
                     helperText={errors.amount}
                     placeholder="Enter amount in USD"
                   />
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    select
-                    fullWidth
-                    label="Cryptocurrency"
-                    value={transferForm.crypto}
-                    onChange={(e) => handleCryptoChange(e.target.value)}
-                    error={!!errors.crypto}
-                  >
-                    {cryptoOptions.map((crypto) => (
-                      <MenuItem key={crypto.id} value={crypto.id}>
-                        {crypto.name} ({crypto.symbol})
-                      </MenuItem>
-                    ))}
-                  </TextField>
                 </Grid>
 
                 <Grid item xs={12} md={6}>
@@ -567,19 +591,6 @@ const InternationalTransfer = () => {
                     />
                   </Grid>
                 )}
-
-                {/* Transaction hash field */}
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Transaction Hash / Source Wallet Address"
-                    value={transferForm.transactionHash}
-                    onChange={(e) => setTransferForm(prev => ({ ...prev, transactionHash: e.target.value }))}
-                    error={!!errors.transactionHash}
-                    helperText={errors.transactionHash || `Enter your ${selectedCrypto?.symbol || 'BTC'} transaction hash or source wallet address`}
-                    placeholder="Enter your transaction hash"
-                  />
-                </Grid>
 
                 {/* Proof upload section */}
                 <Grid item xs={12}>
