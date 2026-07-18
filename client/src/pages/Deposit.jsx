@@ -417,12 +417,12 @@ const Deposit = () => {
               onChange={(e) => setCryptoForm(prev => ({ ...prev, transactionHash: e.target.value, savedWalletAddress: e.target.value }))}
               helperText="Select from your saved crypto wallets or enter a new one below"
             >
-              {savedWallets.filter(wallet => wallet.crypto === cryptoForm.crypto).map((wallet) => (
+              {userWallets.filter(wallet => wallet.crypto === cryptoForm.crypto).map((wallet) => (
                 <MenuItem key={wallet.id} value={wallet.address}>
                   {wallet.label} - {wallet.address.substring(0, 10)}...{wallet.address.substring(wallet.address.length - 8)}
                 </MenuItem>
               ))}
-              {savedWallets.filter(wallet => wallet.crypto === cryptoForm.crypto).length === 0 && (
+              {userWallets.filter(wallet => wallet.crypto === cryptoForm.crypto).length === 0 && (
                 <MenuItem value="" disabled>No saved addresses for this cryptocurrency</MenuItem>
               )}
             </TextField>
