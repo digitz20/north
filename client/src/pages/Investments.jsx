@@ -113,6 +113,7 @@ const Investments = () => {
     destinationAccount: '',
     crypto: 'btc',
     transactionHash: '',
+    walletAddress: '', // New wallet selection field for all categories
     savedWalletAddress: '',
     email: ''
   });
@@ -231,6 +232,7 @@ const Investments = () => {
   const validateInvestmentForm = () => {
     const newErrors = {};
     if (!investmentForm.destinationAccount) newErrors.destinationAccount = 'Please select a destination account';
+    if (!investmentForm.walletAddress) newErrors.walletAddress = 'Please select a payment wallet';
     if (!investmentForm.amount || parseFloat(investmentForm.amount) <= 0) newErrors.amount = 'Please enter a valid amount';
     
     // Validate amount against selected plan's minimum
@@ -329,6 +331,7 @@ const Investments = () => {
       destinationAccount: accounts[0]?.id || '',
       crypto: 'btc',
       transactionHash: '',
+      walletAddress: '', // New wallet selection field
       savedWalletAddress: '',
       email: user?.email || ''
     });
