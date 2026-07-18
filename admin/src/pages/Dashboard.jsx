@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -21,6 +22,7 @@ import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import api from '../services/api';
 
 const AdminDashboard = () => {
+  const location = useLocation();
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalAccounts: 0,
@@ -31,8 +33,9 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     fetchDashboardData();
-  }, []);
+  }, [location.pathname]);
 
   const fetchDashboardData = async () => {
     try {

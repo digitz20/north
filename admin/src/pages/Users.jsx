@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -24,6 +25,7 @@ import BlockIcon from '@mui/icons-material/Block';
 import api from '../services/api';
 
 const Users = () => {
+  const location = useLocation();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -31,8 +33,9 @@ const Users = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
+    setLoading(true);
     fetchUsers();
-  }, []);
+  }, [location.pathname]);
 
   const fetchUsers = async () => {
     try {
@@ -62,7 +65,7 @@ const Users = () => {
   };
 
   const filteredUsers = users.filter(user =>
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -104,7 +107,7 @@ const Users = () => {
             <TableBody>
               {filteredUsers.map((user) => (
                 <TableRow key={user._id}>
-                  <TableCell>{user.name}</TableCell>
+                  <TableCell>{user.fullName}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>
                     <Chip
@@ -153,7 +156,7 @@ const Users = () => {
             <Grid container spacing={2} sx={{ mt: 1 }}>
               <Grid item xs={6}>
                 <Typography variant="subtitle2">Name</Typography>
-                <Typography>{selectedUser.name}</Typography>
+                <Typography>{selectedUser.fullName}</Typography>
               </Grid>
               <Grid item xs={6}>
                 <Typography variant="subtitle2">Email</Typography>

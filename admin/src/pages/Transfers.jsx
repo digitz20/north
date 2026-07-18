@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -18,6 +19,7 @@ import {
 import api from '../services/api';
 
 const Transfers = () => {
+  const location = useLocation();
   const [transfers, setTransfers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -28,9 +30,10 @@ const Transfers = () => {
   });
 
   useEffect(() => {
+    setLoading(true);
     fetchTransfers();
     fetchStats();
-  }, []);
+  }, [location.pathname]);
 
   const fetchTransfers = async () => {
     try {

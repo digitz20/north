@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -24,6 +25,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import api from '../services/api';
 
 const SupportTickets = () => {
+  const location = useLocation();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedTicket, setSelectedTicket] = useState(null);
@@ -31,8 +33,9 @@ const SupportTickets = () => {
   const [replyMessage, setReplyMessage] = useState('');
 
   useEffect(() => {
+    setLoading(true);
     fetchTickets();
-  }, []);
+  }, [location.pathname]);
 
   const fetchTickets = async () => {
     try {

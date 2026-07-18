@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -27,6 +28,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import api from '../services/api';
 
 const Accounts = () => {
+  const location = useLocation();
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedAccount, setSelectedAccount] = useState(null);
@@ -34,8 +36,9 @@ const Accounts = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
+    setLoading(true);
     fetchAccounts();
-  }, []);
+  }, [location.pathname]);
 
   const fetchAccounts = async () => {
     try {

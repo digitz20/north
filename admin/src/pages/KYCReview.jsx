@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -25,6 +26,7 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import api from '../services/api';
 
 const KYCReview = () => {
+  const location = useLocation();
   const [kycApplications, setKYCApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedApplication, setSelectedApplication] = useState(null);
@@ -32,8 +34,9 @@ const KYCReview = () => {
   const [rejectionReason, setRejectionReason] = useState('');
 
   useEffect(() => {
+    setLoading(true);
     fetchKYCApplications();
-  }, []);
+  }, [location.pathname]);
 
   const fetchKYCApplications = async () => {
     try {

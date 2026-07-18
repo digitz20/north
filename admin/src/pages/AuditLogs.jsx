@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -24,6 +25,7 @@ import DownloadIcon from '@mui/icons-material/Download';
 import api from '../services/api';
 
 const AuditLogs = () => {
+  const location = useLocation();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -35,9 +37,10 @@ const AuditLogs = () => {
   });
 
   useEffect(() => {
+    setLoading(true);
     fetchAuditLogs();
     fetchStats();
-  }, []);
+  }, [location.pathname]);
 
   const fetchAuditLogs = async () => {
     try {
@@ -60,7 +63,7 @@ const AuditLogs = () => {
   };
 
   const filteredLogs = logs.filter(log => {
-    const matchesSearch = log.user?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = log.user?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       log.action.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = !actionFilter || log.action === actionFilter;
     return matchesSearch && matchesFilter;
@@ -186,7 +189,7 @@ const AuditLogs = () => {
               {filteredLogs.map((log) => (
                 <TableRow key={log._id}>
                   <TableCell>{new Date(log.timestamp).toLocaleString()}</TableCell>
-                  <TableCell>{log.user?.name || 'System'}</TableCell>
+                  <TableCell>{log.user?.fullName || 'System'}</TableCell>
                   <TableCell>{log.action}</TableCell>
                   <TableCell>{log.ipAddress}</TableCell>
                   <TableCell>

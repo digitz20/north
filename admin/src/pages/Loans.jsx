@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -25,6 +26,7 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import api from '../services/api';
 
 const Loans = () => {
+  const location = useLocation();
   const [loans, setLoans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedLoan, setSelectedLoan] = useState(null);
@@ -32,8 +34,9 @@ const Loans = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
+    setLoading(true);
     fetchLoans();
-  }, []);
+  }, [location.pathname]);
 
   const fetchLoans = async () => {
     try {
@@ -116,7 +119,7 @@ const Loans = () => {
               {filteredLoans.map((loan) => (
                 <TableRow key={loan._id}>
                   <TableCell>{loan.loanId}</TableCell>
-                  <TableCell>{loan.user?.name}</TableCell>
+                  <TableCell>{loan.user?.fullName}</TableCell>
                   <TableCell>{loan.loanType}</TableCell>
                   <TableCell>${loan.amount.toLocaleString()}</TableCell>
                   <TableCell>{loan.interestRate}%</TableCell>
@@ -148,7 +151,7 @@ const Loans = () => {
             <Grid container spacing={2} sx={{ mt: 1 }}>
               <Grid item xs={6}>
                 <Typography variant="subtitle2">Borrower</Typography>
-                <Typography>{selectedLoan.user?.name}</Typography>
+                <Typography>{selectedLoan.user?.fullName}</Typography>
               </Grid>
               <Grid item xs={6}>
                 <Typography variant="subtitle2">Email</Typography>
