@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Box, Typography, Paper, Grid, Avatar, Button, Divider, Chip, CircularProgress, Alert } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
 import { useLocation } from 'react-router-dom';
@@ -11,6 +11,10 @@ const Profile = () => {
   const location = useLocation();
   const { user, loading: authLoading } = useSelector((state) => state.auth);
   const { accounts, loading: accountsLoading } = useSelector((state) => state.accounts);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const [uploadSuccess, setUploadSuccess] = useState('');
+  const fileInputRef = useRef(null);
   
   useEffect(() => {
     // Always refetch fresh data when navigating to profile page
@@ -29,6 +33,47 @@ const Profile = () => {
   const getInitials = (name) => {
     if (!name) return 'JD';
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  const handleFileChange = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Reset status messages
+    setUploadError('');
+    setUploadSuccess('');
+    setUploading(true);
+
+    try {
+      // For now, we'll create a local object URL for preview
+      // In a production app, you would upload to cloudinary first and get a URL
+      const imageUrl = URL.createObjectURL(file);
+      
+      // Send to our backend API
+      const response = await fetch('/api/v1/auth/profile-picture', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ profilePicture: imageUrl })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload profile picture');
+      }
+
+      setUploadSuccess('Profile picture updated successfully!');
+      dispatch(getCurrentUser()); // Refresh user data
+    } catch (error) {
+      setUploadError(error.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current.click();
   };
 
   if (authLoading || accountsLoading) {
@@ -55,11 +100,19 @@ const Profile = () => {
         <Grid item xs={12} md={4}>
           <Paper sx={{ p: 4, textAlign: 'center' }}>
             <Avatar
-              sx={{ width: 120, height: 120, mx: 'auto', mb: 2, fontSize: 48 }}
+              sx={{ width: 120, height: 120, mx: 'auto', mb: 2, fontSize: 48, bgcolor: 'primary.main' }}
+              src={user?.profilePicture || ''}
             >
-              {getInitials(user.name)}
+              {getInitials(user.fullName)}
             </Avatar>
-            <Typography variant="h5">{user.name}</Typography>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              accept="image/*"
+              style={{ display: 'none' }}
+            />
+            <Typography variant="h5">{user.fullName}</Typography>
             <Chip label={user.isVerified ? 'Verified' : 'Unverified'} color={user.isVerified ? 'success' : 'warning'} sx={{ mt: 1 }} />
             <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
               Customer ID: {user.customerId || 'N/A'}
@@ -67,7 +120,19 @@ const Profile = () => {
             <Typography variant="body2" color="text.secondary">
               Member since: {formatMemberSince(user.createdAt)}
             </Typography>
-            <Button variant="outlined" sx={{ mt: 3 }}>Edit Profile</Button>
+            <Box sx={{ mt: 2 }}>
+              <Button 
+                variant="contained" 
+                onClick={handleUploadClick}
+                disabled={uploading}
+                sx={{ mr: 1 }}
+              >
+                {uploading ? <CircularProgress size={24} /> : 'Upload Photo'}
+              </Button>
+              <Button variant="outlined" sx={{ mt: 2 }}>Edit Profile</Button>
+            </Box>
+            {uploadError && <Alert severity="error" sx={{ mt: 2 }}>{uploadError}</Alert>}
+            {uploadSuccess && <Alert severity="success" sx={{ mt: 2 }}>{uploadSuccess}</Alert>}
           </Paper>
         </Grid>
 

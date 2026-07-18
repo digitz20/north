@@ -184,7 +184,10 @@ const DashboardLayout = () => {
                 onClick={handleProfileMenuOpen}
                 sx={{ ml: 2 }}
               >
-                <Avatar sx={{ bgcolor: 'primary.main', width: 36, height: 36 }}>
+                <Avatar 
+                  sx={{ bgcolor: 'primary.main', width: 36, height: 36 }}
+                  src={user?.profilePicture || ''}
+                >
                   {user?.fullName?.charAt(0) || 'U'}
                 </Avatar>
               </IconButton>

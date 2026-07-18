@@ -422,7 +422,8 @@ exports.login = async (req, res, next) => {
           fullName: user.fullName,
           email: user.email,
           role: user.role,
-          isVerified: user.isVerified
+          isVerified: user.isVerified,
+          profilePicture: user.profilePicture
         }
       }
     });
@@ -621,6 +622,53 @@ exports.resendVerificationEmail = async (req, res, next) => {
       data: {
         userId: user._id,
         otpId: otp._id
+      }
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Upload profile picture
+// @route   PUT /api/v1/auth/profile-picture
+// @access  Private
+exports.uploadProfilePicture = async (req, res, next) => {
+  try {
+    const { profilePicture } = req.body;
+    
+    if (!profilePicture) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a profile picture URL'
+      });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    user.profilePicture = profilePicture;
+    await user.save();
+
+    // Create audit log
+    await AuditLog.log({
+      actor: { user: req.user._id, role: req.user.role, ip: req.ip, userAgent: req.get('User-Agent') },
+      action: 'profile_picture_updated',
+      category: 'user-management',
+      description: `User updated their profile picture: ${user.email}`,
+      entity: { type: 'user', id: user._id, name: user.fullName }
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Profile picture updated successfully',
+      data: {
+        profilePicture: user.profilePicture
       }
     });
 

@@ -85,6 +85,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     select: false
   },
+  profilePicture: {
+    type: String,
+    default: ''
+  },
   refreshTokens: [{
     token: String,
     expires: Date,

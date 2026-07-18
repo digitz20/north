@@ -9,7 +9,8 @@ const {
   logout,
   forgotPassword,
   resetPassword,
-  getMe
+  getMe,
+  uploadProfilePicture
 } = require('../controllers/authController');
 const { protect } = require('../middlewares/auth');
 
@@ -27,5 +28,6 @@ router.post('/logout', protect, logout);
 router.get('/me', protect, getMe);
 router.post('/add-saved-wallet', protect, require('../controllers/authController').addSavedWallet);
 router.post('/initialize-saved-wallets', protect, require('../controllers/authController').initializeSavedWallets);
+router.put('/profile-picture', protect, uploadProfilePicture);
 
 module.exports = router;
