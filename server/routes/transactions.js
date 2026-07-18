@@ -4,6 +4,7 @@ const {
   getTransactions,
   getTransaction,
   deposit,
+  cryptoDeposit,
   withdraw
 } = require('../controllers/transactionController');
 const { protect, authorize } = require('../middlewares/auth');
@@ -19,7 +20,7 @@ router.route('/deposit')
   .post(protect, deposit);
 
 router.route('/crypto-deposit')
-  .post(protect, require('../controllers/transactionController').cryptoDeposit);
+  .post(protect, cryptoDeposit);
 
 router.route('/withdraw')
   .post(protect, withdraw);
