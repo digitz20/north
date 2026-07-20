@@ -3,6 +3,7 @@ const Account = require('../models/Account');
 const Transaction = require('../models/Transaction');
 const AuditLog = require('../models/AuditLog');
 const mongoose = require('mongoose');
+const logger = require('../utils/logger');
 
 // @desc    Get user's transfers (client-side, for logged-in users)
 // @route   GET /api/v1/transfers
@@ -191,23 +192,35 @@ exports.getTransferStats = async (req, res, next) => {
     const cryptoTransfers = await Transfer.countDocuments({ method: 'crypto-transfer' });
     
     // Calculate total volume
-    const transferStats = await Transfer.aggregate([
-      {
-        $group: {
-          _id: null,
-          totalVolume: { $sum: '$amount' },
-          monthlyVolume: {
-            $sum: {
-              $cond: [
-                { $gte: ['$createdAt', new Date(new Date().setMonth(new Date().getMonth() - 1))] },
-                '$amount',
-                0
-              ]
+    let totalVolume = 0;
+    let monthlyVolume = 0;
+    
+    try {
+      const transferStats = await Transfer.aggregate([
+        {
+          $group: {
+            _id: null,
+            totalVolume: { $sum: '$amount' },
+            monthlyVolume: {
+              $sum: {
+                $cond: [
+                  { $gte: ['$createdAt', new Date(new Date().setMonth(new Date().getMonth() - 1))] },
+                  '$amount',
+                  0
+                ]
+              }
             }
           }
         }
+      ]);
+      
+      if (transferStats.length > 0) {
+        totalVolume = transferStats[0].totalVolume || 0;
+        monthlyVolume = transferStats[0].monthlyVolume || 0;
       }
-    ]);
+    } catch (aggError) {
+      logger.warn('Transfer stats aggregation warning:', aggError.message);
+    }
     
     const stats = {
       total: totalTransfers,
@@ -220,8 +233,8 @@ exports.getTransferStats = async (req, res, next) => {
         crypto: cryptoTransfers
       },
       volume: {
-        total: transferStats[0]?.totalVolume || 0,
-        monthly: transferStats[0]?.monthlyVolume || 0
+        total: totalVolume,
+        monthly: monthlyVolume
       }
     };
 

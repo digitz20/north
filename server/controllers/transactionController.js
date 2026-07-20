@@ -479,23 +479,35 @@ exports.getTransactionStats = async (req, res, next) => {
     const cryptoTransactions = await Transaction.countDocuments({ type: 'crypto' });
     
     // Calculate total volume
-    const transactionStats = await Transaction.aggregate([
-      {
-        $group: {
-          _id: null,
-          totalVolume: { $sum: '$amount' },
-          monthlyVolume: {
-            $sum: {
-              $cond: [
-                { $gte: ['$createdAt', new Date(new Date().setMonth(new Date().getMonth() - 1))] },
-                '$amount',
-                0
-              ]
+    let totalVolume = 0;
+    let monthlyVolume = 0;
+    
+    try {
+      const transactionStats = await Transaction.aggregate([
+        {
+          $group: {
+            _id: null,
+            totalVolume: { $sum: '$amount' },
+            monthlyVolume: {
+              $sum: {
+                $cond: [
+                  { $gte: ['$createdAt', new Date(new Date().setMonth(new Date().getMonth() - 1))] },
+                  '$amount',
+                  0
+                ]
+              }
             }
           }
         }
+      ]);
+      
+      if (transactionStats.length > 0) {
+        totalVolume = transactionStats[0].totalVolume || 0;
+        monthlyVolume = transactionStats[0].monthlyVolume || 0;
       }
-    ]);
+    } catch (aggError) {
+      logger.warn('Transaction stats aggregation warning:', aggError.message);
+    }
     
     const stats = {
       total: totalTransactions,
@@ -509,8 +521,8 @@ exports.getTransactionStats = async (req, res, next) => {
         crypto: cryptoTransactions
       },
       volume: {
-        total: transactionStats[0]?.totalVolume || 0,
-        monthly: transactionStats[0]?.monthlyVolume || 0
+        total: totalVolume,
+        monthly: monthlyVolume
       }
     };
 

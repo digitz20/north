@@ -80,4 +80,12 @@ router.route('/loans/:id')
   .put(protect, authorize('admin', 'super-admin'), updateLoan)
   .delete(protect, authorize('super-admin'), deleteLoan);
 
+// KYC CRUD (admin)
+const { getAllKYCs, getKYC, updateKYC } = require('../controllers/kycController');
+router.route('/kyc')
+  .get(protect, authorize('admin', 'super-admin'), getAllKYCs);
+router.route('/kyc/:id')
+  .get(protect, authorize('admin', 'super-admin'), getKYC)
+  .put(protect, authorize('admin', 'super-admin'), updateKYC);
+
 module.exports = router;
