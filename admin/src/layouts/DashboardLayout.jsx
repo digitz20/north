@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   Box,
   Drawer,
@@ -87,7 +87,8 @@ const DashboardLayout = () => {
           <ListItem
             button
             key={item.text}
-            onClick={() => navigate(item.path)}
+            component={Link}
+            to={item.path}
             selected={location.pathname === item.path}
           >
             <ListItemIcon>{item.icon}</ListItemIcon>

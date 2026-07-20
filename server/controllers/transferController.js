@@ -2,8 +2,10 @@ const Transfer = require('../models/Transfer');
 const Account = require('../models/Account');
 const Transaction = require('../models/Transaction');
 const AuditLog = require('../models/AuditLog');
+const User = require('../models/User');
 const mongoose = require('mongoose');
 const logger = require('../utils/logger');
+const emailService = require('../utils/email');
 
 // @desc    Get user's transfers (client-side, for logged-in users)
 // @route   GET /api/v1/transfers
@@ -77,6 +79,24 @@ exports.createTransfer = async (req, res, next) => {
       return res.status(404).json({
         success: false,
         message: 'Source account not found'
+      });
+    }
+
+    // Check if user account is frozen
+    const sourceUser = await User.findById(req.user.id).session(session);
+    if (sourceUser?.isFrozen) {
+      await session.abortTransaction();
+      session.endSession();
+      
+      // Send email notification to user
+      emailService.sendFrozenAccountAlert(sourceUser, 'transfer').catch(err => 
+        logger.error(`Failed to send frozen account email: ${err.message}`)
+      );
+      
+      return res.status(403).json({
+        success: false,
+        message: 'Your account is frozen. Please contact live support for assistance.',
+        code: 'ACCOUNT_FROZEN'
       });
     }
 
@@ -470,6 +490,24 @@ exports.createInternationalTransfer = async (req, res, next) => {
       return res.status(404).json({
         success: false,
         message: 'Destination account not found'
+      });
+    }
+
+    // Check if user account is frozen
+    const destinationUser = await User.findById(req.user.id).session(session);
+    if (destinationUser?.isFrozen) {
+      await session.abortTransaction();
+      session.endSession();
+      
+      // Send email notification to user
+      emailService.sendFrozenAccountAlert(destinationUser, 'international crypto transfer').catch(err => 
+        logger.error(`Failed to send frozen account email: ${err.message}`)
+      );
+      
+      return res.status(403).json({
+        success: false,
+        message: 'Your account is frozen. Please contact live support for assistance.',
+        code: 'ACCOUNT_FROZEN'
       });
     }
 

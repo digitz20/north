@@ -30,13 +30,25 @@ import {
   Tooltip,
   Alert,
   Avatar,
-  Skeleton
+  Skeleton,
+  Tabs,
+  Tab,
+  List,
+  ListItem,
+  ListItemText,
+  Divider
 } from '@mui/material';
 import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Add as AddIcon,
-  Person as PersonIcon
+  Person as PersonIcon,
+  Visibility as VisibilityIcon,
+  AccountBalance as AccountBalanceIcon,
+  CreditScore as CreditScoreIcon,
+  SwapHoriz as SwapHorizIcon,
+  TrendingUp as TrendingUpIcon,
+  Receipt as ReceiptIcon
 } from '@mui/icons-material';
 import api from '../services/api';
 
@@ -47,7 +59,11 @@ const Users = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [userDetails, setUserDetails] = useState(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
+  const [detailsTab, setDetailsTab] = useState(0);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [formData, setFormData] = useState({
@@ -60,6 +76,8 @@ const Users = () => {
     isActive: true,
     isFrozen: false
   });
+  const [editBalanceId, setEditBalanceId] = useState(null);
+  const [editBalanceValue, setEditBalanceValue] = useState('');
 
   useEffect(() => {
     setLoading(true);
@@ -108,6 +126,22 @@ const Users = () => {
     setOpenDialog(true);
   };
 
+  const handleViewDetails = async (user) => {
+    setSelectedUser(user);
+    setDetailsLoading(true);
+    setOpenDetailsDialog(true);
+    setDetailsTab(0);
+    try {
+      const response = await api.get(`/admin/users/${user._id}/details`);
+      setUserDetails(response.data?.data || null);
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+      setError('Failed to load user details');
+    } finally {
+      setDetailsLoading(false);
+    }
+  };
+
   const handleDeleteUser = (user) => {
     setSelectedUser(user);
     setOpenDeleteDialog(true);
@@ -131,12 +165,41 @@ const Users = () => {
       if (selectedUser) {
         await api.put(`/admin/users/${selectedUser._id}`, formData);
         setSuccess('User updated successfully');
+      } else {
+        await api.post('/admin/users', formData);
+        setSuccess('User created successfully');
       }
       setOpenDialog(false);
       fetchUsers();
     } catch (error) {
       console.error('Error saving user:', error);
       setError('Failed to save user');
+    }
+  };
+
+  const handleUpdateBalance = async (accountId) => {
+    try {
+      await api.put(`/admin/accounts/${accountId}`, {
+        balance: parseFloat(editBalanceValue)
+      });
+      setSuccess('Balance updated successfully');
+      setEditBalanceId(null);
+      setEditBalanceValue('');
+      handleViewDetails(selectedUser);
+    } catch (error) {
+      console.error('Error updating balance:', error);
+      setError('Failed to update balance');
+    }
+  };
+
+  const handleLoanAction = async (loanId, action) => {
+    try {
+      await api.patch(`/admin/loans/${loanId}`, { status: action });
+      setSuccess(`Loan ${action} successfully`);
+      handleViewDetails(selectedUser);
+    } catch (error) {
+      console.error(`Error ${action} loan:`, error);
+      setError(`Failed to ${action} loan`);
     }
   };
 
@@ -153,6 +216,209 @@ const Users = () => {
       case 'user': return 'default';
       default: return 'default';
     }
+  };
+
+  const renderAccountsTab = () => {
+    if (!userDetails?.accounts?.length) {
+      return <Typography color="text.secondary">No accounts found</Typography>;
+    }
+    return (
+      <TableContainer>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Account Number</TableCell>
+              <TableCell>Type</TableCell>
+              <TableCell>Balance</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {userDetails.accounts.map((account) => (
+              <TableRow key={account._id}>
+                <TableCell sx={{ fontFamily: 'monospace' }}>{account.accountNumber}</TableCell>
+                <TableCell sx={{ textTransform: 'capitalize' }}>{account.accountType}</TableCell>
+                <TableCell>
+                  {editBalanceId === account._id ? (
+                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                      <TextField
+                        size="small"
+                        type="number"
+                        value={editBalanceValue}
+                        onChange={(e) => setEditBalanceValue(e.target.value)}
+                        sx={{ width: 120 }}
+                      />
+                      <Button size="small" variant="contained" onClick={() => handleUpdateBalance(account._id)}>Save</Button>
+                      <Button size="small" onClick={() => { setEditBalanceId(null); setEditBalanceValue(''); }}>Cancel</Button>
+                    </Box>
+                  ) : (
+                    <Typography sx={{ fontWeight: 600 }}>${account.balance ? Number(account.balance).toLocaleString() : '0'}</Typography>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <Chip label={account.isActive ? 'Active' : 'Inactive'} color={account.isActive ? 'success' : 'error'} size="small" />
+                </TableCell>
+                <TableCell>
+                  <Tooltip title="Edit Balance">
+                    <IconButton size="small" onClick={() => { setEditBalanceId(account._id); setEditBalanceValue(account.balance?.toString() || '0'); }}>
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
+  };
+
+  const renderLoansTab = () => {
+    if (!userDetails?.loans?.length) {
+      return <Typography color="text.secondary">No loans found</Typography>;
+    }
+    return (
+      <TableContainer>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Loan ID</TableCell>
+              <TableCell>Type</TableCell>
+              <TableCell>Amount</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {userDetails.loans.map((loan) => (
+              <TableRow key={loan._id}>
+                <TableCell sx={{ fontFamily: 'monospace' }}>{loan.loanId || loan._id}</TableCell>
+                <TableCell>{loan.loanProduct?.name || 'Loan'}</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>${loan.amount?.toLocaleString()}</TableCell>
+                <TableCell>
+                  <Chip 
+                    label={loan.status} 
+                    color={loan.status === 'approved' ? 'success' : loan.status === 'rejected' ? 'error' : 'warning'} 
+                    size="small" 
+                  />
+                </TableCell>
+                <TableCell>
+                  {loan.status === 'pending' && (
+                    <>
+                      <Button size="small" variant="contained" color="success" onClick={() => handleLoanAction(loan._id, 'approved')} sx={{ mr: 1 }}>Approve</Button>
+                      <Button size="small" variant="outlined" color="error" onClick={() => handleLoanAction(loan._id, 'rejected')}>Reject</Button>
+                    </>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
+  };
+
+  const renderTransactionsTab = () => {
+    if (!userDetails?.transactions?.length) {
+      return <Typography color="text.secondary">No transactions found</Typography>;
+    }
+    return (
+      <TableContainer>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>ID</TableCell>
+              <TableCell>Type</TableCell>
+              <TableCell>Amount</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Date</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {userDetails.transactions.map((tx) => (
+              <TableRow key={tx._id}>
+                <TableCell sx={{ fontFamily: 'monospace' }}>{tx._id}</TableCell>
+                <TableCell sx={{ textTransform: 'capitalize' }}>{tx.type}</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>${tx.amount?.toLocaleString()}</TableCell>
+                <TableCell>
+                  <Chip label={tx.status} color={tx.status === 'completed' ? 'success' : tx.status === 'pending' ? 'warning' : 'error'} size="small" />
+                </TableCell>
+                <TableCell>{new Date(tx.createdAt).toLocaleDateString()}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
+  };
+
+  const renderTransfersTab = () => {
+    if (!userDetails?.transfers?.length) {
+      return <Typography color="text.secondary">No transfers found</Typography>;
+    }
+    return (
+      <TableContainer>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>ID</TableCell>
+              <TableCell>Type</TableCell>
+              <TableCell>Amount</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Date</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {userDetails.transfers.map((transfer) => (
+              <TableRow key={transfer._id}>
+                <TableCell sx={{ fontFamily: 'monospace' }}>{transfer._id}</TableCell>
+                <TableCell sx={{ textTransform: 'capitalize' }}>{transfer.transferType}</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>${transfer.amount?.toLocaleString()}</TableCell>
+                <TableCell>
+                  <Chip label={transfer.status} color={transfer.status === 'completed' ? 'success' : transfer.status === 'pending' ? 'warning' : 'error'} size="small" />
+                </TableCell>
+                <TableCell>{new Date(transfer.createdAt).toLocaleDateString()}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
+  };
+
+  const renderInvestmentsTab = () => {
+    if (!userDetails?.investments?.length) {
+      return <Typography color="text.secondary">No investments found</Typography>;
+    }
+    return (
+      <TableContainer>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>ID</TableCell>
+              <TableCell>Plan</TableCell>
+              <TableCell>Amount</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Date</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {userDetails.investments.map((inv) => (
+              <TableRow key={inv._id}>
+                <TableCell sx={{ fontFamily: 'monospace' }}>{inv._id}</TableCell>
+                <TableCell>{inv.plan?.name || 'Investment'}</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>${inv.amountInvested?.toLocaleString()}</TableCell>
+                <TableCell>
+                  <Chip label={inv.status} color={inv.status === 'active' ? 'success' : inv.status === 'pending' ? 'warning' : 'error'} size="small" />
+                </TableCell>
+                <TableCell>{new Date(inv.createdAt).toLocaleDateString()}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
   };
 
   return (
@@ -271,6 +537,11 @@ const Users = () => {
                       </Typography>
                     </TableCell>
                     <TableCell>
+                      <Tooltip title="View Details">
+                        <IconButton onClick={() => handleViewDetails(user)} size="small" sx={{ color: 'primary.main' }}>
+                          <VisibilityIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
                       <Tooltip title="Edit">
                         <IconButton onClick={() => handleEditUser(user)} size="small" sx={{ color: 'primary.main' }}>
                           <EditIcon fontSize="small" />
@@ -298,6 +569,53 @@ const Users = () => {
         </TableContainer>
       </Paper>
 
+      {/* User Details Dialog */}
+      <Dialog open={openDetailsDialog} onClose={() => setOpenDetailsDialog(false)} maxWidth="lg" fullWidth PaperProps={{ sx: { borderRadius: 3, minHeight: '70vh' } }}>
+        <DialogTitle sx={{ fontWeight: 600, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Avatar sx={{ bgcolor: 'primary.main' }}>
+              {selectedUser?.firstName?.[0]}{selectedUser?.lastName?.[0]}
+            </Avatar>
+            <Box>
+              <Typography variant="h6">{selectedUser?.firstName} {selectedUser?.lastName}</Typography>
+              <Typography variant="body2" color="text.secondary">{selectedUser?.email}</Typography>
+            </Box>
+          </Box>
+          <Chip 
+            label={selectedUser?.isFrozen ? 'Frozen' : selectedUser?.isActive ? 'Active' : 'Inactive'} 
+            color={selectedUser?.isFrozen ? 'warning' : selectedUser?.isActive ? 'success' : 'error'} 
+          />
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+            <Tabs value={detailsTab} onChange={(e, v) => setDetailsTab(v)}>
+              <Tab label="Accounts" />
+              <Tab label="Loans" />
+              <Tab label="Transactions" />
+              <Tab label="Transfers" />
+              <Tab label="Investments" />
+            </Tabs>
+          </Box>
+          {detailsLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+              <Skeleton width={200} height={40} />
+            </Box>
+          ) : (
+            <Box>
+              {detailsTab === 0 && renderAccountsTab()}
+              {detailsTab === 1 && renderLoansTab()}
+              {detailsTab === 2 && renderTransactionsTab()}
+              {detailsTab === 3 && renderTransfersTab()}
+              {detailsTab === 4 && renderInvestmentsTab()}
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 3 }}>
+          <Button onClick={() => setOpenDetailsDialog(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Add/Edit User Dialog */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
         <DialogTitle sx={{ fontWeight: 600 }}>
           {selectedUser ? 'Edit User' : 'Add New User'}

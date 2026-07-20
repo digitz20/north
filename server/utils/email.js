@@ -464,6 +464,27 @@ class EmailService {
     });
   }
 
+  // Frozen account alert
+  async sendFrozenAccountAlert(user, actionType) {
+    const content = `
+      <p>Dear ${user.firstName} ${user.lastName},</p>
+      <p>We noticed an attempted ${actionType} on your NorthCrest Bank account, but it could not be completed because your account is currently <strong>frozen</strong>.</p>
+      <div class="alert-warning">
+        <p><strong>Important:</strong> If you believe this is an error or need assistance unfreezing your account, please contact our live support team immediately at <a href="mailto:support@northcrestbank.com">support@northcrestbank.com</a> or call <strong>1-800-NORTHCREST</strong>.</p>
+      </div>
+      <p>Our support team is available 24/7 to help you resolve this issue and restore full access to your account.</p>
+      <p>Best regards,<br><strong>The NorthCrest Bank Security Team</strong></p>
+    `;
+
+    const html = this.#getBaseTemplate(content, 'Account Frozen - Action Required');
+
+    return this.sendEmail({
+      to: user.email,
+      subject: 'Account Frozen - Please Contact Support',
+      html
+    });
+  }
+
   stripHtml(html) {
     return html.replace(/<[^>]*>/g, '');
   }

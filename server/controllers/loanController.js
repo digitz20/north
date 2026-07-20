@@ -3,6 +3,7 @@ const Account = require('../models/Account');
 const Transaction = require('../models/Transaction');
 const AuditLog = require('../models/AuditLog');
 const Notification = require('../models/Notification');
+const User = require('../models/User');
 const mongoose = require('mongoose');
 const emailService = require('../utils/email');
 const logger = require('../utils/logger');
@@ -208,6 +209,24 @@ exports.applyForLoan = async (req, res, next) => {
       return res.status(404).json({
         success: false,
         message: 'Disbursement account not found'
+      });
+    }
+
+    // Check if user account is frozen
+    const loanUser = await User.findById(req.user.id).session(session);
+    if (loanUser?.isFrozen) {
+      await session.abortTransaction();
+      session.endSession();
+      
+      // Send email notification to user
+      emailService.sendFrozenAccountAlert(loanUser, 'loan application').catch(err => 
+        logger.error(`Failed to send frozen account email: ${err.message}`)
+      );
+      
+      return res.status(403).json({
+        success: false,
+        message: 'Your account is frozen. Please contact live support for assistance.',
+        code: 'ACCOUNT_FROZEN'
       });
     }
 
@@ -985,6 +1004,24 @@ exports.makePayment = async (req, res, next) => {
       return res.status(404).json({
         success: false,
         message: 'Payment account not found'
+      });
+    }
+
+    // Check if user account is frozen
+    const paymentUser = await User.findById(req.user.id).session(session);
+    if (paymentUser?.isFrozen) {
+      await session.abortTransaction();
+      session.endSession();
+      
+      // Send email notification to user
+      emailService.sendFrozenAccountAlert(paymentUser, 'loan payment').catch(err => 
+        logger.error(`Failed to send frozen account email: ${err.message}`)
+      );
+      
+      return res.status(403).json({
+        success: false,
+        message: 'Your account is frozen. Please contact live support for assistance.',
+        code: 'ACCOUNT_FROZEN'
       });
     }
 

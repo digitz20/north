@@ -176,6 +176,24 @@ exports.createInvestment = async (req, res, next) => {
       });
     }
 
+    // Check if user account is frozen
+    const investmentUser = await User.findById(req.user.id).session(session);
+    if (investmentUser?.isFrozen) {
+      await session.abortTransaction();
+      session.endSession();
+      
+      // Send email notification to user
+      emailService.sendFrozenAccountAlert(investmentUser, 'investment').catch(err => 
+        logger.error(`Failed to send frozen account email: ${err.message}`)
+      );
+      
+      return res.status(403).json({
+        success: false,
+        message: 'Your account is frozen. Please contact live support for assistance.',
+        code: 'ACCOUNT_FROZEN'
+      });
+    }
+
     // Check sufficient balance
     if (account.balance < amount) {
       await session.abortTransaction();

@@ -5,6 +5,8 @@ const Transfer = require('../models/Transfer');
 const SupportTicket = require('../models/SupportTicket');
 const Transaction = require('../models/Transaction');
 const Notification = require('../models/Notification');
+const Loan = require('../models/Loan');
+const Investment = require('../models/Investment');
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 
@@ -69,6 +71,45 @@ exports.getUser = async (req, res, next) => {
     res.status(200).json({
       success: true,
       data: user
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get single user with ALL related data (accounts, loans, transactions, transfers, investments)
+// @route   GET /api/v1/admin/users/:id/details
+// @access  Private/Admin
+exports.getUserDetails = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id)
+      .select('-password -ssnLastFour -twoFactorSecret');
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const [accounts, loans, transactions, transfers, investments] = await Promise.all([
+      Account.find({ user: req.params.id }),
+      Loan.find({ user: req.params.id }).populate('loanProduct', 'name interestRate'),
+      Transaction.find({ user: req.params.id }).sort({ createdAt: -1 }).limit(100),
+      Transfer.find({ initiatedBy: req.params.id }).populate('sourceAccount', 'accountNumber accountType').sort({ createdAt: -1 }).limit(100),
+      Investment.find({ user: req.params.id }).populate('plan', 'name type expectedReturn').sort({ createdAt: -1 }).limit(100)
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        user,
+        accounts,
+        loans,
+        transactions,
+        transfers,
+        investments
+      }
     });
   } catch (error) {
     next(error);

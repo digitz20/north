@@ -4,6 +4,7 @@ const {
   getDashboardStats,
   getUsers,
   getUser,
+  getUserDetails,
   updateUser,
   deleteUser,
   getSystemLogs
@@ -31,6 +32,9 @@ router.route('/users/:id')
   .get(protect, authorize('admin', 'super-admin'), getUser)
   .put(protect, authorize('admin', 'super-admin'), updateUser)
   .delete(protect, authorize('super-admin'), deleteUser);
+
+router.route('/users/:id/details')
+  .get(protect, authorize('admin', 'super-admin'), getUserDetails);
 
 router.route('/logs')
   .get(protect, authorize('admin', 'super-admin'), getSystemLogs);
