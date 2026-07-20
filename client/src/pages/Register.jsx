@@ -156,98 +156,10 @@ const Register = () => {
   const steps = ['Personal Info', 'Security', 'Complete'];
 
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', background: '#F8FAFC' }}>
-      {/* Left side - Premium visual */}
-      <Box
-        sx={{
-          flex: { xs: 0, md: 1 },
-          display: { xs: 'none', md: 'flex' },
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          background: 'linear-gradient(135deg, #021024 0%, #063970 50%, #0066FF 100%)',
-          position: 'relative',
-          overflow: 'hidden',
-          p: 8,
-        }}
-      >
-        <Box
-          sx={{
-            position: 'absolute',
-            width: 600,
-            height: 600,
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(0, 191, 255, 0.15) 0%, transparent 70%)',
-            top: '-10%',
-            right: '-10%',
-            filter: 'blur(60px)',
-          }}
-        />
-        <Box
-          sx={{
-            position: 'absolute',
-            width: 500,
-            height: 500,
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(0, 200, 150, 0.1) 0%, transparent 70%)',
-            bottom: '-10%',
-            left: '-10%',
-            filter: 'blur(60px)',
-          }}
-        />
-
-        <motion.div
-          style={{ position: 'relative', zIndex: 1, maxWidth: 480 }}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
-        >
-          <Box sx={{ mb: 6, display: 'flex', justifyContent: 'center' }}>
-            <NorthCrestLogo color="white" />
-          </Box>
-          
-          <Typography variant="h3" sx={{ color: 'white', fontWeight: 800, mb: 3, lineHeight: 1.2 }}>
-            Start your financial journey today
-          </Typography>
-          
-          <Typography variant="h6" sx={{ color: 'rgba(255,255,255,0.75)', mb: 6, lineHeight: 1.7 }}>
-            Join millions who trust NorthCrest Bank for secure, intelligent, and boundary-free banking.
-          </Typography>
-
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-            {[
-              { icon: '🔒', title: 'Bank-Level Security', desc: '256-bit encryption protects every transaction' },
-              { icon: '⚡', title: 'Instant Transfers', desc: 'Send money globally in seconds, not days' },
-              { icon: '✅', title: 'FDIC Insured', desc: 'Your deposits are protected up to $250,000' },
-            ].map((feature, i) => (
-              <Box
-                key={i}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: 3,
-                  p: 3,
-                  borderRadius: 2,
-                  background: 'rgba(255,255,255,0.06)',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                }}
-              >
-                <Box sx={{ mt: 0.5, fontSize: '1.5rem' }}>{feature.icon}</Box>
-                <Box>
-                  <Typography sx={{ color: 'white', fontWeight: 600, mb: 0.5 }}>{feature.title}</Typography>
-                  <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.65)', lineHeight: 1.6 }}>{feature.desc}</Typography>
-                </Box>
-              </Box>
-            ))}
-          </Box>
-        </motion.div>
-      </Box>
-
+    <Box sx={{ minHeight: '100vh', background: '#F8FAFC' }}>
       {/* Right side - Registration form */}
       <Box
         sx={{
-          flex: { xs: 1, md: 1 },
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',

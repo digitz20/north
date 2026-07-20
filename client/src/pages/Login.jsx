@@ -27,7 +27,6 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSuccess, setResendSuccess] = useState('');
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -47,17 +46,6 @@ const Login = () => {
       setPassword(savedPassword);
       setRememberMe(true);
     }
-  }, []);
-
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      setMousePosition({
-        x: (e.clientX / window.innerWidth - 0.5) * 20,
-        y: (e.clientY / window.innerHeight - 0.5) * 20,
-      });
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
   const handleResendVerification = async () => {
@@ -100,118 +88,10 @@ const Login = () => {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', background: '#F8FAFC' }}>
-      {/* Left side - Premium visual */}
-      <Box
-        sx={{
-          flex: { xs: 0, md: 1 },
-          display: { xs: 'none', md: 'flex' },
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          background: 'linear-gradient(135deg, #021024 0%, #063970 50%, #0066FF 100%)',
-          position: 'relative',
-          overflow: 'hidden',
-          p: 8,
-        }}
-      >
-        {/* Animated background elements */}
-        <Box
-          sx={{
-            position: 'absolute',
-            width: 600,
-            height: 600,
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(0, 191, 255, 0.15) 0%, transparent 70%)',
-            top: '-10%',
-            right: '-10%',
-            filter: 'blur(60px)',
-          }}
-        />
-        <Box
-          sx={{
-            position: 'absolute',
-            width: 500,
-            height: 500,
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(0, 200, 150, 0.1) 0%, transparent 70%)',
-            bottom: '-10%',
-            left: '-10%',
-            filter: 'blur(60px)',
-          }}
-        />
-
-        <motion.div
-          style={{ position: 'relative', zIndex: 1, maxWidth: 480, textAlign: 'center' }}
-          animate={{
-            x: mousePosition.x * 0.5,
-            y: mousePosition.y * 0.5,
-          }}
-          transition={{ type: 'spring', stiffness: 50, damping: 20 }}
-        >
-          <Box sx={{ mb: 6, display: 'flex', justifyContent: 'center' }}>
-            <NorthCrestLogo color="white" />
-          </Box>
-          
-          <Typography
-            variant="h3"
-            sx={{
-              color: 'white',
-              fontWeight: 800,
-              mb: 3,
-              lineHeight: 1.2,
-              letterSpacing: '-0.02em',
-            }}
-          >
-            Welcome to the future of banking
-          </Typography>
-          
-          <Typography
-            variant="h6"
-            sx={{
-              color: 'rgba(255,255,255,0.75)',
-              fontWeight: 400,
-              lineHeight: 1.7,
-              mb: 6,
-            }}
-          >
-            Experience secure, instant, and intelligent banking designed for the modern world.
-          </Typography>
-
-          <Box sx={{ display: 'flex', gap: 3, justifyContent: 'center', flexWrap: 'wrap' }}>
-            {[
-              { icon: '🔒', label: 'Bank-Level Security' },
-              { icon: '⚡', label: 'Instant Transfers' },
-              { icon: '📊', label: 'Smart Analytics' },
-            ].map((feature, i) => (
-              <Box
-                key={i}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1.5,
-                  px: 3,
-                  py: 1.5,
-                  borderRadius: 2,
-                  background: 'rgba(255,255,255,0.08)',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                }}
-              >
-                <Typography sx={{ fontSize: '1.2rem' }}>{feature.icon}</Typography>
-                <Typography sx={{ color: 'white', fontSize: '0.9rem', fontWeight: 500 }}>
-                  {feature.label}
-                </Typography>
-              </Box>
-            ))}
-          </Box>
-        </motion.div>
-      </Box>
-
+    <Box sx={{ minHeight: '100vh', background: '#F8FAFC' }}>
       {/* Right side - Login form */}
       <Box
         sx={{
-          flex: { xs: 1, md: 1 },
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
