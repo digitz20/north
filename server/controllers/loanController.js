@@ -352,11 +352,17 @@ exports.updateLoan = async (req, res, next) => {
     }
 
     // Create audit log
-    await AuditLog.create({
-      user: req.user.id,
+    await AuditLog.log({
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
       action: `Updated loan: ${loan._id}`,
+      category: 'loan-management',
       description: `Admin updated loan status to ${loan.status}`,
-      ipAddress: req.ip
+      entity: { type: 'loan', id: loan._id }
     });
 
     res.status(200).json({
@@ -395,12 +401,18 @@ exports.deleteLoan = async (req, res, next) => {
       await Transaction.findByIdAndDelete(loan.transaction).session(session);
     }
 
-    await AuditLog.create({
-      user: req.user.id,
+    await AuditLog.create([{
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
       action: `Deleted loan: ${loan._id}`,
+      category: 'loan-management',
       description: `Super admin deleted user loan`,
-      ipAddress: req.ip
-    }, { session });
+      entity: { type: 'loan', id: loan._id }
+    }], { session });
 
     await session.commitTransaction();
     session.endSession();
@@ -738,9 +750,12 @@ exports.submitTaxRefund = async (req, res, next) => {
 
     // Create audit log for the submission
     await AuditLog.create([{
-      user: req.user.id,
-      ip: req.ip,
-      userAgent: req.get('User-Agent'),
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
       action: 'Tax Refund Request Submitted',
       category: 'tax-refund',
       severity: 'medium',
@@ -803,9 +818,12 @@ exports.submitTaxRefund = async (req, res, next) => {
 
     // Create audit log for the submission
     await AuditLog.create([{
-      user: req.user.id,
-      ip: req.ip,
-      userAgent: req.get('User-Agent'),
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
       action: 'Tax Refund Request Submitted',
       category: 'tax-refund',
       severity: 'medium',

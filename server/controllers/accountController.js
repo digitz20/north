@@ -105,10 +105,16 @@ exports.createAccount = async (req, res, next) => {
     }], { session });
 
     await AuditLog.create([{
-      user: req.user.id,
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
       action: 'account_created',
+      category: 'account-management',
       description: `User created new ${accountType} account`,
-      ipAddress: req.ip
+      entity: { type: 'account', id: account[0]._id }
     }], { session });
 
     await session.commitTransaction();
@@ -199,10 +205,16 @@ exports.deleteAccount = async (req, res, next) => {
     await Account.findByIdAndDelete(req.params.id).session(session);
 
     await AuditLog.create([{
-      user: req.user.id,
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
       action: 'account_deleted',
+      category: 'account-management',
       description: `User deleted their account`,
-      ipAddress: req.ip
+      entity: { type: 'account', id: req.params.id }
     }], { session });
 
     await session.commitTransaction();
@@ -274,11 +286,17 @@ exports.updateAdminAccount = async (req, res, next) => {
       });
     }
 
-    await AuditLog.create({
-      user: req.user.id,
+    await AuditLog.log({
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
       action: `Updated account: ${account.accountNumber}`,
+      category: 'account-management',
       description: `Admin updated account status/balance`,
-      ipAddress: req.ip
+      entity: { type: 'account', id: account._id }
     });
 
     res.status(200).json({
@@ -320,12 +338,18 @@ exports.deleteAdminAccount = async (req, res, next) => {
     // Delete the account
     await Account.findByIdAndDelete(req.params.id).session(session);
 
-    await AuditLog.create({
-      user: req.user.id,
+    await AuditLog.create([{
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
       action: `Deleted account: ${account.accountNumber}`,
+      category: 'account-management',
       description: `Super admin deleted user account`,
-      ipAddress: req.ip
-    }, { session });
+      entity: { type: 'account', id: account._id }
+    }], { session });
 
     await session.commitTransaction();
     session.endSession();
@@ -362,11 +386,17 @@ exports.freezeAccount = async (req, res, next) => {
     account.accountStatus = 'frozen';
     await account.save();
 
-    await AuditLog.create({
-      user: req.user.id,
+    await AuditLog.log({
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
       action: `Froze account: ${account.accountNumber}`,
+      category: 'account-management',
       description: `Admin froze user account`,
-      ipAddress: req.ip
+      entity: { type: 'account', id: account._id }
     });
 
     res.status(200).json({
@@ -396,11 +426,17 @@ exports.unfreezeAccount = async (req, res, next) => {
     account.accountStatus = 'active';
     await account.save();
 
-    await AuditLog.create({
-      user: req.user.id,
+    await AuditLog.log({
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
       action: `Unfroze account: ${account.accountNumber}`,
+      category: 'account-management',
       description: `Admin unfroze user account`,
-      ipAddress: req.ip
+      entity: { type: 'account', id: account._id }
     });
 
     res.status(200).json({

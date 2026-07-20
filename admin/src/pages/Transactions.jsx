@@ -41,7 +41,7 @@ const Transactions = () => {
 
   const fetchTransactions = async () => {
     try {
-      const response = await api.get('/transactions/admin/all');
+      const response = await api.get('/admin/transactions');
       setTransactions(response.data?.data?.transactions || response.data?.transactions || []);
     } catch (error) {
       console.error('Error fetching transactions:', error);

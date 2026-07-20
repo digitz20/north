@@ -170,10 +170,16 @@ exports.deposit = async (req, res, next) => {
     );
 
     await AuditLog.create([{
-      user: req.user.id,
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
       action: 'deposit_completed',
+      category: 'transaction-management',
       description: `User deposited $${amount} to ${account.nickname}`,
-      ipAddress: req.ip
+      entity: { type: 'transaction', id: transaction[0]._id }
     }], { session });
 
     await Notification.create([{
@@ -387,10 +393,16 @@ exports.withdraw = async (req, res, next) => {
     );
 
     await AuditLog.create([{
-      user: req.user.id,
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
       action: 'withdrawal_completed',
+      category: 'transaction-management',
       description: `User withdrew $${amount} from ${account.nickname}`,
-      ipAddress: req.ip
+      entity: { type: 'transaction', id: transaction._id }
     }], { session });
 
     await Notification.create([{
@@ -442,11 +454,17 @@ exports.getAllTransactions = async (req, res, next) => {
       .populate('sourceAccount', 'accountType nickname')
       .populate('destinationAccount', 'accountType nickname');
 
-    await AuditLog.create({
-      user: req.user.id,
+    await AuditLog.log({
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
       action: 'admin_transactions_viewed',
+      category: 'transaction-management',
       description: `Admin viewed all platform transactions`,
-      ipAddress: req.ip
+      entity: { type: 'transaction', id: null }
     });
 
     res.status(200).json({
@@ -526,11 +544,17 @@ exports.getTransactionStats = async (req, res, next) => {
       }
     };
 
-    await AuditLog.create({
-      user: req.user.id,
+    await AuditLog.log({
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
       action: 'admin_transaction_stats_viewed',
+      category: 'transaction-management',
       description: `Admin viewed transaction statistics`,
-      ipAddress: req.ip
+      entity: { type: 'transaction', id: null }
     });
 
     res.status(200).json({
@@ -601,10 +625,16 @@ exports.approveTransaction = async (req, res, next) => {
     }
 
     await AuditLog.create([{
-      user: req.user.id,
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
       action: 'transaction_approved',
+      category: 'transaction-management',
       description: `Admin approved transaction ${req.params.id}`,
-      ipAddress: req.ip
+      entity: { type: 'transaction', id: req.params.id }
     }], { session });
 
     await Notification.create([{
@@ -671,10 +701,16 @@ exports.rejectTransaction = async (req, res, next) => {
     );
 
     await AuditLog.create([{
-      user: req.user.id,
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
       action: 'transaction_rejected',
+      category: 'transaction-management',
       description: `Admin rejected transaction ${req.params.id}. Reason: ${reason}`,
-      ipAddress: req.ip
+      entity: { type: 'transaction', id: req.params.id }
     }], { session });
 
     await Notification.create([{

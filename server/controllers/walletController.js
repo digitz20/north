@@ -154,10 +154,16 @@ exports.addFunds = async (req, res, next) => {
     }], { session });
 
     await AuditLog.create([{
-      user: req.user.id,
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
       action: 'wallet_funds_added',
+      category: 'wallet-management',
       description: `User added $${amount} to their wallet from ${account.nickname}`,
-      ipAddress: req.ip
+      entity: { type: 'wallet', id: wallet._id }
     }], { session });
 
     await Notification.create([{
@@ -253,10 +259,16 @@ exports.withdrawFunds = async (req, res, next) => {
     }], { session });
 
     await AuditLog.create([{
-      user: req.user.id,
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
       action: 'wallet_funds_withdrawn',
+      category: 'wallet-management',
       description: `User withdrew $${amount} from their wallet to ${account.nickname}`,
-      ipAddress: req.ip
+      entity: { type: 'wallet', id: wallet._id }
     }], { session });
 
     await Notification.create([{

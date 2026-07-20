@@ -118,10 +118,16 @@ exports.createTransfer = async (req, res, next) => {
 
     // Log the action
     await AuditLog.create([{
-      user: req.user.id,
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
       action: `Transfer initiated: $${amount}`,
+      category: 'transaction-management',
       description: `User initiated ${transferType} transfer`,
-      ipAddress: req.ip
+      entity: { type: 'transfer', id: transfer[0]._id }
     }], { session });
 
     await session.commitTransaction();
@@ -238,11 +244,17 @@ exports.getTransferStats = async (req, res, next) => {
       }
     };
 
-    await AuditLog.create({
-      user: req.user.id,
+    await AuditLog.log({
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
       action: 'admin_transfer_stats_viewed',
+      category: 'transaction-management',
       description: `Admin viewed transfer statistics`,
-      ipAddress: req.ip
+      entity: { type: 'transfer', id: null }
     });
 
     res.status(200).json({
@@ -312,11 +324,17 @@ exports.updateTransfer = async (req, res, next) => {
     }
 
     // Create audit log
-    await AuditLog.create({
-      user: req.user.id,
+    await AuditLog.log({
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
       action: `Updated transfer: ${transfer._id}`,
+      category: 'transaction-management',
       description: `Admin updated transfer status to ${transfer.status}`,
-      ipAddress: req.ip
+      entity: { type: 'transfer', id: transfer._id }
     });
 
     res.status(200).json({
@@ -344,11 +362,17 @@ exports.deleteTransfer = async (req, res, next) => {
 
     await Transfer.findByIdAndDelete(req.params.id);
 
-    await AuditLog.create({
-      user: req.user.id,
+    await AuditLog.log({
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
       action: `Deleted transfer: ${transfer._id}`,
+      category: 'transaction-management',
       description: `Super admin deleted transfer record`,
-      ipAddress: req.ip
+      entity: { type: 'transfer', id: transfer._id }
     });
 
     res.status(200).json({
@@ -501,10 +525,16 @@ exports.createInternationalTransfer = async (req, res, next) => {
 
     // Log the crypto transfer action
     await AuditLog.create([{
-      user: req.user.id,
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
       action: `Crypto transfer initiated: $${amount} in ${source.crypto.toUpperCase()}`,
+      category: 'transaction-management',
       description: `User initiated international crypto transfer to ${source.walletAddress.substring(0, 10)}...`,
-      ipAddress: req.ip
+      entity: { type: 'transfer', id: transfer[0]._id }
     }], { session });
 
     await session.commitTransaction();
@@ -541,11 +571,17 @@ exports.approveTransfer = async (req, res, next) => {
       });
     }
 
-    await AuditLog.create({
-      user: req.user.id,
+    await AuditLog.log({
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
       action: `Approved transfer: ${transfer._id}`,
+      category: 'transaction-management',
       description: `Admin approved transfer of $${transfer.amount}`,
-      ipAddress: req.ip
+      entity: { type: 'transfer', id: transfer._id }
     });
 
     res.status(200).json({
@@ -581,11 +617,17 @@ exports.rejectTransfer = async (req, res, next) => {
       { new: true, runValidators: true }
     );
 
-    await AuditLog.create({
-      user: req.user.id,
+    await AuditLog.log({
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
       action: `Rejected transfer: ${transfer._id}`,
+      category: 'transaction-management',
       description: `Admin rejected transfer`,
-      ipAddress: req.ip
+      entity: { type: 'transfer', id: transfer._id }
     });
 
     res.status(200).json({
