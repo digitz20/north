@@ -41,10 +41,11 @@ const Transactions = () => {
 
   const fetchTransactions = async () => {
     try {
-      const response = await api.get('/admin/transactions');
-      setTransactions(response.data?.data || response.data || []);
+      const response = await api.get('/transactions/admin/all');
+      setTransactions(response.data?.data?.transactions || response.data?.transactions || []);
     } catch (error) {
       console.error('Error fetching transactions:', error);
+      setTransactions([]);
     } finally {
       setLoading(false);
     }

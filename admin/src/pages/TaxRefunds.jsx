@@ -44,11 +44,14 @@ const TaxRefunds = () => {
 
   const fetchTaxRefunds = async () => {
     try {
-      const response = await api.get('/admin/tax-refunds');
-      setTaxRefunds(response.data?.data || response.data || []);
+      const response = await api.get('/loans/admin/tax-refunds');
+      // Correctly extract array - add safeguard to ensure it's always an array
+      const refundsData = response.data?.data || response.data || [];
+      setTaxRefunds(Array.isArray(refundsData) ? refundsData : []);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching tax refunds:', error);
+      setTaxRefunds([]);
       setLoading(false);
     }
   };

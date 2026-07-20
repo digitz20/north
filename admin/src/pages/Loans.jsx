@@ -51,9 +51,12 @@ const Loans = () => {
   const fetchLoans = async () => {
     try {
       const response = await api.get('/admin/loans');
-      setLoans(response.data?.data || response.data || []);
+      // Correctly extract array - add safeguard to ensure it's always an array
+      const loansData = response.data?.data?.loans || response.data?.data || response.data || [];
+      setLoans(Array.isArray(loansData) ? loansData : []);
     } catch (error) {
       console.error('Error fetching loans:', error);
+      setLoans([]);
     } finally {
       setLoading(false);
     }

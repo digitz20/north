@@ -46,10 +46,11 @@ const AuditLogs = () => {
   const fetchAuditLogs = async () => {
     try {
       const response = await api.get('/admin/audit-logs');
-      setLogs(response.data?.data || response.data || []);
+      setLogs(response.data?.data?.logs || response.data?.logs || []);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching audit logs:', error);
+      setLogs([]);
       setLoading(false);
     }
   };

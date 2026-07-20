@@ -52,10 +52,11 @@ const Transfers = () => {
 
   const fetchTransfers = async () => {
     try {
-      const response = await api.get('/admin/transfers');
-      setTransfers(response.data?.data || response.data || []);
+      const response = await api.get('/transfers/admin/all');
+      setTransfers(response.data?.data?.transfers || response.data?.transfers || []);
     } catch (error) {
       console.error('Error fetching transfers:', error);
+      setTransfers([]);
     } finally {
       setLoading(false);
     }

@@ -43,10 +43,11 @@ const Investments = () => {
 
   const fetchInvestments = async () => {
     try {
-      const response = await api.get('/admin/investments');
-      setInvestments(response.data?.data || response.data || []);
+      const response = await api.get('/investments/admin/all');
+      setInvestments(response.data?.data?.investments || response.data?.investments || []);
     } catch (error) {
       console.error('Error fetching investments:', error);
+      setInvestments([]);
     } finally {
       setLoading(false);
     }

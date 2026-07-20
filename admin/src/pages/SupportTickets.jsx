@@ -129,11 +129,13 @@ const SupportTickets = () => {
 
   const fetchTickets = async () => {
     try {
-      const response = await api.get('/admin/support-tickets');
-      setTickets(response.data?.data || response.data || []);
+      const response = await api.get('/support/admin/tickets');
+      // Correctly extract tickets array - server returns { data: { tickets: [...], pagination: ... } }
+      const ticketsData = response.data?.data?.tickets || response.data?.tickets || [];
+      setTickets(Array.isArray(ticketsData) ? ticketsData : []);
 
       const messages = {};
-      (response.data?.data || response.data || []).forEach(ticket => {
+      (Array.isArray(ticketsData) ? ticketsData : []).forEach(ticket => {
         if (ticket.messages) {
           messages[ticket._id] = ticket.messages;
         } else {
@@ -145,6 +147,7 @@ const SupportTickets = () => {
       setLoading(false);
     } catch (error) {
       console.error('Error fetching support tickets:', error);
+      setTickets([]);
       setLoading(false);
     }
   };
