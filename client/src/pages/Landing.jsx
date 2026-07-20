@@ -14,7 +14,7 @@ import {
   LinkedIn, YouTube, Email, Phone, LocationOn, Apple, Google, ChevronRight,
   Check, Notifications, Savings, ShowChart, Money, ArrowUpward, Close
 } from '@mui/icons-material';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import CountUp from 'react-countup';

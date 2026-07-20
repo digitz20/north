@@ -23,6 +23,7 @@ import {
 const ArrowUpwardIcon = ArrowUpward;
 const ArrowDownwardIcon = ArrowDownward;
 import { useNavigate, useLocation } from 'react-router-dom';
+import NorthCrestLogo from '../components/common/NorthCrestLogo';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, 
   ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, RadialBarChart, 
@@ -280,25 +281,30 @@ const Dashboard = () => {
         <motion.div variants={itemVariants}>
           <Box sx={{ mb: 5 }}>
             <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', md: 'center' }, mb: 2 }}>
-              <Box>
-                <Typography variant="h3" component="h1" sx={{ 
-                  mb: 1, 
-                  fontWeight: 800, 
-                  background: 'linear-gradient(135deg, #0f2744 0%, #1e4d8a 50%, #0066ff 100%)', 
-                  WebkitBackgroundClip: 'text', 
-                  WebkitTextFillColor: 'transparent',
-                  fontSize: { xs: '2rem', md: '2.5rem' },
-                  letterSpacing: '-0.02em'
-                }}>
-                  Welcome back, {user?.firstName || 'User'}!
-                </Typography>
-                <Typography variant="body1" color="text.secondary" sx={{ 
-                  fontSize: '1.15rem',
-                  color: '#64748b',
-                  fontWeight: 400
-                }}>
-                  Here's your comprehensive financial overview for {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+                  <NorthCrestLogo />
+                </Box>
+                <Box>
+                  <Typography variant="h3" component="h1" sx={{ 
+                    mb: 1, 
+                    fontWeight: 800, 
+                    background: 'linear-gradient(135deg, #0f2744 0%, #1e4d8a 50%, #0066ff 100%)', 
+                    WebkitBackgroundClip: 'text', 
+                    WebkitTextFillColor: 'transparent',
+                    fontSize: { xs: '2rem', md: '2.5rem' },
+                    letterSpacing: '-0.02em'
+                  }}>
+                    Welcome back, {user?.firstName || 'User'}!
+                  </Typography>
+                  <Typography variant="body1" color="text.secondary" sx={{ 
+                    fontSize: '1.15rem',
+                    color: '#64748b',
+                    fontWeight: 400
+                  }}>
+                    Here's your comprehensive financial overview for {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                  </Typography>
+                </Box>
               </Box>
               <Box sx={{ display: 'flex', gap: 2, mt: { xs: 2, md: 0 } }}>
                 {['Today', 'Week', 'Month', 'Year'].map((period) => (
@@ -346,7 +352,7 @@ const Dashboard = () => {
                   <Paper
                     elevation={0}
                     sx={{
-                      p: 4,
+                      p: { xs: 2, sm: 3, md: 4 },
                       height: '100%',
                       background: stat.color,
                       color: 'white',
@@ -427,7 +433,7 @@ const Dashboard = () => {
           <Paper
             elevation={0}
             sx={{
-              p: 5,
+              p: { xs: 2, sm: 3, md: 4 },
               mb: 5,
               background: 'rgba(255,255,255,0.75)',
               backdropFilter: 'blur(30px)',
@@ -437,11 +443,12 @@ const Dashboard = () => {
             }}
           >
             <Typography variant="h5" sx={{ 
-              mb: 4, 
+              mb: { xs: 2, sm: 3, md: 4 }, 
               fontWeight: 700, 
               background: 'linear-gradient(135deg, #0f2744 0%, #0066ff 100%)',
               WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
+              WebkitTextFillColor: 'transparent',
+              fontSize: { xs: '1.25rem', sm: '1.5rem' }
             }}>Quick Actions</Typography>
             <Grid container spacing={{ xs: 2, sm: 3 }}>
               {quickActions.map((action, index) => (
@@ -455,7 +462,7 @@ const Dashboard = () => {
                       onClick={() => navigate(action.path)}
                       sx={{
                         cursor: 'pointer',
-                        p: 4,
+                        p: { xs: 2, sm: 3, md: 4 },
                         height: '100%',
                         background: 'white',
                         borderRadius: 3,

@@ -31,11 +31,11 @@ export const useNavigationWithSplash = () => {
   const navigateWithSplash = (path) => {
     setIsNavigating(true);
     
-    // Navigate after exactly 3 seconds (full animation duration)
+    // Navigate after short splash animation
     setTimeout(() => {
       navigate(path);
       setIsNavigating(false);
-    }, 3000);
+    }, 400);
   };
 
   // Splash screen component to render when navigating

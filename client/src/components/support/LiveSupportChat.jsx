@@ -140,6 +140,19 @@ const LiveSupportChat = () => {
     const messageText = newMessage.trim();
     setNewMessage('');
 
+    // Create local message object for immediate display
+    const localMessage = {
+      _id: `temp-${Date.now()}`,
+      message: messageText,
+      sender: { _id: user?.id, name: user?.fullName || 'You' },
+      createdAt: new Date().toISOString(),
+      delivered: false,
+      read: false
+    };
+
+    // Add to local state immediately
+    setMessages(prev => [...prev, localMessage]);
+
     // Send via socket
     if (socket) {
       sendMessage({
@@ -235,11 +248,9 @@ const LiveSupportChat = () => {
 
   // Get header title and status
   const headerTitle = 'northcrestbankofusa';
-  const headerStatus = supportOnline ? 'Online' : 'Offline';
-  const emptyStateTitle = 'how can we help you...';
-  const emptyStateSubtitle = supportOnline
-    ? 'Send us a message and we\'ll respond shortly.'
-    : 'Our support team is currently offline. Leave a message and we\'ll get back to you soon.';
+  const headerStatus = 'Online';
+  const emptyStateTitle = 'hi how can we help you?';
+  const emptyStateSubtitle = 'Send us a message and we\'ll respond shortly.';
 
   // Check if message is from current user
   const isOwnMessage = (message) => {
@@ -301,7 +312,7 @@ const LiveSupportChat = () => {
               width: 16,
               height: 16,
               borderRadius: '50%',
-              backgroundColor: supportOnline ? '#4caf50' : '#f44336',
+              backgroundColor: '#4caf50',
               border: '3px solid white',
               boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
             }}
@@ -348,23 +359,23 @@ const LiveSupportChat = () => {
               <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 40, height: 40 }}>
                 <SupportAgentIcon />
               </Avatar>
-              <Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2, letterSpacing: '0.02em' }}>
-                  {headerTitle}
-                </Typography>
-                <Typography variant="caption" sx={{ opacity: 0.9, display: 'flex', alignItems: 'center', gap: 0.5, textTransform: 'capitalize' }}>
-                  <Box 
-                    component="span"
-                    sx={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: '50%',
-                      bgcolor: supportOnline ? '#4ade80' : '#f87171'
-                    }}
-                  />
-                  {headerStatus}
-                </Typography>
-              </Box>
+                <Box>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2, letterSpacing: '0.02em' }}>
+                    {headerTitle}
+                  </Typography>
+                  <Typography variant="caption" sx={{ opacity: 0.9, display: 'flex', alignItems: 'center', gap: 0.5, textTransform: 'capitalize' }}>
+                    <Box 
+                      component="span"
+                      sx={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: '50%',
+                        bgcolor: '#4ade80'
+                      }}
+                    />
+                    {headerStatus}
+                  </Typography>
+                </Box>
             </Box>
             <Box sx={{ display: 'flex', gap: 0.5 }}>
               <IconButton 

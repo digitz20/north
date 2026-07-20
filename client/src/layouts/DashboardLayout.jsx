@@ -1,5 +1,5 @@
 import React, { useState, Suspense, lazy } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate, Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../store/slices/authSlice';
 import {
@@ -109,7 +109,9 @@ const DashboardLayout = () => {
           <ListItem
             button
             key={item.text}
-            onClick={() => navigateWithSplash(item.path)}
+            component={Link}
+            to={item.path}
+            onClick={() => setMobileOpen(false)}
             selected={location.pathname === item.path}
             sx={{
               mx: 1,
