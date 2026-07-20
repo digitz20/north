@@ -344,6 +344,9 @@ exports.updateLoan = async (req, res, next) => {
   try {
     const updateableFields = {
       status: req.body.status,
+      remainingBalance: req.body.remainingBalance,
+      totalAmount: req.body.totalAmount,
+      monthlyPayment: req.body.monthlyPayment,
       notes: req.body.notes,
       processedBy: req.user.id
     };

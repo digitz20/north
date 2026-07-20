@@ -318,6 +318,7 @@ exports.updateTransfer = async (req, res, next) => {
   try {
     const updateableFields = {
       status: req.body.status,
+      amount: req.body.amount,
       notes: req.body.notes,
       processedBy: req.user.id
     };

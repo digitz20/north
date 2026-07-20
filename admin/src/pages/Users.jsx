@@ -76,6 +76,18 @@ const Users = () => {
   });
   const [editBalanceId, setEditBalanceId] = useState(null);
   const [editBalanceValue, setEditBalanceValue] = useState('');
+  const [editLoanBalanceId, setEditLoanBalanceId] = useState(null);
+  const [editLoanBalanceValue, setEditLoanBalanceValue] = useState('');
+  const [editInvestmentAmountId, setEditInvestmentAmountId] = useState(null);
+  const [editInvestmentAmountValue, setEditInvestmentAmountValue] = useState('');
+  const [editInvestmentCurrentValueId, setEditInvestmentCurrentValueId] = useState(null);
+  const [editInvestmentCurrentValueValue, setEditInvestmentCurrentValueValue] = useState('');
+  const [editTransferAmountId, setEditTransferAmountId] = useState(null);
+  const [editTransferAmountValue, setEditTransferAmountValue] = useState('');
+  const [editCardCreditLimitId, setEditCardCreditLimitId] = useState(null);
+  const [editCardCreditLimitValue, setEditCardCreditLimitValue] = useState('');
+  const [editCardDailyLimitId, setEditCardDailyLimitId] = useState(null);
+  const [editCardDailyLimitValue, setEditCardDailyLimitValue] = useState('');
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [editingTransfer, setEditingTransfer] = useState(null);
   const [editingInvestment, setEditingInvestment] = useState(null);
@@ -161,6 +173,22 @@ const Users = () => {
     setEditingTransfer(null);
     setEditingInvestment(null);
     setEditingLoan(null);
+    setEditingCard(null);
+    setEditingKYC(null);
+    setEditBalanceId(null);
+    setEditBalanceValue('');
+    setEditLoanBalanceId(null);
+    setEditLoanBalanceValue('');
+    setEditInvestmentAmountId(null);
+    setEditInvestmentAmountValue('');
+    setEditInvestmentCurrentValueId(null);
+    setEditInvestmentCurrentValueValue('');
+    setEditTransferAmountId(null);
+    setEditTransferAmountValue('');
+    setEditCardCreditLimitId(null);
+    setEditCardCreditLimitValue('');
+    setEditCardDailyLimitId(null);
+    setEditCardDailyLimitValue('');
     try {
       const response = await api.get(`/admin/users/${user._id}/details`);
       setUserDetails(response.data?.data || null);
@@ -336,6 +364,96 @@ const Users = () => {
     }
   };
 
+  const handleUpdateLoanBalance = async (loanId) => {
+    try {
+      await api.put(`/admin/loans/${loanId}`, {
+        remainingBalance: parseFloat(editLoanBalanceValue)
+      });
+      setSuccess('Loan balance updated successfully');
+      setEditLoanBalanceId(null);
+      setEditLoanBalanceValue('');
+      handleViewDetails(selectedUser);
+    } catch (error) {
+      console.error('Error updating loan balance:', error);
+      setError('Failed to update loan balance');
+    }
+  };
+
+  const handleUpdateInvestmentAmount = async (investmentId) => {
+    try {
+      await api.put(`/admin/investments/${investmentId}`, {
+        amountInvested: parseFloat(editInvestmentAmountValue)
+      });
+      setSuccess('Investment amount updated successfully');
+      setEditInvestmentAmountId(null);
+      setEditInvestmentAmountValue('');
+      handleViewDetails(selectedUser);
+    } catch (error) {
+      console.error('Error updating investment amount:', error);
+      setError('Failed to update investment amount');
+    }
+  };
+
+  const handleUpdateInvestmentCurrentValue = async (investmentId) => {
+    try {
+      await api.put(`/admin/investments/${investmentId}`, {
+        currentValue: parseFloat(editInvestmentCurrentValueValue)
+      });
+      setSuccess('Investment current value updated successfully');
+      setEditInvestmentCurrentValueId(null);
+      setEditInvestmentCurrentValueValue('');
+      handleViewDetails(selectedUser);
+    } catch (error) {
+      console.error('Error updating investment current value:', error);
+      setError('Failed to update investment current value');
+    }
+  };
+
+  const handleUpdateTransferAmount = async (transferId) => {
+    try {
+      await api.put(`/admin/transfers/${transferId}`, {
+        amount: parseFloat(editTransferAmountValue)
+      });
+      setSuccess('Transfer amount updated successfully');
+      setEditTransferAmountId(null);
+      setEditTransferAmountValue('');
+      handleViewDetails(selectedUser);
+    } catch (error) {
+      console.error('Error updating transfer amount:', error);
+      setError('Failed to update transfer amount');
+    }
+  };
+
+  const handleUpdateCardCreditLimit = async (cardId) => {
+    try {
+      await api.put(`/admin/cards/${cardId}`, {
+        creditLimit: parseFloat(editCardCreditLimitValue)
+      });
+      setSuccess('Card credit limit updated successfully');
+      setEditCardCreditLimitId(null);
+      setEditCardCreditLimitValue('');
+      handleViewDetails(selectedUser);
+    } catch (error) {
+      console.error('Error updating card credit limit:', error);
+      setError('Failed to update card credit limit');
+    }
+  };
+
+  const handleUpdateCardDailyLimit = async (cardId) => {
+    try {
+      await api.put(`/admin/cards/${cardId}`, {
+        dailySpendingLimit: parseFloat(editCardDailyLimitValue)
+      });
+      setSuccess('Card daily spending limit updated successfully');
+      setEditCardDailyLimitId(null);
+      setEditCardDailyLimitValue('');
+      handleViewDetails(selectedUser);
+    } catch (error) {
+      console.error('Error updating card daily limit:', error);
+      setError('Failed to update card daily limit');
+    }
+  };
+
   const filteredUsers = users.filter(user =>
     user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -490,6 +608,8 @@ const Users = () => {
               <TableCell>Type</TableCell>
               <TableCell>Network</TableCell>
               <TableCell>Last Four</TableCell>
+              <TableCell>Credit Limit</TableCell>
+              <TableCell>Daily Limit</TableCell>
               <TableCell>Status</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
@@ -502,12 +622,56 @@ const Users = () => {
                 <TableCell>{card.cardNetwork}</TableCell>
                 <TableCell sx={{ fontFamily: 'monospace' }}>****{card.lastFourDigits}</TableCell>
                 <TableCell>
+                  {editCardCreditLimitId === card._id ? (
+                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                      <TextField
+                        size="small"
+                        type="number"
+                        value={editCardCreditLimitValue}
+                        onChange={(e) => setEditCardCreditLimitValue(e.target.value)}
+                        sx={{ width: 120 }}
+                      />
+                      <Button size="small" variant="contained" onClick={() => handleUpdateCardCreditLimit(card._id)}>Save</Button>
+                      <Button size="small" onClick={() => { setEditCardCreditLimitId(null); setEditCardCreditLimitValue(''); }}>Cancel</Button>
+                    </Box>
+                  ) : (
+                    <Typography sx={{ fontWeight: 600 }}>${card.creditLimit?.toLocaleString() || '0'}</Typography>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {editCardDailyLimitId === card._id ? (
+                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                      <TextField
+                        size="small"
+                        type="number"
+                        value={editCardDailyLimitValue}
+                        onChange={(e) => setEditCardDailyLimitValue(e.target.value)}
+                        sx={{ width: 120 }}
+                      />
+                      <Button size="small" variant="contained" onClick={() => handleUpdateCardDailyLimit(card._id)}>Save</Button>
+                      <Button size="small" onClick={() => { setEditCardDailyLimitId(null); setEditCardDailyLimitValue(''); }}>Cancel</Button>
+                    </Box>
+                  ) : (
+                    <Typography sx={{ fontWeight: 600 }}>${card.dailySpendingLimit?.toLocaleString() || '0'}</Typography>
+                  )}
+                </TableCell>
+                <TableCell>
                   <Chip label={card.isActive ? (card.isLocked ? 'Locked' : 'Active') : 'Inactive'} color={card.isActive ? (card.isLocked ? 'warning' : 'success') : 'error'} size="small" />
                 </TableCell>
                 <TableCell>
+                  <Tooltip title="Edit Credit Limit">
+                    <IconButton size="small" onClick={() => { setEditCardCreditLimitId(card._id); setEditCardCreditLimitValue(card.creditLimit?.toString() || '0'); }}>
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Edit Daily Limit">
+                    <IconButton size="small" onClick={() => { setEditCardDailyLimitId(card._id); setEditCardDailyLimitValue(card.dailySpendingLimit?.toString() || '0'); }}>
+                      <AccountBalanceIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
                   <Tooltip title="Edit Card">
                     <IconButton size="small" onClick={() => setEditingCard(editingCard === card._id ? null : { ...card })}>
-                      <EditIcon fontSize="small" />
+                      <VisibilityIcon fontSize="small" />
                     </IconButton>
                   </Tooltip>
                 </TableCell>
@@ -592,6 +756,8 @@ const Users = () => {
               <TableCell>Loan ID</TableCell>
               <TableCell>Type</TableCell>
               <TableCell>Amount</TableCell>
+              <TableCell>Remaining Balance</TableCell>
+              <TableCell>Monthly Payment</TableCell>
               <TableCell>Status</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
@@ -602,6 +768,24 @@ const Users = () => {
                 <TableCell sx={{ fontFamily: 'monospace' }}>{loan.loanId || loan._id}</TableCell>
                 <TableCell>{loan.loanProduct?.name || 'Loan'}</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>${loan.amount?.toLocaleString()}</TableCell>
+                <TableCell>
+                  {editLoanBalanceId === loan._id ? (
+                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                      <TextField
+                        size="small"
+                        type="number"
+                        value={editLoanBalanceValue}
+                        onChange={(e) => setEditLoanBalanceValue(e.target.value)}
+                        sx={{ width: 120 }}
+                      />
+                      <Button size="small" variant="contained" onClick={() => handleUpdateLoanBalance(loan._id)}>Save</Button>
+                      <Button size="small" onClick={() => { setEditLoanBalanceId(null); setEditLoanBalanceValue(''); }}>Cancel</Button>
+                    </Box>
+                  ) : (
+                    <Typography sx={{ fontWeight: 600 }}>${loan.remainingBalance?.toLocaleString() || '0'}</Typography>
+                  )}
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>${loan.monthlyPayment?.toLocaleString() || '0'}</TableCell>
                 <TableCell>
                   {editingLoan === loan._id ? (
                     <Select
@@ -641,6 +825,11 @@ const Users = () => {
                       <Tooltip title="Edit Loan">
                         <IconButton size="small" onClick={() => setEditingLoan({ ...loan, status: loan.status })}>
                           <EditIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Edit Balance">
+                        <IconButton size="small" onClick={() => { setEditLoanBalanceId(loan._id); setEditLoanBalanceValue(loan.remainingBalance?.toString() || '0'); }}>
+                          <AccountBalanceIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
                     </>
@@ -700,39 +889,56 @@ const Users = () => {
       return <Typography color="text.secondary">No transfers found</Typography>;
     }
     return (
-      <Box>
-        <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
-          <Button size="small" variant="outlined" startIcon={<AddIcon />} onClick={() => setOpenTransferDialog(true)}>
-            Add Transfer
-          </Button>
-        </Box>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>Type</TableCell>
-                <TableCell>Amount</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Date</TableCell>
+      <TableContainer>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>ID</TableCell>
+              <TableCell>Type</TableCell>
+              <TableCell>Amount</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Date</TableCell>
+              <TableCell>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {userDetails.transfers.map((transfer) => (
+              <TableRow key={transfer._id}>
+                <TableCell sx={{ fontFamily: 'monospace' }}>{transfer._id}</TableCell>
+                <TableCell sx={{ textTransform: 'capitalize' }}>{transfer.transferType}</TableCell>
+                <TableCell>
+                  {editTransferAmountId === transfer._id ? (
+                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                      <TextField
+                        size="small"
+                        type="number"
+                        value={editTransferAmountValue}
+                        onChange={(e) => setEditTransferAmountValue(e.target.value)}
+                        sx={{ width: 120 }}
+                      />
+                      <Button size="small" variant="contained" onClick={() => handleUpdateTransferAmount(transfer._id)}>Save</Button>
+                      <Button size="small" onClick={() => { setEditTransferAmountId(null); setEditTransferAmountValue(''); }}>Cancel</Button>
+                    </Box>
+                  ) : (
+                    <Typography sx={{ fontWeight: 600 }}>${transfer.amount?.toLocaleString()}</Typography>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <Chip label={transfer.status} color={transfer.status === 'completed' ? 'success' : transfer.status === 'pending' ? 'warning' : 'error'} size="small" />
+                </TableCell>
+                <TableCell>{new Date(transfer.createdAt).toLocaleDateString()}</TableCell>
+                <TableCell>
+                  <Tooltip title="Edit Amount">
+                    <IconButton size="small" onClick={() => { setEditTransferAmountId(transfer._id); setEditTransferAmountValue(transfer.amount?.toString() || '0'); }}>
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </TableCell>
               </TableRow>
-            </TableHead>
-            <TableBody>
-              {userDetails.transfers.map((transfer) => (
-                <TableRow key={transfer._id}>
-                  <TableCell sx={{ fontFamily: 'monospace' }}>{transfer._id}</TableCell>
-                  <TableCell sx={{ textTransform: 'capitalize' }}>{transfer.transferType}</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>${transfer.amount?.toLocaleString()}</TableCell>
-                  <TableCell>
-                    <Chip label={transfer.status} color={transfer.status === 'completed' ? 'success' : transfer.status === 'pending' ? 'warning' : 'error'} size="small" />
-                  </TableCell>
-                  <TableCell>{new Date(transfer.createdAt).toLocaleDateString()}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Box>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     );
   };
 
@@ -741,39 +947,79 @@ const Users = () => {
       return <Typography color="text.secondary">No investments found</Typography>;
     }
     return (
-      <Box>
-        <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
-          <Button size="small" variant="outlined" startIcon={<AddIcon />} onClick={() => setOpenInvestmentDialog(true)}>
-            Add Investment
-          </Button>
-        </Box>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>Plan</TableCell>
-                <TableCell>Amount</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Date</TableCell>
+      <TableContainer>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>ID</TableCell>
+              <TableCell>Plan</TableCell>
+              <TableCell>Amount Invested</TableCell>
+              <TableCell>Current Value</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Date</TableCell>
+              <TableCell>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {userDetails.investments.map((inv) => (
+              <TableRow key={inv._id}>
+                <TableCell sx={{ fontFamily: 'monospace' }}>{inv._id}</TableCell>
+                <TableCell>{inv.plan?.name || 'Investment'}</TableCell>
+                <TableCell>
+                  {editInvestmentAmountId === inv._id ? (
+                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                      <TextField
+                        size="small"
+                        type="number"
+                        value={editInvestmentAmountValue}
+                        onChange={(e) => setEditInvestmentAmountValue(e.target.value)}
+                        sx={{ width: 120 }}
+                      />
+                      <Button size="small" variant="contained" onClick={() => handleUpdateInvestmentAmount(inv._id)}>Save</Button>
+                      <Button size="small" onClick={() => { setEditInvestmentAmountId(null); setEditInvestmentAmountValue(''); }}>Cancel</Button>
+                    </Box>
+                  ) : (
+                    <Typography sx={{ fontWeight: 600 }}>${inv.amountInvested?.toLocaleString() || '0'}</Typography>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {editInvestmentCurrentValueId === inv._id ? (
+                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                      <TextField
+                        size="small"
+                        type="number"
+                        value={editInvestmentCurrentValueValue}
+                        onChange={(e) => setEditInvestmentCurrentValueValue(e.target.value)}
+                        sx={{ width: 120 }}
+                      />
+                      <Button size="small" variant="contained" onClick={() => handleUpdateInvestmentCurrentValue(inv._id)}>Save</Button>
+                      <Button size="small" onClick={() => { setEditInvestmentCurrentValueId(null); setEditInvestmentCurrentValueValue(''); }}>Cancel</Button>
+                    </Box>
+                  ) : (
+                    <Typography sx={{ fontWeight: 600 }}>${inv.currentValue?.toLocaleString() || '0'}</Typography>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <Chip label={inv.status} color={inv.status === 'active' ? 'success' : inv.status === 'pending' ? 'warning' : 'error'} size="small" />
+                </TableCell>
+                <TableCell>{new Date(inv.createdAt).toLocaleDateString()}</TableCell>
+                <TableCell>
+                  <Tooltip title="Edit Amount">
+                    <IconButton size="small" onClick={() => { setEditInvestmentAmountId(inv._id); setEditInvestmentAmountValue(inv.amountInvested?.toString() || '0'); }}>
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Edit Current Value">
+                    <IconButton size="small" onClick={() => { setEditInvestmentCurrentValueId(inv._id); setEditInvestmentCurrentValueValue(inv.currentValue?.toString() || '0'); }}>
+                      <TrendingUpIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </TableCell>
               </TableRow>
-            </TableHead>
-            <TableBody>
-              {userDetails.investments.map((inv) => (
-                <TableRow key={inv._id}>
-                  <TableCell sx={{ fontFamily: 'monospace' }}>{inv._id}</TableCell>
-                  <TableCell>{inv.plan?.name || 'Investment'}</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>${inv.amountInvested?.toLocaleString()}</TableCell>
-                  <TableCell>
-                    <Chip label={inv.status} color={inv.status === 'active' ? 'success' : inv.status === 'pending' ? 'warning' : 'error'} size="small" />
-                  </TableCell>
-                  <TableCell>{new Date(inv.createdAt).toLocaleDateString()}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Box>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     );
   };
 

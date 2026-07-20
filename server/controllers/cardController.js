@@ -240,7 +240,7 @@ exports.updateCard = async (req, res, next) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const { nickName, dailySpendingLimit, notificationsEnabled, internationalTransactionsEnabled, onlineTransactionsEnabled, contactlessEnabled, billingAddress } = req.body;
+    const { nickName, dailySpendingLimit, notificationsEnabled, internationalTransactionsEnabled, onlineTransactionsEnabled, contactlessEnabled, billingAddress, creditLimit } = req.body;
 
     // Find card and ensure it belongs to user
     let card = await Card.findOne({
@@ -261,6 +261,7 @@ exports.updateCard = async (req, res, next) => {
     const updateFields = {};
     if (nickName) updateFields.nickName = nickName;
     if (dailySpendingLimit !== undefined) updateFields.dailySpendingLimit = dailySpendingLimit;
+    if (creditLimit !== undefined) updateFields.creditLimit = creditLimit;
     if (notificationsEnabled !== undefined) updateFields.notificationsEnabled = notificationsEnabled;
     if (internationalTransactionsEnabled !== undefined) updateFields.internationalTransactionsEnabled = internationalTransactionsEnabled;
     if (onlineTransactionsEnabled !== undefined) updateFields.onlineTransactionsEnabled = onlineTransactionsEnabled;

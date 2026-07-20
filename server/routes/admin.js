@@ -75,12 +75,20 @@ router.route('/transfers')
 router.route('/transfers/stats')
   .get(protect, authorize('admin', 'super-admin'), getTransferStats);
 
+router.route('/transfers/:id')
+  .put(protect, authorize('admin', 'super-admin'), require('../controllers/transferController').updateTransfer)
+  .patch(protect, authorize('admin', 'super-admin'), require('../controllers/transferController').updateTransfer);
+
 router.route('/investments')
   .get(protect, authorize('admin', 'super-admin'), getAllInvestments)
   .post(protect, authorize('admin', 'super-admin'), createInvestmentForUser);
 
 router.route('/investments/stats')
   .get(protect, authorize('admin', 'super-admin'), getInvestmentStats);
+
+router.route('/investments/:id')
+  .put(protect, authorize('admin', 'super-admin'), require('../controllers/investmentController').updateInvestment)
+  .patch(protect, authorize('admin', 'super-admin'), require('../controllers/investmentController').updateInvestment);
 
 // Loans CRUD
 const { getAllLoans, getLoan, getLoanStats, updateLoan, deleteLoan } = require('../controllers/loanController');

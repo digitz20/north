@@ -508,6 +508,8 @@ exports.updateInvestment = async (req, res, next) => {
   try {
     const updateableFields = {
       status: req.body.status,
+      amountInvested: req.body.amountInvested,
+      currentValue: req.body.currentValue,
       notes: req.body.notes,
       processedBy: req.user.id
     };
