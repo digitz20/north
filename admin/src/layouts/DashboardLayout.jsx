@@ -10,7 +10,6 @@ import {
   List,
   ListItem,
   ListItemIcon,
-  ListItemText,
   Divider,
   Avatar,
   Menu,
@@ -92,7 +91,7 @@ const DashboardLayout = () => {
             selected={location.pathname === item.path}
           >
             <ListItemIcon>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.text} />
+            <Typography variant="body1">{item.text}</Typography>
           </ListItem>
         ))}
       </List>
@@ -138,7 +137,7 @@ const DashboardLayout = () => {
               <ListItemIcon>
                 <LogoutIcon fontSize="small" />
               </ListItemIcon>
-              <ListItemText>Logout</ListItemText>
+              <Typography variant="body1">Logout</Typography>
             </MenuItem>
           </Menu>
         </Toolbar>

@@ -417,36 +417,32 @@ const SupportTickets = () => {
                           <PersonIcon />
                         </Avatar>
                       </ListItemAvatar>
-                      <ListItemText
-                        primary={
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 0.5, flexWrap: 'wrap' }}>
-                            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                              {ticket.user?.name || 'Unknown User'}
-                            </Typography>
-                            {getStatusChip(ticket.status)}
-                            {ticket.assignedTo && ticket.assignedTo._id === user._id && (
-                              <Chip
-                                label="Assigned to you"
-                                size="small"
-                                color="primary"
-                                variant="outlined"
-                                sx={{ fontWeight: 500 }}
-                              />
-                            )}
-                          </Box>
-                        }
-                        secondary={
-                          <Box>
-                            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                              <strong>#{ticket._id}</strong> - {ticket.subject}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              Created: {new Date(ticket.createdAt).toLocaleString()}
-                              {ticket.lastMessageAt && ` - Last message: ${new Date(ticket.lastMessageAt).toLocaleTimeString()}`}
-                            </Typography>
-                          </Box>
-                        }
-                      />
+                      <Box sx={{ minWidth: 0, flex: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 0.5, flexWrap: 'wrap' }}>
+                          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                            {ticket.user?.name || 'Unknown User'}
+                          </Typography>
+                          {getStatusChip(ticket.status)}
+                          {ticket.assignedTo && ticket.assignedTo._id === user._id && (
+                            <Chip
+                              label="Assigned to you"
+                              size="small"
+                              color="primary"
+                              variant="outlined"
+                              sx={{ fontWeight: 500 }}
+                            />
+                          )}
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                            <strong>#{ticket._id}</strong> - {ticket.subject}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Created: {new Date(ticket.createdAt).toLocaleString()}
+                            {ticket.lastMessageAt && ` - Last message: ${new Date(ticket.lastMessageAt).toLocaleTimeString()}`}
+                          </Typography>
+                        </Box>
+                      </Box>
                     </ListItem>
                     <Divider variant="inset" component="li" />
                   </React.Fragment>

@@ -7,6 +7,8 @@ const Transaction = require('../models/Transaction');
 const Notification = require('../models/Notification');
 const Loan = require('../models/Loan');
 const Investment = require('../models/Investment');
+const KYC = require('../models/KYC');
+const Card = require('../models/Card');
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 const logger = require('../utils/logger');
@@ -93,12 +95,14 @@ exports.getUserDetails = async (req, res, next) => {
       });
     }
 
-    const [accounts, loans, transactions, transfers, investments] = await Promise.all([
+    const [accounts, loans, transactions, transfers, investments, kycs, cards] = await Promise.all([
       Account.find({ user: req.params.id }),
       Loan.find({ user: req.params.id }).populate('loanProduct', 'name interestRate'),
       Transaction.find({ user: req.params.id }).sort({ createdAt: -1 }).limit(100),
       Transfer.find({ initiatedBy: req.params.id }).populate('sourceAccount', 'accountNumber accountType').sort({ createdAt: -1 }).limit(100),
-      Investment.find({ user: req.params.id }).populate('plan', 'name type expectedReturn').sort({ createdAt: -1 }).limit(100)
+      Investment.find({ user: req.params.id }).populate('plan', 'name type expectedReturn').sort({ createdAt: -1 }).limit(100),
+      KYC.find({ user: req.params.id }).sort({ submittedAt: -1 }),
+      Card.find({ user: req.params.id }).populate('account', 'accountNumber accountType').sort({ createdAt: -1 })
     ]);
 
     res.status(200).json({
@@ -109,7 +113,9 @@ exports.getUserDetails = async (req, res, next) => {
         loans,
         transactions,
         transfers,
-        investments
+        investments,
+        kycs,
+        cards
       }
     });
   } catch (error) {
@@ -491,6 +497,90 @@ exports.createInvestmentForUser = async (req, res, next) => {
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
+    next(error);
+  }
+};
+
+// @desc    Admin update KYC status
+// @route   PUT /api/v1/admin/kyc/:id
+// @access  Private/Admin
+exports.updateKYC = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const { status, rejectionReason, notes, level } = req.body;
+    const kyc = await KYC.findById(req.params.id).session(session);
+    if (!kyc) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({ success: false, message: 'KYC not found' });
+    }
+
+    const before = { status: kyc.status };
+    kyc.status = status || kyc.status;
+    if (rejectionReason) kyc.rejectionReason = rejectionReason;
+    if (notes) kyc.verificationDetails.notes = notes;
+    if (level) kyc.level = level;
+    kyc.history.push({
+      status: kyc.status,
+      comment: notes || rejectionReason || 'KYC status updated by admin',
+      changedBy: req.user.id,
+      changedAt: new Date()
+    });
+    await kyc.save({ session });
+
+    await AuditLog.log({
+      actor: { user: req.user.id, role: req.user.role, ip: req.ip, userAgent: req.get('User-Agent') },
+      action: `Admin updated KYC to ${status}`,
+      category: 'kyc-management',
+      description: `Admin updated KYC ${kyc.kycId} to ${status}`,
+      entity: { type: 'kyc', id: kyc._id },
+      before,
+      after: { status: kyc.status }
+    }, { session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(200).json({ success: true, data: kyc });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    next(error);
+  }
+};
+
+// @desc    Admin update card
+// @route   PUT /api/v1/admin/cards/:id
+// @access  Private/Admin
+exports.updateCard = async (req, res, next) => {
+  try {
+    const { nickName, dailySpendingLimit, isActive, isLocked, lockReason } = req.body;
+    const card = await Card.findById(req.params.id);
+    if (!card) {
+      return res.status(404).json({ success: false, message: 'Card not found' });
+    }
+
+    const updateFields = {};
+    if (nickName !== undefined) updateFields.nickName = nickName;
+    if (dailySpendingLimit !== undefined) updateFields.dailySpendingLimit = dailySpendingLimit;
+    if (isActive !== undefined) updateFields.isActive = isActive;
+    if (isLocked !== undefined) updateFields.isLocked = isLocked;
+    if (lockReason !== undefined) updateFields.lockReason = lockReason;
+
+    const updatedCard = await Card.findByIdAndUpdate(req.params.id, updateFields, { new: true })
+      .populate('account', 'accountNumber accountType balance');
+
+    await AuditLog.log({
+      actor: { user: req.user.id, role: req.user.role, ip: req.ip, userAgent: req.get('User-Agent') },
+      action: 'Admin updated card',
+      category: 'card-management',
+      description: `Admin updated card ending in ${updatedCard.lastFourDigits}`,
+      entity: { type: 'card', id: updatedCard._id }
+    });
+
+    res.status(200).json({ success: true, data: updatedCard });
+  } catch (error) {
     next(error);
   }
 };

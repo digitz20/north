@@ -10,12 +10,17 @@ const {
   getSystemLogs,
   createTransactionForUser,
   createTransferForUser,
-  createInvestmentForUser
+  createInvestmentForUser,
+  updateKYC,
+  updateCard
 } = require('../controllers/adminController');
 const { login } = require('../controllers/authController');
 const { getSettings, updateSettings } = require('../controllers/settingsController');
 const { getAuditLogs, getAuditLogStats } = require('../controllers/auditLogController');
 const { getTransactionReport, getUsersReport, getAccountsReport, getLoansReport, getInvestmentsReport } = require('../controllers/reportController');
+const { getAllTransactions, getTransactionStats } = require('../controllers/transactionController');
+const { getAllTransfers, getTransferStats } = require('../controllers/transferController');
+const { getAllInvestments, getInvestmentStats } = require('../controllers/investmentController');
 const { protect, authorize } = require('../middlewares/auth');
 
 // Admin public login route
@@ -54,16 +59,28 @@ router.route('/accounts/:id')
 
 // Admin CRUD for transactions, transfers, investments on behalf of users
 router.route('/transactions')
-  .get(protect, authorize('admin', 'super-admin'), require('../controllers/transactionController').getAllTransactions)
+  .get(protect, authorize('admin', 'super-admin'), getAllTransactions)
   .post(protect, authorize('admin', 'super-admin'), createTransactionForUser);
 
+router.route('/transactions/recent')
+  .get(protect, authorize('admin', 'super-admin'), getAllTransactions);
+
+router.route('/transactions/stats')
+  .get(protect, authorize('admin', 'super-admin'), getTransactionStats);
+
 router.route('/transfers')
-  .get(protect, authorize('admin', 'super-admin'), require('../controllers/transferController').getAllTransfers)
+  .get(protect, authorize('admin', 'super-admin'), getAllTransfers)
   .post(protect, authorize('admin', 'super-admin'), createTransferForUser);
 
+router.route('/transfers/stats')
+  .get(protect, authorize('admin', 'super-admin'), getTransferStats);
+
 router.route('/investments')
-  .get(protect, authorize('admin', 'super-admin'), require('../controllers/investmentController').getAllInvestments)
+  .get(protect, authorize('admin', 'super-admin'), getAllInvestments)
   .post(protect, authorize('admin', 'super-admin'), createInvestmentForUser);
+
+router.route('/investments/stats')
+  .get(protect, authorize('admin', 'super-admin'), getInvestmentStats);
 
 // Loans CRUD
 const { getAllLoans, getLoan, getLoanStats, updateLoan, deleteLoan } = require('../controllers/loanController');
@@ -94,6 +111,13 @@ router.route('/kyc/:id')
     if (status === 'rejected') return rejectKYC(req, res, next);
     return res.status(400).json({ success: false, message: 'Invalid status' });
   });
+
+// Admin card/KYC management inside user details
+router.route('/admin/kyc/:id')
+  .put(protect, authorize('admin', 'super-admin'), updateKYC);
+
+router.route('/admin/cards/:id')
+  .put(protect, authorize('admin', 'super-admin'), updateCard);
 
 // Settings
 router.route('/settings')

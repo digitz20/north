@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NorthCrestLogo from '../components/common/NorthCrestLogo';
 import { Box, keyframes } from '@mui/material';

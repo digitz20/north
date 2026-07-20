@@ -32,11 +32,7 @@ import {
   Avatar,
   Skeleton,
   Tabs,
-  Tab,
-  List,
-  ListItem,
-  ListItemText,
-  Divider
+  Tab
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -85,6 +81,8 @@ const Users = () => {
   const [editingInvestment, setEditingInvestment] = useState(null);
   const [editingLoan, setEditingLoan] = useState(null);
   const [editingAccount, setEditingAccount] = useState(null);
+  const [editingCard, setEditingCard] = useState(null);
+  const [editingKYC, setEditingKYC] = useState(null);
   const [openTransactionDialog, setOpenTransactionDialog] = useState(false);
   const [openTransferDialog, setOpenTransferDialog] = useState(false);
   const [openInvestmentDialog, setOpenInvestmentDialog] = useState(false);
@@ -314,6 +312,30 @@ const Users = () => {
     }
   };
 
+  const handleUpdateKYC = async (kycId) => {
+    try {
+      await api.put(`/admin/kyc/${kycId}`, editingKYC);
+      setSuccess('KYC updated successfully');
+      setEditingKYC(null);
+      handleViewDetails(selectedUser);
+    } catch (error) {
+      console.error('Error updating KYC:', error);
+      setError('Failed to update KYC');
+    }
+  };
+
+  const handleUpdateCard = async (cardId) => {
+    try {
+      await api.put(`/admin/cards/${cardId}`, editingCard);
+      setSuccess('Card updated successfully');
+      setEditingCard(null);
+      handleViewDetails(selectedUser);
+    } catch (error) {
+      console.error('Error updating card:', error);
+      setError('Failed to update card');
+    }
+  };
+
   const filteredUsers = users.filter(user =>
     user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -452,6 +474,109 @@ const Users = () => {
           </Paper>
         )}
       </Box>
+    );
+  };
+
+  const renderCardsTab = () => {
+    if (!userDetails?.cards?.length) {
+      return <Typography color="text.secondary">No cards found</Typography>;
+    }
+    return (
+      <TableContainer>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Card ID</TableCell>
+              <TableCell>Type</TableCell>
+              <TableCell>Network</TableCell>
+              <TableCell>Last Four</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {userDetails.cards.map((card) => (
+              <TableRow key={card._id}>
+                <TableCell sx={{ fontFamily: 'monospace' }}>{card.cardId || card._id}</TableCell>
+                <TableCell sx={{ textTransform: 'capitalize' }}>{card.cardType}</TableCell>
+                <TableCell>{card.cardNetwork}</TableCell>
+                <TableCell sx={{ fontFamily: 'monospace' }}>****{card.lastFourDigits}</TableCell>
+                <TableCell>
+                  <Chip label={card.isActive ? (card.isLocked ? 'Locked' : 'Active') : 'Inactive'} color={card.isActive ? (card.isLocked ? 'warning' : 'success') : 'error'} size="small" />
+                </TableCell>
+                <TableCell>
+                  <Tooltip title="Edit Card">
+                    <IconButton size="small" onClick={() => setEditingCard(editingCard === card._id ? null : { ...card })}>
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
+  };
+
+  const renderKYCTab = () => {
+    if (!userDetails?.kycs?.length) {
+      return <Typography color="text.secondary">No KYC applications found</Typography>;
+    }
+    return (
+      <TableContainer>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Application ID</TableCell>
+              <TableCell>Type</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Submitted At</TableCell>
+              <TableCell>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {userDetails.kycs.map((kyc) => (
+              <TableRow key={kyc._id}>
+                <TableCell sx={{ fontFamily: 'monospace' }}>{kyc.kycId || kyc._id}</TableCell>
+                <TableCell sx={{ textTransform: 'capitalize' }}>{kyc.type}</TableCell>
+                <TableCell>
+                  {editingKYC === kyc._id ? (
+                    <Select
+                      size="small"
+                      value={editingKYC.status || kyc.status}
+                      onChange={(e) => setEditingKYC({ ...editingKYC, status: e.target.value })}
+                      sx={{ minWidth: 120 }}
+                    >
+                      <MenuItem value="pending">Pending</MenuItem>
+                      <MenuItem value="approved">Approved</MenuItem>
+                      <MenuItem value="rejected">Rejected</MenuItem>
+                      <MenuItem value="additional-info-needed">Additional Info Needed</MenuItem>
+                    </Select>
+                  ) : (
+                    <Chip label={kyc.status} color={kyc.status === 'approved' ? 'success' : kyc.status === 'rejected' ? 'error' : 'warning'} size="small" />
+                  )}
+                </TableCell>
+                <TableCell>{new Date(kyc.submittedAt).toLocaleDateString()}</TableCell>
+                <TableCell>
+                  {editingKYC === kyc._id ? (
+                    <Box sx={{ display: 'flex', gap: 0.5 }}>
+                      <Button size="small" variant="contained" onClick={() => handleUpdateKYC(kyc._id)}>Save</Button>
+                      <Button size="small" onClick={() => setEditingKYC(null)}>Cancel</Button>
+                    </Box>
+                  ) : (
+                    <Tooltip title="Edit KYC">
+                      <IconButton size="small" onClick={() => setEditingKYC({ ...kyc, status: kyc.status })}>
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     );
   };
 
@@ -821,6 +946,8 @@ const Users = () => {
           <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
             <Tabs value={detailsTab} onChange={(e, v) => setDetailsTab(v)}>
               <Tab label="Accounts" />
+              <Tab label="Cards" />
+              <Tab label="KYC" />
               <Tab label="Loans" />
               <Tab label="Transactions" />
               <Tab label="Transfers" />
@@ -834,10 +961,12 @@ const Users = () => {
           ) : (
             <Box>
               {detailsTab === 0 && renderAccountsTab()}
-              {detailsTab === 1 && renderLoansTab()}
-              {detailsTab === 2 && renderTransactionsTab()}
-              {detailsTab === 3 && renderTransfersTab()}
-              {detailsTab === 4 && renderInvestmentsTab()}
+              {detailsTab === 1 && renderCardsTab()}
+              {detailsTab === 2 && renderKYCTab()}
+              {detailsTab === 3 && renderLoansTab()}
+              {detailsTab === 4 && renderTransactionsTab()}
+              {detailsTab === 5 && renderTransfersTab()}
+              {detailsTab === 6 && renderInvestmentsTab()}
             </Box>
           )}
         </DialogContent>
