@@ -84,7 +84,7 @@ const Transfers = () => {
   };
 
   const filteredTransfers = transfers.filter(transfer =>
-    transfer.transferId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    transfer._id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     transfer.transferType?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -235,7 +235,7 @@ const Transfers = () => {
                       transition: 'background-color 0.2s',
                     }}
                   >
-                    <TableCell sx={{ fontFamily: 'monospace' }}>{transfer.transferId}</TableCell>
+                    <TableCell sx={{ fontFamily: 'monospace' }}>{transfer._id?.slice(-8) || 'N/A'}</TableCell>
                     <TableCell>
                       <Typography variant="body2" sx={{ textTransform: 'capitalize' }}>
                         {transfer.transferType}
@@ -243,12 +243,14 @@ const Transfers = () => {
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2" color="text.secondary">
-                        {transfer.sender?.name || 'N/A'}
+                        {transfer.initiatedBy?.firstName && transfer.initiatedBy?.lastName 
+                          ? `${transfer.initiatedBy.firstName} ${transfer.initiatedBy.lastName}` 
+                          : 'N/A'}
                       </Typography>
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2" color="text.secondary">
-                        {transfer.recipient?.name || 'N/A'}
+                        {transfer.recipientDetails?.name || 'N/A'}
                       </Typography>
                     </TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>
@@ -339,7 +341,7 @@ const Transfers = () => {
                 </Grid>
               </Grid>
 
-              {selectedTransfer.source?.walletAddress && (
+              {selectedTransfer.recipientDetails?.walletAddress && (
                 <>
                   <Typography variant="h6" sx={{ mt: 2, mb: 2, fontWeight: 600 }}>Crypto Transaction Details</Typography>
                   <Grid container spacing={2} sx={{ mb: 3 }}>
@@ -348,7 +350,7 @@ const Transfers = () => {
                         Source Wallet Address
                       </Typography>
                       <Typography variant="body2" sx={{ fontFamily: 'monospace', mt: 0.5 }}>
-                        {selectedTransfer.source.walletAddress}
+                        {selectedTransfer.recipientDetails.walletAddress}
                       </Typography>
                     </Grid>
                     <Grid item xs={12}>
@@ -356,7 +358,7 @@ const Transfers = () => {
                         Transaction Hash
                       </Typography>
                       <Typography variant="body2" sx={{ fontFamily: 'monospace', mt: 0.5 }}>
-                        {selectedTransfer.source.transactionHash}
+                        {selectedTransfer.recipientDetails.transactionHash || 'N/A'}
                       </Typography>
                     </Grid>
                     <Grid item xs={12}>
@@ -364,18 +366,18 @@ const Transfers = () => {
                         Cryptocurrency
                       </Typography>
                       <Typography variant="body2" sx={{ fontWeight: 500, mt: 0.5, textTransform: 'uppercase' }}>
-                        {selectedTransfer.source.crypto}
+                        {selectedTransfer.recipientDetails.crypto || 'N/A'}
                       </Typography>
                     </Grid>
                   </Grid>
                 </>
               )}
 
-              {selectedTransfer.proofs && selectedTransfer.proofs.length > 0 && (
+              {(selectedTransfer.proofImageUrl || (selectedTransfer.proofImageUrls && selectedTransfer.proofImageUrls.length > 0)) && (
                 <>
                   <Typography variant="h6" sx={{ mt: 2, mb: 2, fontWeight: 600 }}>Uploaded Transaction Proofs</Typography>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                    {selectedTransfer.proofs.map((proof, index) => (
+                    {[selectedTransfer.proofImageUrl, ...(selectedTransfer.proofImageUrls || [])].filter(Boolean).map((proof, index) => (
                       <Box
                         key={index}
                         sx={{
@@ -391,7 +393,7 @@ const Transfers = () => {
                       >
                         <Box>
                           <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                            {proof.name}
+                            {typeof proof === 'string' ? 'Proof Image' : proof.name}
                           </Typography>
                           <Typography variant="caption" color="text.secondary">
                             Uploaded: {proof.uploadedAt ? new Date(proof.uploadedAt).toLocaleString() : 'N/A'}

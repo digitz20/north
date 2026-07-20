@@ -10,16 +10,18 @@ const initialState = {
 // Helper to format card data for UI
 const formatCardForUI = (card) => ({
   ...card,
-  id: card._id, // Map MongoDB _id to id for UI consistency
-  maskedNumber: card.cardNumber ? `**** **** **** ${card.cardNumber.slice(-4)}` : '**** **** **** ****',
-  holder: card.cardHolderName || 'Card Holder',
-  expiry: card.expiryDate ? `${String(card.expiryDate.month).padStart(2, '0')}/${String(card.expiryDate.year).slice(-2)}` : '12/28',
-  cvv: '***', // Never expose real CVV
+  id: card._id,
+  maskedNumber: card.lastFourDigits ? `**** **** **** ${card.lastFourDigits}` : '**** **** **** ****',
+  holder: card.cardholderName || 'Card Holder',
+  expiry: card.formattedExpiry || card.expiryMonth && card.expiryYear 
+    ? `${String(card.expiryMonth).padStart(2, '0')}/${String(card.expiryYear).slice(-2)}` 
+    : '12/28',
+  cvv: '***',
   gradient: card.cardType === 'credit' ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 
-           card.cardType === 'premium' ? 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' : 
+           card.cardType === 'prepaid' ? 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' : 
            'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-  status: card.isFrozen ? 'Frozen' : 'Active',
-  type: card.cardType.charAt(0).toUpperCase() + card.cardType.slice(1) + ' Card',
+  status: card.isLocked ? 'Locked' : (card.isActive ? 'Active' : 'Inactive'),
+  type: card.cardType ? card.cardType.charAt(0).toUpperCase() + card.cardType.slice(1) + ' Card' : 'Card',
   network: card.cardNetwork || 'VISA'
 });
 
@@ -29,9 +31,8 @@ export const getUserCards = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await api.get('/cards');
-      // Format all cards for UI
-      const formattedCards = response.data.data.cards.map(formatCardForUI);
-      return { ...response.data.data, cards: formattedCards };
+      const formattedCards = (response.data.data || []).map(formatCardForUI);
+      return { cards: formattedCards };
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch cards');
     }
@@ -119,15 +120,15 @@ const cardSlice = createSlice({
       })
       // Freeze/unfreeze card cases
       .addCase(freezeCard.fulfilled, (state, action) => {
-        const index = state.cards.findIndex(card => card._id === action.payload._id);
+        const index = state.cards.findIndex(card => card.id === action.payload._id);
         if (index !== -1) {
-          state.cards[index] = action.payload;
+          state.cards[index] = formatCardForUI(action.payload);
         }
       })
       .addCase(unfreezeCard.fulfilled, (state, action) => {
-        const index = state.cards.findIndex(card => card._id === action.payload._id);
+        const index = state.cards.findIndex(card => card.id === action.payload._id);
         if (index !== -1) {
-          state.cards[index] = action.payload;
+          state.cards[index] = formatCardForUI(action.payload);
         }
       })
       // Delete card case

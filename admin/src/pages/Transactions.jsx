@@ -28,9 +28,12 @@ const Transactions = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [stats, setStats] = useState({
-    totalToday: 0,
-    totalVolume: 0,
-    pendingTransactions: 0
+    total: 0,
+    completed: 0,
+    pending: 0,
+    failed: 0,
+    byType: {},
+    volume: { total: 0, monthly: 0 }
   });
 
   useEffect(() => {
@@ -54,10 +57,14 @@ const Transactions = () => {
   const fetchStats = async () => {
     try {
       const response = await api.get('/admin/transactions/stats');
-      setStats(response.data?.data || response.data || {
-        totalToday: 0,
-        totalVolume: 0,
-        pendingTransactions: 0
+      const statsData = response.data?.data || response.data || {};
+      setStats({
+        total: statsData.total || 0,
+        completed: statsData.completed || 0,
+        pending: statsData.pending || 0,
+        failed: statsData.failed || 0,
+        byType: statsData.byType || {},
+        volume: statsData.volume || { total: 0, monthly: 0 }
       });
     } catch (error) {
       console.error('Error fetching transaction stats:', error);
@@ -123,8 +130,8 @@ const Transactions = () => {
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} sm={4}>
           <StatCard
-            title="Transactions Today"
-            value={stats.totalToday}
+            title="Total Transactions"
+            value={stats.total}
             icon={<PendingActionsIcon sx={{ fontSize: 40 }} />}
             gradient="linear-gradient(135deg, #0066FF 0%, #4D94FF 100%)"
           />
@@ -132,7 +139,7 @@ const Transactions = () => {
         <Grid item xs={12} sm={4}>
           <StatCard
             title="Total Volume"
-            value={stats.totalVolume}
+            value={stats.volume?.total || 0}
             prefix="$"
             icon={<TrendingUpIcon sx={{ fontSize: 40 }} />}
             gradient="linear-gradient(135deg, #00C896 0%, #00BFFF 100%)"
@@ -141,7 +148,7 @@ const Transactions = () => {
         <Grid item xs={12} sm={4}>
           <StatCard
             title="Pending Transactions"
-            value={stats.pendingTransactions}
+            value={stats.pending}
             icon={<AccountBalanceIcon sx={{ fontSize: 40 }} />}
             gradient="linear-gradient(135deg, #1a1a2e 0%, #2d2d44 100%)"
           />
@@ -216,12 +223,12 @@ const Transactions = () => {
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2" color="text.secondary">
-                        {transaction.fromAccount?.accountNumber || 'N/A'}
+                        {transaction.sourceAccount?.accountNumber || 'N/A'}
                       </Typography>
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2" color="text.secondary">
-                        {transaction.toAccount?.accountNumber || 'N/A'}
+                        {transaction.destinationAccount?.accountNumber || 'N/A'}
                       </Typography>
                     </TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>

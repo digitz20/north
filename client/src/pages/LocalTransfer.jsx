@@ -62,12 +62,15 @@ const LocalTransfer = () => {
 
     try {
       await dispatch(createTransfer({
-        fromAccount: formData.fromAccount,
-        toAccount: formData.beneficiaryAccountNumber,
-        toAccountHolder: formData.beneficiaryName,
+        sourceAccountId: formData.fromAccount,
+        recipientDetails: {
+          name: formData.beneficiaryName,
+          accountNumber: formData.beneficiaryAccountNumber,
+          bankName: formData.bankName
+        },
         amount: parseFloat(formData.amount),
-        description: formData.description,
-        transferType: formData.transferType
+        transferType: 'domestic',
+        description: formData.description
       })).unwrap();
       
       setSuccess(true);

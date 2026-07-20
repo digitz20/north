@@ -337,7 +337,7 @@ class EmailService {
           <li><strong>Investment ID:</strong> ${investment.investmentId || 'Pending'}</li>
           <li><strong>Category:</strong> ${categoryDisplay}</li>
           <li><strong>Plan:</strong> ${investment.planName}</li>
-          <li><strong>Amount Invested:</strong> $${investment.amount.toFixed(2)}</li>
+          <li><strong>Amount Invested:</strong> $${(investment.amount || investment.amountInvested).toFixed(2)}</li>
           <li><strong>Status:</strong> Processing</li>
           <li><strong>Date Submitted:</strong> ${new Date().toLocaleString()}</li>
           <li><strong>Notification Email:</strong> ${investment.email}</li>

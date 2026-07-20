@@ -389,8 +389,8 @@ const Investments = () => {
     }
   };
 
-  const totalInvested = investments.reduce((sum, inv) => sum + inv.invested, 0);
-  const totalCurrent = investments.reduce((sum, inv) => sum + inv.currentValue, 0);
+  const totalInvested = investments.reduce((sum, inv) => sum + (inv.amountInvested || 0), 0);
+  const totalCurrent = investments.reduce((sum, inv) => sum + (inv.currentValue || 0), 0);
 
   return (
     <Box sx={{ 
@@ -640,21 +640,21 @@ const Investments = () => {
                 </TableHead>
                 <TableBody>
                   {investments.map((inv) => (
-                    <TableRow key={inv.id}>
-                      <TableCell>{inv.type}</TableCell>
-                      <TableCell>{inv.name}</TableCell>
-                      <TableCell>${inv.invested.toLocaleString()}</TableCell>
-                      <TableCell>${inv.currentValue.toLocaleString()}</TableCell>
+                    <TableRow key={inv._id || inv.investmentId}>
+                      <TableCell>{inv.plan?.type || 'N/A'}</TableCell>
+                      <TableCell>{inv.plan?.name || 'N/A'}</TableCell>
+                      <TableCell>${(inv.amountInvested || 0).toLocaleString()}</TableCell>
+                      <TableCell>${(inv.currentValue || 0).toLocaleString()}</TableCell>
                       <TableCell>
-                        <Typography color={inv.currentValue >= inv.invested ? "success.main" : "error.main"}>
-                          {inv.returns}
+                        <Typography color={(inv.currentValue || 0) >= (inv.amountInvested || 0) ? "success.main" : "error.main"}>
+                          {inv.returnsEarned ? `$${inv.returnsEarned.toLocaleString()}` : '$0'}
                         </Typography>
                       </TableCell>
                       <TableCell>
                         <Button 
                           size="small" 
                           color="error"
-                          onClick={() => handleSellInvestment(inv.id)}
+                          onClick={() => handleSellInvestment(inv._id)}
                           sx={{ textTransform: 'none' }}
                         >
                           Sell

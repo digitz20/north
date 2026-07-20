@@ -4,11 +4,11 @@ import api from '../../services/api';
 // Helper to format investment data for UI
 const formatInvestmentForUI = (investment) => ({
   ...investment,
-  id: investment._id, // Map MongoDB _id to id for UI consistency
-  returns: investment.currentValue && investment.investedAmount 
-    ? `${(((investment.currentValue - investment.investedAmount) / investment.investedAmount) * 100).toFixed(1)}%` 
+  id: investment._id,
+  returns: investment.currentValue && investment.amountInvested 
+    ? `${(((investment.currentValue - investment.amountInvested) / investment.amountInvested) * 100).toFixed(1)}%` 
     : '0%',
-  invested: investment.investedAmount || 0,
+  invested: investment.amountInvested || 0,
   currentValue: investment.currentValue || 0
 });
 
@@ -25,9 +25,8 @@ export const getUserInvestments = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await api.get('/investments');
-      // Format all investments for UI
-      const formattedInvestments = response.data.data.investments.map(formatInvestmentForUI);
-      return { ...response.data.data, investments: formattedInvestments };
+      const formattedInvestments = (response.data.data?.investments || []).map(formatInvestmentForUI);
+      return { investments: formattedInvestments };
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch investments');
     }
@@ -106,9 +105,9 @@ const investmentSlice = createSlice({
       })
       // Sell investment case
       .addCase(sellInvestment.fulfilled, (state, action) => {
-        const index = state.investments.findIndex(inv => inv._id === action.payload._id);
+        const index = state.investments.findIndex(inv => inv.id === action.payload._id);
         if (index !== -1) {
-          state.investments[index] = action.payload;
+          state.investments[index] = formatInvestmentForUI(action.payload);
         }
       });
   }

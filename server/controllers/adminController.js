@@ -5,8 +5,8 @@ const Transfer = require('../models/Transfer');
 const SupportTicket = require('../models/SupportTicket');
 const Transaction = require('../models/Transaction');
 const Notification = require('../models/Notification');
-const Loan = require('../models/Loan');
-const Investment = require('../models/Investment');
+const { UserLoan, LoanProduct } = require('../models/Loan');
+const { UserInvestment } = require('../models/Investment');
 const KYC = require('../models/KYC');
 const Card = require('../models/Card');
 const bcrypt = require('bcryptjs');
@@ -21,7 +21,7 @@ exports.getDashboardStats = async (req, res, next) => {
     // Get real counts from the database
     const totalUsers = await User.countDocuments();
     const totalAccounts = await Account.countDocuments();
-    const totalTransactions = await Transfer.countDocuments();
+    const totalTransactions = await Transaction.countDocuments();
     const openTickets = await SupportTicket.countDocuments({ status: 'open' });
     
     res.status(200).json({
@@ -97,10 +97,10 @@ exports.getUserDetails = async (req, res, next) => {
 
     const [accounts, loans, transactions, transfers, investments, kycs, cards] = await Promise.all([
       Account.find({ user: req.params.id }),
-      Loan.find({ user: req.params.id }).populate('loanProduct', 'name interestRate'),
+      UserLoan.find({ user: req.params.id }).populate('loanProduct', 'name interestRate'),
       Transaction.find({ user: req.params.id }).sort({ createdAt: -1 }).limit(100),
       Transfer.find({ initiatedBy: req.params.id }).populate('sourceAccount', 'accountNumber accountType').sort({ createdAt: -1 }).limit(100),
-      Investment.find({ user: req.params.id }).populate('plan', 'name type expectedReturn').sort({ createdAt: -1 }).limit(100),
+      UserInvestment.find({ user: req.params.id }).populate('plan', 'name type expectedReturn').sort({ createdAt: -1 }).limit(100),
       KYC.find({ user: req.params.id }).sort({ submittedAt: -1 }),
       Card.find({ user: req.params.id }).populate('account', 'accountNumber accountType').sort({ createdAt: -1 })
     ]);
@@ -465,19 +465,15 @@ exports.createInvestmentForUser = async (req, res, next) => {
       });
     }
 
-    const investment = await Investment.create([{
+    const investment = await UserInvestment.create([{
       user: userId,
-      account: account._id,
       plan: plan.name || 'Custom Plan',
       planType: plan.type || 'stocks',
-      amount: parseFloat(amount),
+      amountInvested: parseFloat(amount),
       expectedReturn: plan.expectedReturn || 5,
       status: status || 'active',
-      startDate: Date.now()
+      purchaseDate: Date.now()
     }], { session });
-
-    account.balance -= parseFloat(amount);
-    await account.save({ session });
 
     await AuditLog.log({
       actor: { user: req.user.id, role: req.user.role, ip: req.ip, userAgent: req.get('User-Agent') },

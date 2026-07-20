@@ -53,10 +53,11 @@ const AdminDashboard = () => {
       });
 
       let transactions = [];
-      if (Array.isArray(transactionsResponse.data)) {
-        transactions = transactionsResponse.data;
-      } else if (Array.isArray(transactionsResponse.data?.data)) {
-        transactions = transactionsResponse.data.data;
+      const txData = transactionsResponse.data?.data || transactionsResponse.data || {};
+      if (Array.isArray(txData.transactions)) {
+        transactions = txData.transactions;
+      } else if (Array.isArray(txData)) {
+        transactions = txData;
       }
       setRecentTransactions(transactions);
     } catch (error) {

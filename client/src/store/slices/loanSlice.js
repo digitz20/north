@@ -4,10 +4,10 @@ import api from '../../services/api';
 // Helper to format loan data for UI
 const formatLoanForUI = (loan) => ({
   ...loan,
-  id: loan._id, // Map MongoDB _id to id for UI consistency
-  remaining: loan.remainingAmount || 0,
-  amount: loan.totalAmount || 0,
-  emi: loan.monthlyEmi || 0,
+  id: loan._id,
+  remaining: loan.remainingBalance || 0,
+  amount: loan.amount || 0,
+  emi: loan.monthlyPayment || 0,
   nextEmiDate: loan.nextPaymentDate ? new Date(loan.nextPaymentDate).toLocaleDateString() : 'N/A'
 });
 
@@ -38,9 +38,8 @@ export const getUserLoans = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await api.get('/loans');
-      // Format all loans for UI
-      const formattedLoans = response.data.data.map(formatLoanForUI);
-      return { ...response.data.data, loans: formattedLoans };
+      const formattedLoans = (response.data.data || []).map(formatLoanForUI);
+      return { loans: formattedLoans };
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch loans');
     }

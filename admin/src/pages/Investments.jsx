@@ -70,7 +70,7 @@ const Investments = () => {
 
   const filteredInvestments = investments.filter(investment =>
     investment.investmentId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    investment.investmentType?.toLowerCase().includes(searchTerm.toLowerCase())
+    investment.plan?.type?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const StatCard = ({ title, value, icon, gradient, prefix = '', suffix = '' }) => (
@@ -212,16 +212,18 @@ const Investments = () => {
                     <TableCell sx={{ fontFamily: 'monospace' }}>{investment.investmentId}</TableCell>
                     <TableCell>
                       <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                        {investment.user?.name || 'N/A'}
+                        {investment.user?.firstName && investment.user?.lastName 
+                          ? `${investment.user.firstName} ${investment.user.lastName}` 
+                          : investment.user?.email || 'N/A'}
                       </Typography>
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2" sx={{ textTransform: 'capitalize' }}>
-                        {investment.investmentType}
+                        {investment.plan?.type || 'N/A'}
                       </Typography>
                     </TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>
-                      ${investment.amount ? Number(investment.amount).toLocaleString() : '0'}
+                      ${investment.amountInvested ? Number(investment.amountInvested).toLocaleString() : '0'}
                     </TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>
                       ${investment.currentValue ? Number(investment.currentValue).toLocaleString() : '0'}
@@ -229,14 +231,14 @@ const Investments = () => {
                     <TableCell>
                       <Chip
                         label={investment.status}
-                        color={investment.status === 'active' ? 'success' : investment.status === 'completed' ? 'info' : 'default'}
+                        color={investment.status === 'active' ? 'success' : investment.status === 'sold' ? 'info' : 'default'}
                         size="small"
                         sx={{ fontWeight: 500 }}
                       />
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2" color="text.secondary">
-                        {investment.startDate ? new Date(investment.startDate).toLocaleDateString() : 'N/A'}
+                        {investment.purchaseDate ? new Date(investment.purchaseDate).toLocaleDateString() : 'N/A'}
                       </Typography>
                     </TableCell>
                   </TableRow>
