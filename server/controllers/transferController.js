@@ -145,14 +145,96 @@ exports.createTransfer = async (req, res, next) => {
 // @access  Private/Admin
 exports.getAllTransfers = async (req, res, next) => {
   try {
-    const transfers = await Transfer.find()
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 50;
+    const startIndex = (page - 1) * limit;
+    
+    // Filter options
+    const filters = {};
+    if (req.query.status) filters.status = req.query.status;
+    if (req.query.initiatedBy) filters.initiatedBy = req.query.initiatedBy;
+
+    const total = await Transfer.countDocuments(filters);
+    const transfers = await Transfer.find(filters)
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .skip(startIndex)
       .populate('initiatedBy', 'firstName lastName email')
       .populate('sourceAccount', 'accountNumber accountType');
     
     res.status(200).json({
       success: true,
-      count: transfers.length,
-      data: transfers
+      data: { transfers, total, page, limit }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Admin: Get transfer statistics
+// @desc    Get transfer statistics across platform (admin only)
+// @route   GET /api/v1/admin/transfers/stats
+// @access  Private/Admin
+exports.getTransferStats = async (req, res, next) => {
+  try {
+    // Get total transfers count
+    const totalTransfers = await Transfer.countDocuments();
+    
+    // Get transfers by status
+    const completedTransfers = await Transfer.countDocuments({ status: 'completed' });
+    const pendingTransfers = await Transfer.countDocuments({ status: 'pending' });
+    const failedTransfers = await Transfer.countDocuments({ status: 'failed' });
+    
+    // Get transfers by type
+    const domesticTransfers = await Transfer.countDocuments({ transferType: 'domestic' });
+    const internationalTransfers = await Transfer.countDocuments({ transferType: 'international' });
+    const cryptoTransfers = await Transfer.countDocuments({ method: 'crypto-transfer' });
+    
+    // Calculate total volume
+    const transferStats = await Transfer.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalVolume: { $sum: '$amount' },
+          monthlyVolume: {
+            $sum: {
+              $cond: [
+                { $gte: ['$createdAt', new Date(new Date().setMonth(new Date().getMonth() - 1))] },
+                '$amount',
+                0
+              ]
+            }
+          }
+        }
+      }
+    ]);
+    
+    const stats = {
+      total: totalTransfers,
+      completed: completedTransfers,
+      pending: pendingTransfers,
+      failed: failedTransfers,
+      byType: {
+        domestic: domesticTransfers,
+        international: internationalTransfers,
+        crypto: cryptoTransfers
+      },
+      volume: {
+        total: transferStats[0]?.totalVolume || 0,
+        monthly: transferStats[0]?.monthlyVolume || 0
+      }
+    };
+
+    await AuditLog.create({
+      user: req.user.id,
+      action: 'admin_transfer_stats_viewed',
+      description: `Admin viewed transfer statistics`,
+      ipAddress: req.ip
+    });
+
+    res.status(200).json({
+      success: true,
+      data: stats
     });
   } catch (error) {
     next(error);

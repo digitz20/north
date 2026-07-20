@@ -458,6 +458,78 @@ exports.getAllTransactions = async (req, res, next) => {
   }
 };
 
+// Admin: Get transaction statistics
+// @desc    Get transaction statistics across platform (admin only)
+// @route   GET /api/v1/admin/transactions/stats
+// @access  Private/Admin
+exports.getTransactionStats = async (req, res, next) => {
+  try {
+    // Get total transactions count
+    const totalTransactions = await Transaction.countDocuments();
+    
+    // Get transactions by status
+    const completedTransactions = await Transaction.countDocuments({ status: 'completed' });
+    const pendingTransactions = await Transaction.countDocuments({ status: 'pending' });
+    const failedTransactions = await Transaction.countDocuments({ status: 'failed' });
+    
+    // Get transactions by type
+    const deposits = await Transaction.countDocuments({ type: 'deposit' });
+    const withdrawals = await Transaction.countDocuments({ type: 'withdrawal' });
+    const transfers = await Transaction.countDocuments({ type: 'transfer' });
+    const cryptoTransactions = await Transaction.countDocuments({ type: 'crypto' });
+    
+    // Calculate total volume
+    const transactionStats = await Transaction.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalVolume: { $sum: '$amount' },
+          monthlyVolume: {
+            $sum: {
+              $cond: [
+                { $gte: ['$createdAt', new Date(new Date().setMonth(new Date().getMonth() - 1))] },
+                '$amount',
+                0
+              ]
+            }
+          }
+        }
+      }
+    ]);
+    
+    const stats = {
+      total: totalTransactions,
+      completed: completedTransactions,
+      pending: pendingTransactions,
+      failed: failedTransactions,
+      byType: {
+        deposits,
+        withdrawals,
+        transfers,
+        crypto: cryptoTransactions
+      },
+      volume: {
+        total: transactionStats[0]?.totalVolume || 0,
+        monthly: transactionStats[0]?.monthlyVolume || 0
+      }
+    };
+
+    await AuditLog.create({
+      user: req.user.id,
+      action: 'admin_transaction_stats_viewed',
+      description: `Admin viewed transaction statistics`,
+      ipAddress: req.ip
+    });
+
+    res.status(200).json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Admin: Approve pending transaction
 // @desc    Approve a pending transaction (admin only)
 // @route   PUT /api/v1/admin/transactions/:id/approve

@@ -41,10 +41,19 @@ router.route('/accounts/:id')
   .put(protect, authorize('admin', 'super-admin'), updateAdminAccount)
   .delete(protect, authorize('super-admin'), deleteAdminAccount);
 
+// Transactions CRUD (admin)
+const { getAllTransactions, getTransactionStats } = require('../controllers/transactionController');
+router.route('/transactions')
+  .get(protect, authorize('admin', 'super-admin'), getAllTransactions);
+router.route('/transactions/stats')
+  .get(protect, authorize('admin', 'super-admin'), getTransactionStats);
+
 // Transfers CRUD
-const { getAllTransfers, getTransfer, updateTransfer, deleteTransfer } = require('../controllers/transferController');
+const { getAllTransfers, getTransfer, updateTransfer, deleteTransfer, getTransferStats } = require('../controllers/transferController');
 router.route('/transfers')
   .get(protect, authorize('admin', 'super-admin'), getAllTransfers);
+router.route('/transfers/stats')
+  .get(protect, authorize('admin', 'super-admin'), getTransferStats);
 // Alias for frontend that requests /transactions/recent
 router.route('/transactions/recent')
   .get(protect, authorize('admin', 'super-admin'), getAllTransfers);
