@@ -67,42 +67,42 @@ const LiveSupportChat = () => {
     
     setLoading(true);
     try {
-      // Check for existing active ticket
-      const response = await axios.get('/api/v1/support/tickets?status=open,in-progress,awaiting-user', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      let activeTicket = response.data.data.tickets[0];
+      const headers = { Authorization: `Bearer ${token}` };
       
-      // If no active ticket, create a new one
+      const ticketsResponse = await axios.get('/api/v1/support/tickets?status=open,in-progress,awaiting-user', { headers });
+      
+      const tickets = ticketsResponse.data?.data?.tickets || ticketsResponse.data?.tickets || [];
+      let activeTicket = tickets[0];
+      
       if (!activeTicket) {
         const createResponse = await axios.post('/api/v1/support/tickets', {
           subject: 'Live Chat Inquiry',
           description: 'Customer started a live chat session',
           category: 'technical',
           priority: 'medium'
-        }, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        activeTicket = createResponse.data.data.ticket;
+        }, { headers });
+        
+        activeTicket = createResponse.data?.data || createResponse.data;
       }
 
-      setCurrentTicket(activeTicket);
-      setMessages(activeTicket.messages || []);
-      
-      // Join the socket room for this ticket
-      if (socket) {
-        joinChat(activeTicket._id);
-      }
-
-      // Mark all unread messages as read
-      activeTicket.messages.forEach(msg => {
-        if (!msg.readBy.some(read => read.user.toString() === user.id)) {
-          markMessageAsRead(activeTicket._id, msg._id);
+      if (activeTicket) {
+        setCurrentTicket(activeTicket);
+        setMessages(activeTicket.messages || []);
+        
+        if (socket && isConnected) {
+          joinChat(activeTicket._id);
         }
-      });
-      setUnreadCount(0);
-
+  
+        if (activeTicket.messages && activeTicket.messages.length > 0) {
+          activeTicket.messages.forEach(msg => {
+            if (!msg.readBy || !Array.isArray(msg.readBy)) return;
+            if (!msg.readBy.some(read => read.user?.toString?.() === user.id)) {
+              markMessageAsRead(activeTicket._id, msg._id);
+            }
+          });
+        }
+        setUnreadCount(0);
+      }
     } catch (error) {
       console.error('Error initializing chat:', error);
     } finally {
@@ -135,12 +135,40 @@ const LiveSupportChat = () => {
 
   // Send message handler
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !currentTicket) return;
+    if (!newMessage.trim() || !user) return;
 
     const messageText = newMessage.trim();
     setNewMessage('');
 
-    // Create local message object for immediate display
+    if (!currentTicket) {
+      try {
+        const createResponse = await axios.post('/api/v1/support/tickets', {
+          subject: 'Live Chat Inquiry',
+          description: 'Customer started a live chat session',
+          category: 'technical',
+          priority: 'medium'
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        const newTicket = createResponse.data?.data || createResponse.data;
+        if (newTicket && newTicket._id) {
+          setCurrentTicket(newTicket);
+          setMessages(newTicket.messages || []);
+          
+          if (socket && isConnected) {
+            joinChat(newTicket._id);
+          }
+        }
+      } catch (error) {
+        console.error('Error creating ticket:', error);
+        return;
+      }
+    }
+
+    const ticketId = currentTicket?._id;
+    if (!ticketId) return;
+
     const localMessage = {
       _id: `temp-${Date.now()}`,
       message: messageText,
@@ -150,15 +178,28 @@ const LiveSupportChat = () => {
       read: false
     };
 
-    // Add to local state immediately
     setMessages(prev => [...prev, localMessage]);
 
-    // Send via socket
-    if (socket) {
+    if (socket && isConnected) {
       sendMessage({
-        ticketId: currentTicket._id,
+        ticketId,
         message: messageText
       });
+    } else {
+      try {
+        const response = await axios.post(`/api/v1/support/tickets/${ticketId}/messages`, {
+          message: messageText
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        const savedMessage = response.data?.data;
+        if (savedMessage) {
+          setMessages(prev => [...prev, { ...savedMessage, _id: savedMessage._id || `temp-${Date.now()}` }]);
+        }
+      } catch (error) {
+        console.error('Error sending message:', error);
+      }
     }
   };
 
@@ -186,60 +227,67 @@ const LiveSupportChat = () => {
   useEffect(() => {
     if (!socket || !isOpen) return;
 
-    // Listen for new messages
-    socket.on('receiveMessage', (data) => {
+    const handleReceiveMessage = (data) => {
       const { message } = data;
-      setMessages(prev => [...prev, message]);
+      if (!message) return;
       
-      // If chat is not open or not active, increment unread count
+      setMessages(prev => {
+        const exists = prev.some(msg => msg._id === message._id);
+        if (exists) return prev;
+        return [...prev, message];
+      });
+      
       if (!isOpen || document.hidden) {
         setUnreadCount(prev => prev + 1);
       }
       
-      // If sender is an agent, mark as read
       if (['admin', 'super-admin', 'support'].includes(message.sender?.role) && currentTicket) {
         markMessageAsRead(currentTicket._id, message._id);
       }
-    });
+    };
 
-    // Listen for agent typing
-    socket.on('typing', (data) => {
-      if (data.isAgent) {
+    const handleTyping = (data) => {
+      if (data?.isAgent) {
         setAgentTyping(true);
       }
-    });
+    };
 
-    // Listen for agent stop typing
-    socket.on('stopTyping', () => {
+    const handleStopTyping = () => {
       setAgentTyping(false);
-    });
+    };
 
-    // Listen for message delivered
-    socket.on('messageDelivered', (data) => {
+    const handleMessageDelivered = (data) => {
+      if (!data?.messageId) return;
       setMessages(prev => prev.map(msg => 
         msg._id === data.messageId 
           ? { ...msg, delivered: true, deliveredAt: data.deliveredAt }
           : msg
       ));
-    });
+    };
 
-    // Listen for message read
-    socket.on('messageRead', (data) => {
+    const handleMessageRead = (data) => {
+      if (!data?.messageId) return;
       setMessages(prev => prev.map(msg =>
         msg._id === data.messageId
-          ? { ...msg, read: true, readAt: data.readBy.readAt }
+          ? { ...msg, read: true, readAt: data.readBy?.readAt }
           : msg
       ));
-    });
+    };
+
+    socket.on('receiveMessage', handleReceiveMessage);
+    socket.on('typing', handleTyping);
+    socket.on('stopTyping', handleStopTyping);
+    socket.on('messageDelivered', handleMessageDelivered);
+    socket.on('messageRead', handleMessageRead);
 
     return () => {
-      socket.off('receiveMessage');
-      socket.off('typing');
-      socket.off('stopTyping');
-      socket.off('messageDelivered');
-      socket.off('messageRead');
+      socket.off('receiveMessage', handleReceiveMessage);
+      socket.off('typing', handleTyping);
+      socket.off('stopTyping', handleStopTyping);
+      socket.off('messageDelivered', handleMessageDelivered);
+      socket.off('messageRead', handleMessageRead);
     };
-  }, [socket, isOpen, currentTicket]);
+  }, [socket, isOpen, currentTicket, markMessageAsRead]);
 
   // Format timestamp
   const formatTime = (date) => {

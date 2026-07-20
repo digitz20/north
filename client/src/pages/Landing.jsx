@@ -32,7 +32,9 @@ const Landing = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [languageAnchor, setLanguageAnchor] = useState(null);
   const [searchAnchor, setSearchAnchor] = useState(null);
-  const [selectedLanguage, setSelectedLanguage] = useState('EN');
+  const [selectedLanguage, setSelectedLanguage] = useState(() => {
+    return localStorage.getItem('selectedLanguage') || 'EN';
+  });
   const [activeSection, setActiveSection] = useState('home');
   const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [newsletterEmail, setNewsletterEmail] = useState('');
@@ -52,13 +54,20 @@ const Landing = () => {
 
   // Show initial loading splash screen with logo before page loads
   useEffect(() => {
-    // Simulate page loading and hide splash after content is ready
     const timer = setTimeout(() => {
       setIsPageLoading(false);
-    }, 2500); // 2.5 second loading screen to display logo
+    }, 800);
 
     return () => clearTimeout(timer);
   }, []);
+
+  // Update document language when selection changes
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.lang = selectedLanguage.toLowerCase();
+      localStorage.setItem('selectedLanguage', selectedLanguage);
+    }
+  }, [selectedLanguage]);
 
   // Optimized mouse parallax with throttle to prevent excessive re-renders
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });

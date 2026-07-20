@@ -11,7 +11,6 @@ import {
   List,
   ListItem,
   ListItemIcon,
-  ListItemText,
   IconButton,
   Badge,
   Avatar,
@@ -133,7 +132,7 @@ const DashboardLayout = () => {
             }}
           >
             <ListItemIcon>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.text} />
+            <Typography variant="body1">{item.text}</Typography>
           </ListItem>
         ))}
       </List>
@@ -219,20 +218,20 @@ const DashboardLayout = () => {
           <ListItemIcon>
             <ProfileIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Profile</ListItemText>
+          <Typography variant="body1">Profile</Typography>
         </MenuItem>
         <MenuItem onClick={() => navigateWithSplash('/settings')}>
           <ListItemIcon>
             <SettingsIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Settings</ListItemText>
+          <Typography variant="body1">Settings</Typography>
         </MenuItem>
         <Divider />
         <MenuItem onClick={handleLogout}>
           <ListItemIcon>
             <LogoutIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Logout</ListItemText>
+          <Typography variant="body1">Logout</Typography>
         </MenuItem>
       </Menu>
       
@@ -248,7 +247,7 @@ const DashboardLayout = () => {
           variant="temporary"
           open={mobileOpen}
           onClose={handleDrawerToggle}
-          ModalProps={{ keepMounted: true }}
+          ModalProps={{ keepMounted: true, disableEnforceFocus: true }}
           sx={{
             display: { xs: 'block', sm: 'none' },
             '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth }
