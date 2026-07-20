@@ -9,6 +9,7 @@ const Loan = require('../models/Loan');
 const Investment = require('../models/Investment');
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
+const logger = require('../utils/logger');
 
 // @desc    Get dashboard statistics
 // @route   GET /api/v1/admin/dashboard
@@ -242,6 +243,250 @@ exports.deleteUser = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: 'User and all associated data deleted successfully'
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    next(error);
+  }
+};
+
+// @desc    Create transaction for any user (admin only)
+// @route   POST /api/v1/admin/transactions
+// @access  Private/Admin
+exports.createTransactionForUser = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const { userId, type, amount, description, status, accountId } = req.body;
+
+    if (!userId || !type || !amount) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide userId, type, and amount'
+      });
+    }
+
+    const user = await User.findById(userId).session(session);
+    if (!user) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    let destinationAccount = accountId;
+    if (!destinationAccount) {
+      const userAccounts = await Account.find({ user: userId }).session(session);
+      if (userAccounts.length > 0) {
+        destinationAccount = userAccounts[0]._id;
+      }
+    }
+
+    const transaction = await Transaction.create([{
+      user: userId,
+      type,
+      amount: parseFloat(amount),
+      currency: 'USD',
+      status: status || 'completed',
+      description: description || `Admin ${type} for user`,
+      sourceAccount: type === 'withdrawal' ? destinationAccount : null,
+      destinationAccount: type === 'deposit' ? destinationAccount : null,
+      completedAt: Date.now()
+    }], { session });
+
+    if (destinationAccount && type === 'deposit') {
+      await Account.findByIdAndUpdate(destinationAccount, { $inc: { balance: parseFloat(amount) } }, { session });
+    } else if (destinationAccount && type === 'withdrawal') {
+      await Account.findByIdAndUpdate(destinationAccount, { $inc: { balance: -parseFloat(amount) } }, { session });
+    }
+
+    await AuditLog.log({
+      actor: { user: req.user.id, role: req.user.role, ip: req.ip, userAgent: req.get('User-Agent') },
+      action: `Admin created ${type} transaction`,
+      category: 'transaction-management',
+      description: `Admin created ${type} transaction of $${amount} for user ${user.email}`,
+      entity: { type: 'transaction', id: transaction[0]._id }
+    }, { session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(201).json({
+      success: true,
+      data: transaction[0]
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    next(error);
+  }
+};
+
+// @desc    Create transfer for any user (admin only)
+// @route   POST /api/v1/admin/transfers
+// @access  Private/Admin
+exports.createTransferForUser = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const { userId, amount, transferType, status, recipientDetails, sourceAccountId } = req.body;
+
+    if (!userId || !amount || !transferType) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide userId, amount, and transferType'
+      });
+    }
+
+    const user = await User.findById(userId).session(session);
+    if (!user) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const sourceAccount = sourceAccountId
+      ? await Account.findOne({ _id: sourceAccountId, user: userId }).session(session)
+      : await Account.findOne({ user: userId }).session(session);
+
+    if (!sourceAccount) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({
+        success: false,
+        message: 'No account found for user'
+      });
+    }
+
+    if (sourceAccount.balance < parseFloat(amount)) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        success: false,
+        message: 'Insufficient balance in source account'
+      });
+    }
+
+    const transfer = await Transfer.create([{
+      initiatedBy: userId,
+      sourceAccount: sourceAccount._id,
+      recipientDetails: recipientDetails || {},
+      amount: parseFloat(amount),
+      transferType,
+      status: status || 'completed',
+      proofImageUrl: null
+    }], { session });
+
+    sourceAccount.balance -= parseFloat(amount);
+    await sourceAccount.save({ session });
+
+    await AuditLog.log({
+      actor: { user: req.user.id, role: req.user.role, ip: req.ip, userAgent: req.get('User-Agent') },
+      action: `Admin created ${transferType} transfer`,
+      category: 'transaction-management',
+      description: `Admin created ${transferType} transfer of $${amount} for user ${user.email}`,
+      entity: { type: 'transfer', id: transfer[0]._id }
+    }, { session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(201).json({
+      success: true,
+      data: transfer[0]
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    next(error);
+  }
+};
+
+// @desc    Create investment for any user (admin only)
+// @route   POST /api/v1/admin/investments
+// @access  Private/Admin
+exports.createInvestmentForUser = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const { userId, amount, plan, status } = req.body;
+
+    if (!userId || !amount || !plan) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide userId, amount, and plan details'
+      });
+    }
+
+    const user = await User.findById(userId).session(session);
+    if (!user) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const account = await Account.findOne({ user: userId }).session(session);
+    if (!account) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({
+        success: false,
+        message: 'No account found for user'
+      });
+    }
+
+    if (account.balance < parseFloat(amount)) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        success: false,
+        message: 'Insufficient balance in user account'
+      });
+    }
+
+    const investment = await Investment.create([{
+      user: userId,
+      account: account._id,
+      plan: plan.name || 'Custom Plan',
+      planType: plan.type || 'stocks',
+      amount: parseFloat(amount),
+      expectedReturn: plan.expectedReturn || 5,
+      status: status || 'active',
+      startDate: Date.now()
+    }], { session });
+
+    account.balance -= parseFloat(amount);
+    await account.save({ session });
+
+    await AuditLog.log({
+      actor: { user: req.user.id, role: req.user.role, ip: req.ip, userAgent: req.get('User-Agent') },
+      action: `Admin created investment`,
+      category: 'investment-management',
+      description: `Admin created investment of $${amount} for user ${user.email}`,
+      entity: { type: 'investment', id: investment[0]._id }
+    }, { session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(201).json({
+      success: true,
+      data: investment[0]
     });
   } catch (error) {
     await session.abortTransaction();

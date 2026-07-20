@@ -7,7 +7,10 @@ const {
   getUserDetails,
   updateUser,
   deleteUser,
-  getSystemLogs
+  getSystemLogs,
+  createTransactionForUser,
+  createTransferForUser,
+  createInvestmentForUser
 } = require('../controllers/adminController');
 const { login } = require('../controllers/authController');
 const { getSettings, updateSettings } = require('../controllers/settingsController');
@@ -49,38 +52,18 @@ router.route('/accounts/:id')
   .patch(protect, authorize('admin', 'super-admin'), updateAdminAccount)
   .delete(protect, authorize('super-admin'), deleteAdminAccount);
 
-// Transactions CRUD (admin)
-const { getAllTransactions, getTransactionStats } = require('../controllers/transactionController');
+// Admin CRUD for transactions, transfers, investments on behalf of users
 router.route('/transactions')
-  .get(protect, authorize('admin', 'super-admin'), getAllTransactions);
-router.route('/transactions/stats')
-  .get(protect, authorize('admin', 'super-admin'), getTransactionStats);
+  .get(protect, authorize('admin', 'super-admin'), require('../controllers/transactionController').getAllTransactions)
+  .post(protect, authorize('admin', 'super-admin'), createTransactionForUser);
 
-// Transfers CRUD
-const { getAllTransfers, getTransfer, updateTransfer, deleteTransfer, getTransferStats } = require('../controllers/transferController');
 router.route('/transfers')
-  .get(protect, authorize('admin', 'super-admin'), getAllTransfers);
-router.route('/transfers/stats')
-  .get(protect, authorize('admin', 'super-admin'), getTransferStats);
-// Alias for frontend that requests /transactions/recent
-router.route('/transactions/recent')
-  .get(protect, authorize('admin', 'super-admin'), getAllTransfers);
-router.route('/transfers/:id')
-  .get(protect, authorize('admin', 'super-admin'), getTransfer)
-  .put(protect, authorize('admin', 'super-admin'), updateTransfer)
-  .delete(protect, authorize('super-admin'), deleteTransfer);
+  .get(protect, authorize('admin', 'super-admin'), require('../controllers/transferController').getAllTransfers)
+  .post(protect, authorize('admin', 'super-admin'), createTransferForUser);
 
-// Investments CRUD
-const { getAllInvestments, getInvestment, updateInvestment, deleteInvestment, getInvestmentStats } = require('../controllers/investmentController');
 router.route('/investments')
-  .get(protect, authorize('admin', 'super-admin'), getAllInvestments);
-router.route('/investments/stats')
-  .get(protect, authorize('admin', 'super-admin'), getInvestmentStats);
-router.route('/investments/:id')
-  .get(protect, authorize('admin', 'super-admin'), getInvestment)
-  .put(protect, authorize('admin', 'super-admin'), updateInvestment)
-  .patch(protect, authorize('admin', 'super-admin'), updateInvestment)
-  .delete(protect, authorize('super-admin'), deleteInvestment);
+  .get(protect, authorize('admin', 'super-admin'), require('../controllers/investmentController').getAllInvestments)
+  .post(protect, authorize('admin', 'super-admin'), createInvestmentForUser);
 
 // Loans CRUD
 const { getAllLoans, getLoan, getLoanStats, updateLoan, deleteLoan } = require('../controllers/loanController');
