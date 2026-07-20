@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -18,7 +18,8 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Chip
+  Chip,
+  CircularProgress
 } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
 import api from '../services/api';
@@ -41,16 +42,16 @@ const Reports = () => {
           endDate: dateRange.end
         }
       });
-      setReportData(response.data);
+      setReportData(response.data?.data || response.data || []);
     } catch (error) {
       console.error('Error generating report:', error);
+      setReportData([]);
     } finally {
       setLoading(false);
     }
   };
 
   const downloadReport = () => {
-    // Create CSV and download
     const csvContent = convertToCSV(reportData);
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
@@ -71,12 +72,12 @@ const Reports = () => {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>
+    <Box sx={{ p: { xs: 2, md: 3 } }}>
+      <Typography variant="h4" sx={{ fontWeight: 700, mb: 3 }}>
         Reports
       </Typography>
 
-      <Paper sx={{ p: 3, mb: 4 }}>
+      <Paper sx={{ p: 3, mb: 4, borderRadius: 3 }}>
         <Grid container spacing={3} alignItems="center">
           <Grid item xs={12} sm={3}>
             <FormControl fullWidth>
@@ -102,6 +103,7 @@ const Reports = () => {
               InputLabelProps={{ shrink: true }}
               value={dateRange.start}
               onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
             />
           </Grid>
           <Grid item xs={12} sm={3}>
@@ -112,6 +114,7 @@ const Reports = () => {
               InputLabelProps={{ shrink: true }}
               value={dateRange.end}
               onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
             />
           </Grid>
           <Grid item xs={12} sm={3}>
@@ -121,15 +124,19 @@ const Reports = () => {
                 onClick={generateReport}
                 disabled={loading}
                 fullWidth
+                sx={{
+                  background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
+                  '&:hover': { background: 'linear-gradient(135deg, #0052CC 0%, #0099CC 100%)' },
+                }}
               >
-                {loading ? 'Generating...' : 'Generate Report'}
+                {loading ? <CircularProgress size={20} sx={{ color: 'white' }} /> : 'Generate Report'}
               </Button>
               {reportData.length > 0 && (
                 <Button
                   variant="outlined"
                   startIcon={<DownloadIcon />}
                   onClick={downloadReport}
-                  fullWidth
+                  sx={{ borderRadius: 2 }}
                 >
                   Download
                 </Button>
@@ -140,19 +147,27 @@ const Reports = () => {
       </Paper>
 
       {reportData.length > 0 && (
-        <Paper sx={{ p: 2 }}>
+        <Paper sx={{ borderRadius: 3, overflow: 'hidden' }}>
           <TableContainer>
             <Table>
               <TableHead>
                 <TableRow>
                   {Object.keys(reportData[0]).map((key) => (
-                    <TableCell key={key}>{key.charAt(0).toUpperCase() + key.slice(1)}</TableCell>
+                    <TableCell key={key} sx={{ fontWeight: 600, textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em', color: 'text.secondary' }}>
+                      {key.charAt(0).toUpperCase() + key.slice(1)}
+                    </TableCell>
                   ))}
                 </TableRow>
               </TableHead>
               <TableBody>
                 {reportData.map((row, index) => (
-                  <TableRow key={index}>
+                  <TableRow
+                    key={index}
+                    sx={{
+                      '&:hover': { bgcolor: 'rgba(0, 102, 255, 0.03)' },
+                      transition: 'background-color 0.2s',
+                    }}
+                  >
                     {Object.values(row).map((value, i) => (
                       <TableCell key={i}>
                         {typeof value === 'boolean' ? (
@@ -160,6 +175,7 @@ const Reports = () => {
                             label={value ? 'Yes' : 'No'}
                             color={value ? 'success' : 'default'}
                             size="small"
+                            sx={{ fontWeight: 500 }}
                           />
                         ) : (
                           String(value)

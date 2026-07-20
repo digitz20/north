@@ -6,6 +6,7 @@ import notificationReducer from './slices/notificationSlice';
 import cardReducer from './slices/cardSlice';
 import investmentReducer from './slices/investmentSlice';
 import loanReducer from './slices/loanSlice';
+import beneficiaryReducer from './slices/beneficiarySlice';
 
 export default configureStore({
   reducer: {
@@ -15,6 +16,7 @@ export default configureStore({
     notifications: notificationReducer,
     cards: cardReducer,
     investments: investmentReducer,
-    loans: loanReducer
+    loans: loanReducer,
+    beneficiaries: beneficiaryReducer
   }
 });

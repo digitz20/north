@@ -1,0 +1,190 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+:root {
+  --nc-primary: #0066FF;
+  --nc-primary-light: #4D94FF;
+  --nc-primary-dark: #0047B3;
+  --nc-secondary: #00C896;
+  --nc-secondary-light: #33D8B0;
+  --nc-secondary-dark: #009B70;
+  --nc-accent: #FFC857;
+  --nc-accent-light: #FFD680;
+  --nc-accent-dark: #E5B13D;
+  --nc-error: #FF6B6B;
+  --nc-warning: #FFA726;
+  --nc-info: #00BFFF;
+  --nc-success: #00C896;
+  --nc-bg: #F8FAFC;
+  --nc-surface: #FFFFFF;
+  --nc-surface-elevated: #FFFFFF;
+  --nc-text: #0F172A;
+  --nc-text-secondary: #64748B;
+  --nc-text-muted: #94A3B8;
+  --nc-border: rgba(15, 39, 68, 0.08);
+  --nc-border-strong: rgba(15, 39, 68, 0.15);
+  --nc-shadow-sm: 0 1px 3px rgba(15, 39, 68, 0.04), 0 1px 2px rgba(15, 39, 68, 0.02);
+  --nc-shadow-md: 0 4px 12px rgba(15, 39, 68, 0.06), 0 2px 4px rgba(15, 39, 68, 0.04);
+  --nc-shadow-lg: 0 8px 24px rgba(15, 39, 68, 0.08), 0 4px 8px rgba(15, 39, 68, 0.04);
+  --nc-shadow-xl: 0 12px 36px rgba(15, 39, 68, 0.1), 0 6px 12px rgba(15, 39, 68, 0.06);
+  --nc-radius-sm: 8px;
+  --nc-radius-md: 12px;
+  --nc-radius-lg: 16px;
+  --nc-radius-xl: 24px;
+  --nc-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --nc-transition-slow: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background-color: var(--nc-bg);
+  color: var(--nc-text);
+  line-height: 1.6;
+}
+
+/* Premium Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(15, 39, 68, 0.15);
+  border-radius: 4px;
+  transition: var(--nc-transition);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(15, 39, 68, 0.25);
+}
+
+/* Selection */
+::selection {
+  background: rgba(0, 102, 255, 0.15);
+  color: var(--nc-primary-dark);
+}
+
+/* Focus styles */
+*:focus-visible {
+  outline: 2px solid var(--nc-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(0, 102, 255, 0.2); }
+  50% { box-shadow: 0 0 40px rgba(0, 102, 255, 0.4); }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(30px, -30px) rotate(5deg); }
+  66% { transform: translate(-20px, 20px) rotate(-5deg); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-slide-in {
+  animation: slideInRight 0.4s ease-out forwards;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease infinite;
+}
+
+/* Premium utility classes */
+.glass {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glass-dark {
+  background: rgba(2, 16, 36, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, var(--nc-primary) 0%, var(--nc-info) 50%, var(--nc-secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-primary {
+  background: linear-gradient(135deg, var(--nc-primary) 0%, var(--nc-info) 100%);
+}
+
+.gradient-secondary {
+  background: linear-gradient(135deg, var(--nc-secondary) 0%, var(--nc-info) 100%);
+}
+
+.gradient-dark {
+  background: linear-gradient(135deg, #021024 0%, #063970 100%);
+}
+
+/* Video quality */
+video {
+  image-rendering: -webkit-optimize-contrast !important;
+  image-rendering: crisp-edges !important;
+  image-rendering: high-quality !important;
+  -webkit-backface-visibility: hidden !important;
+  backface-visibility: hidden !important;
+  transform: translateZ(0) scale(1.001);
+}
+
+/* Banking utilities */
+.currency-positive {
+  color: var(--nc-success);
+  font-weight: 600;
+}
+
+.currency-negative {
+  color: var(--nc-error);
+  font-weight: 600;
+}

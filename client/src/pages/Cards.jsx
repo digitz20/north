@@ -3,8 +3,7 @@ import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import CountUp from 'react-countup';
 import {
-  Box, Typography, Paper, Grid, Card, CardContent, Button, Avatar,
-  Chip, Divider, IconButton, Tooltip, Dialog, DialogTitle, DialogContent,
+  Box, Typography, Grid, Avatar, Chip, Divider, IconButton, Tooltip, Dialog, DialogTitle, DialogContent,
   DialogActions, TextField, Stack, CircularProgress, Alert
 } from '@mui/material';
 import {
@@ -14,7 +13,9 @@ import {
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { getUserCards, createCard, freezeCard, unfreezeCard, deleteCard } from '../store/slices/cardSlice';
-import LoadingSpinner from '../components/LoadingSpinner';
+import PremiumCard from '../components/PremiumCard';
+import PremiumStatCard from '../components/PremiumStatCard';
+import PremiumButton from '../components/PremiumButton';
 
 const Cards = () => {
   const navigate = useNavigate();
@@ -32,7 +33,6 @@ const Cards = () => {
     cardNetwork: 'VISA'
   });
 
-  // Get user's accounts to populate accountId in new card data
   const { accounts } = useSelector(state => state.accounts);
   
   useEffect(() => {
@@ -42,7 +42,6 @@ const Cards = () => {
   }, [accounts, newCardData.accountId]);
 
   useEffect(() => {
-    // Always refetch cards data when navigating to cards page
     dispatch(getUserCards());
   }, [dispatch, location.pathname]);
 
@@ -50,7 +49,6 @@ const Cards = () => {
     try {
       await dispatch(createCard(newCardData)).unwrap();
       setOpen(false);
-      // Reset form
       setNewCardData({ accountId: accounts[0]?._id || '', cardType: 'debit', cardNetwork: 'VISA' });
     } catch (err) {
       console.error('Failed to create card:', err);
@@ -124,8 +122,8 @@ const Cards = () => {
       <motion.div variants={itemVariants}>
         <Box sx={{ 
           mb: 6, 
-          p: 5, 
-          borderRadius: 2,
+          p: { xs: 3, md: 5 }, 
+          borderRadius: 3,
           background: 'linear-gradient(135deg, #00C896 0%, #00BFFF 100%)',
           color: 'white',
           position: 'relative',
@@ -142,30 +140,14 @@ const Cards = () => {
                   Manage all your payment cards in one secure dashboard
                 </Typography>
               </Box>
-              <Button
-                variant="contained"
-                size="large"
+              <PremiumButton
+                variant="primary"
                 startIcon={<Add />}
                 onClick={handleClickOpen}
-                sx={{
-                  bgcolor: 'white',
-                  color: '#0066FF',
-                  px: 4,
-                  py: 1.5,
-                  borderRadius: 2,
-                  textTransform: 'none',
-                  fontWeight: 700,
-                  fontSize: '1.1rem',
-                  '&:hover': {
-                    bgcolor: 'rgba(255,255,255,0.9)',
-                    transform: 'translateY(-3px)',
-                    boxShadow: '0 15px 30px rgba(0,0,0,0.2)'
-                  },
-                  transition: 'all 0.3s ease'
-                }}
+                sx={{ bgcolor: 'white', color: '#0066FF', '&:hover': { bgcolor: 'rgba(255,255,255,0.9)' } }}
               >
                 Request New Card
-              </Button>
+              </PremiumButton>
             </Box>
             
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 4, mt: 2, flexWrap: 'wrap' }}>
@@ -214,7 +196,6 @@ const Cards = () => {
               />
             </Box>
           </Box>
-          {/* Decorative Elements */}
           <Box sx={{
             position: 'absolute',
             top: -50,
@@ -257,28 +238,18 @@ const Cards = () => {
         <Grid container spacing={5} ref={ref}>
           {cards.length === 0 ? (
             <Grid item xs={12}>
-              <Paper sx={{ p: 6, textAlign: 'center', borderRadius: 2 }}>
+              <PremiumCard sx={{ p: 6, textAlign: 'center' }}>
                 <CreditCard sx={{ fontSize: 80, color: '#ccc', mb: 3 }} />
                 <Typography variant="h5" sx={{ mb: 2, color: '#666' }}>No cards found</Typography>
                 <Typography variant="body1" sx={{ mb: 4, color: '#888' }}>You don't have any cards yet. Request your first card to get started!</Typography>
-                <Button
-                  variant="contained"
-                  startIcon={<Add />}
-                  onClick={handleClickOpen}
-                  sx={{
-                    background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    px: 4
-                  }}
-                >
+                <PremiumButton variant="primary" startIcon={<Add />} onClick={handleClickOpen}>
                   Request Your First Card
-                </Button>
-              </Paper>
+                </PremiumButton>
+              </PremiumCard>
             </Grid>
           ) : (
             cards.map((card, index) => (
-              <Grid item xs={12} md={6} lg={6} key={card.id}>
+              <Grid item xs={12} md={6} key={card.id}>
                 <motion.div
                   variants={itemVariants}
                   whileHover={{ y: -3 }}
@@ -314,7 +285,6 @@ const Cards = () => {
                         position: 'relative',
                         overflow: 'hidden'
                       }}>
-                        {/* Card Decorations */}
                         <Box sx={{
                           position: 'absolute',
                           top: -40,
@@ -334,7 +304,7 @@ const Cards = () => {
                           background: 'rgba(255,255,255,0.08)',
                         }} />
                         
-                        <CardContent sx={{ p: 0, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative', zIndex: 2 }}>
+                        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative', zIndex: 2 }}>
                           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                             <Box>
                               <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
@@ -385,7 +355,7 @@ const Cards = () => {
                               </Box>
                             </Box>
                           </Box>
-                        </CardContent>
+                        </Box>
                       </Box>
                     </Paper>
 
@@ -496,36 +466,19 @@ const Cards = () => {
                   whileHover={{ y: -3 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Paper
-                    elevation={0}
+                  <PremiumCard
                     onClick={action.action}
-                    sx={{
-                      p: 4,
-                      borderRadius: 3,
-                      textAlign: 'center',
+                    sx={{ 
+                      textAlign: 'center', 
                       cursor: 'pointer',
-                      border: '2px solid #f0f0f0',
-                      '&:hover': {
-                        borderColor: action.color,
-                        boxShadow: `0 20px 40px ${action.color}20`
-                      },
-                      transition: 'all 0.3s ease'
+                      '&:hover': { borderColor: action.color }
                     }}
+                    action={action.icon}
                   >
-                    <Avatar sx={{ 
-                      bgcolor: `${action.color}15`, 
-                      color: action.color,
-                      width: 64,
-                      height: 64,
-                      mx: 'auto',
-                      mb: 2
-                    }}>
-                      {action.icon}
-                    </Avatar>
                     <Typography variant="h6" sx={{ fontWeight: 600 }}>
                       {action.title}
                     </Typography>
-                  </Paper>
+                  </PremiumCard>
                 </motion.div>
               </Grid>
             ))}
@@ -593,19 +546,13 @@ const Cards = () => {
           </Stack>
         </DialogContent>
         <DialogActions sx={{ p: 3 }}>
-          <Button onClick={handleClose} sx={{ color: '#666' }}>Cancel</Button>
-          <Button 
+          <PremiumButton variant="ghost" onClick={handleClose}>Cancel</PremiumButton>
+          <PremiumButton 
             onClick={handleCreateCard} 
-            variant="contained"
-            sx={{ 
-              background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
-              textTransform: 'none',
-              fontWeight: 600,
-              px: 4
-            }}
+            variant="primary"
           >
             Submit Request
-          </Button>
+          </PremiumButton>
         </DialogActions>
       </Dialog>
     </motion.div>

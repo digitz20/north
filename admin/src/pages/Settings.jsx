@@ -11,7 +11,8 @@ import {
   Divider,
   Alert,
   Card,
-  CardContent
+  CardContent,
+  CircularProgress
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import api from '../services/api';
@@ -37,8 +38,8 @@ const Settings = () => {
   const fetchSettings = async () => {
     try {
       const response = await api.get('/admin/settings');
-      if (response.data) {
-        setSettings({ ...settings, ...response.data });
+      if (response.data?.data || response.data) {
+        setSettings({ ...settings, ...(response.data?.data || response.data) });
       }
     } catch (error) {
       console.error('Error fetching settings:', error);
@@ -68,21 +69,21 @@ const Settings = () => {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>
+    <Box sx={{ p: { xs: 2, md: 3 } }}>
+      <Typography variant="h4" sx={{ fontWeight: 700, mb: 3 }}>
         Admin Settings
       </Typography>
 
       {saveSuccess && (
-        <Alert severity="success" sx={{ mb: 3 }}>
+        <Alert severity="success" sx={{ mb: 3, borderRadius: 2 }}>
           Settings saved successfully!
         </Alert>
       )}
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
+          <Paper sx={{ p: 3, borderRadius: 3 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
               General Settings
             </Typography>
             <Grid container spacing={2}>
@@ -93,6 +94,7 @@ const Settings = () => {
                   name="bankName"
                   value={settings.bankName}
                   onChange={handleChange}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -102,6 +104,7 @@ const Settings = () => {
                   name="supportEmail"
                   value={settings.supportEmail}
                   onChange={handleChange}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -111,6 +114,7 @@ const Settings = () => {
                   name="supportPhone"
                   value={settings.supportPhone}
                   onChange={handleChange}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -142,8 +146,8 @@ const Settings = () => {
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
+          <Paper sx={{ p: 3, borderRadius: 3 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
               Transaction Limits
             </Typography>
             <Grid container spacing={2}>
@@ -155,6 +159,7 @@ const Settings = () => {
                   type="number"
                   value={settings.maxTransferAmount}
                   onChange={handleChange}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -165,6 +170,7 @@ const Settings = () => {
                   type="number"
                   value={settings.minLoanAmount}
                   onChange={handleChange}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -176,6 +182,7 @@ const Settings = () => {
                   step="0.1"
                   value={settings.interestRate}
                   onChange={handleChange}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                 />
               </Grid>
             </Grid>
@@ -183,13 +190,17 @@ const Settings = () => {
         </Grid>
 
         <Grid item xs={12}>
-          <Paper sx={{ p: 3 }}>
+          <Paper sx={{ p: 3, borderRadius: 3 }}>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
               <Button
                 variant="contained"
-                startIcon={<SaveIcon />}
+                startIcon={loading ? <CircularProgress size={20} sx={{ color: 'white' }} /> : <SaveIcon />}
                 onClick={handleSave}
                 disabled={loading}
+                sx={{
+                  background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
+                  '&:hover': { background: 'linear-gradient(135deg, #0052CC 0%, #0099CC 100%)' },
+                }}
               >
                 {loading ? 'Saving...' : 'Save Settings'}
               </Button>

@@ -1,9 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Box, Typography, Paper, Grid, Chip, Avatar, Divider, TextField, MenuItem, InputAdornment, Button, LinearProgress } from '@mui/material';
+import { Box, Typography, Grid, Chip, Avatar, Divider, TextField, MenuItem, InputAdornment, CircularProgress, Alert } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 import { fetchTransactions } from '../store/slices/transactionSlice';
-import LoadingSpinner from '../components/LoadingSpinner';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import CountUp from 'react-countup';
@@ -13,13 +12,13 @@ import {
   MoreHoriz, GetApp, PictureAsPdf, ArrowUpward, ArrowDownward,
   Payment, AccountBalance
 } from '@mui/icons-material';
-// Alias for icon names used in component
-const ArrowUpwardIcon = ArrowUpward;
-const ArrowDownwardIcon = ArrowDownward;
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
   ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, BarChart, Bar
 } from 'recharts';
+import PremiumCard from '../components/PremiumCard';
+import PremiumStatCard from '../components/PremiumStatCard';
+import PremiumButton from '../components/PremiumButton';
 
 const Transactions = () => {
   const dispatch = useDispatch();
@@ -34,7 +33,6 @@ const Transactions = () => {
     dispatch(fetchTransactions());
   }, [dispatch, location.pathname]);
 
-  // Calculate statistics
   const totalIncome = transactions
     .filter(t => t.type === 'credit')
     .reduce((sum, t) => sum + t.amount, 0);
@@ -45,12 +43,10 @@ const Transactions = () => {
   
   const netSavings = totalIncome - totalExpenses;
 
-  // Calculate monthly data from real transactions
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const currentDate = new Date();
   const monthlyData = [];
   
-  // Get last 7 months of data
   for (let i = 6; i >= 0; i--) {
     const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
     const monthTransactions = transactions.filter(t => {
@@ -68,7 +64,6 @@ const Transactions = () => {
     });
   }
 
-  // Calculate category spending from real transactions
   const categorySpending = {};
   transactions.filter(t => t.type === 'debit').forEach(t => {
     const category = t.category || 'Other';
@@ -93,7 +88,6 @@ const Transactions = () => {
     color: categoryColors[name] || categoryColors.Other
   }));
 
-  // Transaction category icons
   const categoryIcons = {
     shopping: <ShoppingCart />,
     food: <Restaurant />,
@@ -122,14 +116,13 @@ const Transactions = () => {
     }
   };
 
-  // Filter transactions
   const filteredTransactions = transactions.filter(transaction => {
     const matchesSearch = transaction.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filter === 'all' || transaction.type === filter;
     return matchesSearch && matchesFilter;
   });
 
-  if (loading) return <LoadingSpinner />;
+  if (loading) return null;
 
   return (
     <motion.div
@@ -143,8 +136,8 @@ const Transactions = () => {
       <motion.div variants={itemVariants}>
         <Box sx={{ 
           mb: 6, 
-          p: 5, 
-          borderRadius: 2,
+          p: { xs: 3, md: 5 }, 
+          borderRadius: 3,
           background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
           color: 'white',
           position: 'relative',
@@ -168,7 +161,7 @@ const Transactions = () => {
                   backdropFilter: 'blur(10px)'
                 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <ArrowUpwardIcon sx={{ fontSize: 20, mr: 1, color: '#00C896' }} />
+                    <ArrowUpward sx={{ fontSize: 20, mr: 1, color: '#00C896' }} />
                     <Typography variant="body2" sx={{ opacity: 0.8 }}>Total Income</Typography>
                   </Box>
                   <Typography variant="h4" sx={{ fontWeight: 700 }}>
@@ -193,7 +186,7 @@ const Transactions = () => {
                   backdropFilter: 'blur(10px)'
                 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <ArrowDownwardIcon sx={{ fontSize: 20, mr: 1, color: '#FF6B6B' }} />
+                    <ArrowDownward sx={{ fontSize: 20, mr: 1, color: '#FF6B6B' }} />
                     <Typography variant="body2" sx={{ opacity: 0.8 }}>Total Expenses</Typography>
                   </Box>
                   <Typography variant="h4" sx={{ fontWeight: 700 }}>
@@ -237,7 +230,6 @@ const Transactions = () => {
               </Grid>
             </Grid>
           </Box>
-          {/* Decorative Elements */}
           <Box sx={{
             position: 'absolute',
             top: -50,
@@ -263,17 +255,7 @@ const Transactions = () => {
       <Grid container spacing={4} sx={{ mb: 6 }}>
         <Grid item xs={12} lg={8}>
           <motion.div variants={itemVariants}>
-            <Paper elevation={0} sx={{ p: 4, borderRadius: 2, boxShadow: '0 10px 40px rgba(0,0,0,0.08)' }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-                <Typography variant="h5" sx={{ fontWeight: 700 }}>Income vs Expenses</Typography>
-                <Button 
-                  startIcon={<GetApp />}
-                  size="small"
-                  sx={{ color: '#0066FF', textTransform: 'none' }}
-                >
-                  Export Report
-                </Button>
-              </Box>
+            <PremiumCard title="Income vs Expenses" subtitle="Monthly financial overview">
               <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={monthlyData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -304,13 +286,12 @@ const Transactions = () => {
                   />
                 </AreaChart>
               </ResponsiveContainer>
-            </Paper>
+            </PremiumCard>
           </motion.div>
         </Grid>
         <Grid item xs={12} lg={4}>
           <motion.div variants={itemVariants}>
-            <Paper elevation={0} sx={{ p: 4, borderRadius: 2, boxShadow: '0 10px 40px rgba(0,0,0,0.08)', height: '100%' }}>
-              <Typography variant="h5" sx={{ fontWeight: 700, mb: 4 }}>Spending by Category</Typography>
+            <PremiumCard title="Spending by Category" sx={{ height: '100%' }}>
               <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
                   <Pie
@@ -344,17 +325,17 @@ const Transactions = () => {
                   </Box>
                 ))}
               </Box>
-            </Paper>
+            </PremiumCard>
           </motion.div>
         </Grid>
       </Grid>
 
       {/* Transactions List */}
       <motion.div variants={itemVariants} ref={ref}>
-        <Paper elevation={0} sx={{ borderRadius: 2, boxShadow: '0 10px 40px rgba(0,0,0,0.08)', overflow: 'hidden' }}>
+        <PremiumCard>
           {/* Filters */}
           <Box sx={{ 
-            p: 4, 
+            p: { xs: 2, md: 4 }, 
             bgcolor: '#fafafa', 
             borderBottom: '1px solid #f0f0f0',
             display: 'flex',
@@ -397,22 +378,9 @@ const Transactions = () => {
                 <MenuItem value="debit">Expenses Only</MenuItem>
               </TextField>
             </Box>
-            <Button 
-              variant="outlined" 
-              startIcon={<PictureAsPdf />}
-              size="medium"
-              sx={{ 
-                borderColor: '#0066FF',
-                color: '#0066FF',
-                textTransform: 'none',
-                '&:hover': {
-                  borderColor: '#00BFFF',
-                  bgcolor: 'rgba(0,102,255,0.04)'
-                }
-              }}
-            >
+            <PremiumButton variant="outline" startIcon={<PictureAsPdf />}>
               Export PDF
-            </Button>
+            </PremiumButton>
           </Box>
 
           {/* Transactions List */}
@@ -487,28 +455,12 @@ const Transactions = () => {
           {/* Load More */}
           {filteredTransactions.length > 0 && (
             <Box sx={{ p: 3, textAlign: 'center', borderTop: '1px solid #f0f0f0' }}>
-              <Button 
-                variant="contained"
-                size="large"
-                sx={{ 
-                  background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  px: 6,
-                  py: 1.5,
-                  borderRadius: 2,
-                  '&:hover': {
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 10px 20px rgba(0,102,255,0.3)'
-                  },
-                  transition: 'all 0.3s ease'
-                }}
-              >
+              <PremiumButton variant="primary" size="large">
                 Load More Transactions
-              </Button>
+              </PremiumButton>
             </Box>
           )}
-        </Paper>
+        </PremiumCard>
       </motion.div>
     </motion.div>
   );

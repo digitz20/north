@@ -517,11 +517,12 @@ exports.updateInvestment = async (req, res, next) => {
     }
 
     // Create audit log
-    await AuditLog.create({
-      user: req.user.id,
+    await AuditLog.log({
+      actor: { user: req.user.id, role: 'admin', ip: req.ip, userAgent: req.get('User-Agent') },
       action: `Updated investment: ${investment._id}`,
+      category: 'investment-management',
       description: `Admin updated investment status to ${investment.status}`,
-      ipAddress: req.ip
+      entity: { type: 'investment', id: investment._id, name: investment.investmentId }
     });
 
     res.status(200).json({
@@ -558,11 +559,12 @@ exports.deleteInvestment = async (req, res, next) => {
     // Delete associated transaction
     await Transaction.findByIdAndDelete(investment.transaction).session(session);
 
-    await AuditLog.create({
-      user: req.user.id,
+    await AuditLog.log({
+      actor: { user: req.user.id, role: 'admin', ip: req.ip, userAgent: req.get('User-Agent') },
       action: `Deleted investment: ${investment._id}`,
+      category: 'investment-management',
       description: `Super admin deleted user investment`,
-      ipAddress: req.ip
+      entity: { type: 'investment', id: investment._id, name: investment.investmentId }
     }, { session });
 
     await session.commitTransaction();
@@ -575,6 +577,54 @@ exports.deleteInvestment = async (req, res, next) => {
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
+    next(error);
+  }
+};
+
+// @desc    Get investment statistics (admin only)
+// @route   GET /api/v1/admin/investments/stats
+// @access  Private/Admin
+exports.getInvestmentStats = async (req, res, next) => {
+  try {
+    const totalInvestments = await UserInvestment.countDocuments();
+    const activeInvestments = await UserInvestment.countDocuments({ status: 'active' });
+    const completedInvestments = await UserInvestment.countDocuments({ status: 'sold' });
+    
+    const summary = await UserInvestment.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalInvested: { $sum: '$amountInvested' },
+          totalCurrentValue: { $sum: '$currentValue' },
+          totalReturns: { $sum: { $subtract: ['$currentValue', '$amountInvested'] } }
+        }
+      }
+    ]);
+
+    const byType = await UserInvestment.aggregate([
+      {
+        $lookup: {
+          from: 'investmentplans',
+          localField: 'plan',
+          foreignField: '_id',
+          as: 'plan'
+        }
+      },
+      { $unwind: '$plan' },
+      { $group: { _id: '$plan.type', count: { $sum: 1 } } }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        totalInvestments,
+        activeInvestments,
+        completedInvestments,
+        summary: summary[0] || { totalInvested: 0, totalCurrentValue: 0, totalReturns: 0 },
+        byType
+      }
+    });
+  } catch (error) {
     next(error);
   }
 };

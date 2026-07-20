@@ -1,15 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Box,
-  Typography,
-  Paper,
-  TextField,
-  Button,
-  Grid,
-  Chip,
-  Alert,
-  CircularProgress
+  Box, Typography, Paper, TextField, Button, Grid,
+  Chip, Alert, CircularProgress
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -17,6 +10,8 @@ import { ArrowBack } from '@mui/icons-material';
 import { createTransfer } from '../store/slices/transactionSlice';
 import { fetchAccounts } from '../store/slices/accountSlice';
 import { getCurrentUser } from '../store/slices/authSlice';
+import PremiumCard from '../components/PremiumCard';
+import PremiumButton from '../components/PremiumButton';
 
 const LocalTransfer = () => {
   const dispatch = useDispatch();
@@ -101,7 +96,6 @@ const LocalTransfer = () => {
       minHeight: '100vh',
       p: { xs: 2, md: 0 }
     }}>
-      {/* Premium ambient background effects */}
       <Box sx={{
         position: 'fixed',
         top: '-5%',
@@ -128,19 +122,20 @@ const LocalTransfer = () => {
       }} />
       <Box sx={{ position: 'relative', zIndex: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
-          <Button 
+          <PremiumButton 
+            variant="ghost"
             startIcon={<ArrowBack />} 
             onClick={() => navigate('/transfer')}
-            sx={{ mr: 2 }}
           >
             Back
-          </Button>
+          </PremiumButton>
           <Typography variant="h4" sx={{ 
             fontWeight: 700, 
             background: 'linear-gradient(135deg, #0f2744 0%, #1e4d8a 50%, #0066ff 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
-            mb: 0
+            mb: 0,
+            ml: 2
           }}>
             Dashboard / Local Transfer
           </Typography>
@@ -151,14 +146,8 @@ const LocalTransfer = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <Paper sx={{ 
-            p: 4, 
+          <PremiumCard sx={{ 
             maxWidth: 900,
-            borderRadius: 2,
-            background: 'rgba(255,255,255,0.75)',
-            backdropFilter: 'blur(30px)',
-            border: '1px solid rgba(15,39,68,0.08)',
-            boxShadow: '0 20px 60px -15px rgba(0,0,0,0.1)',
             mx: 'auto'
           }}>
             {/* Available Balance Card */}
@@ -200,21 +189,14 @@ const LocalTransfer = () => {
                       sx={{ mb: 2 }}
                     />
                     <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                      <Chip 
-                        label="$100" 
-                        onClick={() => handleQuickAmount(100)}
-                        sx={{ cursor: 'pointer' }}
-                      />
-                      <Chip 
-                        label="$500" 
-                        onClick={() => handleQuickAmount(500)}
-                        sx={{ cursor: 'pointer' }}
-                      />
-                      <Chip 
-                        label="$1000" 
-                        onClick={() => handleQuickAmount(1000)}
-                        sx={{ cursor: 'pointer' }}
-                      />
+                      {[100, 500, 1000].map((amount) => (
+                        <Chip 
+                          key={amount}
+                          label={`$${amount}`} 
+                          onClick={() => handleQuickAmount(amount)}
+                          sx={{ cursor: 'pointer' }}
+                        />
+                      ))}
                       <Chip 
                         label="All" 
                         onClick={() => handleQuickAmount(totalBalance)}
@@ -310,21 +292,15 @@ const LocalTransfer = () => {
 
                   <Grid item xs={12} sx={{ mt: 3 }}>
                     <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-                      <Button onClick={() => navigate('/transfer')}>
+                      <PremiumButton variant="ghost" onClick={() => navigate('/transfer')}>
                         Back to Transfer
-                      </Button>
-                      <Button 
+                      </PremiumButton>
+                      <PremiumButton 
                         type="submit"
-                        variant="contained"
-                        sx={{ 
-                          background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
-                          textTransform: 'none',
-                          fontWeight: 600,
-                          px: 4
-                        }}
+                        variant="primary"
                       >
                         Preview Transfer
-                      </Button>
+                      </PremiumButton>
                     </Box>
                   </Grid>
                 </Grid>
@@ -362,22 +338,16 @@ const LocalTransfer = () => {
                   )}
                 </Grid>
                 <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 4 }}>
-                  <Button onClick={() => setShowPreview(false)}>
+                  <PremiumButton variant="ghost" onClick={() => setShowPreview(false)}>
                     Back to Edit
-                  </Button>
-                  <Button 
-                    variant="contained"
+                  </PremiumButton>
+                  <PremiumButton 
+                    variant="primary"
                     onClick={handleSubmit}
                     disabled={loading}
-                    sx={{ 
-                      background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
-                      textTransform: 'none',
-                      fontWeight: 600,
-                      px: 4
-                    }}
                   >
                     {loading ? <CircularProgress size={24} sx={{ color: 'white' }} /> : 'Confirm & Send Transfer'}
-                  </Button>
+                  </PremiumButton>
                 </Box>
               </Box>
             )}
@@ -392,10 +362,10 @@ const LocalTransfer = () => {
               textAlign: 'center'
             }}>
               <Typography variant="body2" color="text.secondary">
-                🔒 Secure Transaction - All transfers are encrypted and processed securely. Your financial information is never stored on our servers.
+                Secure Transaction - All transfers are encrypted and processed securely. Your financial information is never stored on our servers.
               </Typography>
             </Paper>
-          </Paper>
+          </PremiumCard>
         </motion.div>
       </Box>
     </Box>

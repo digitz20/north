@@ -118,6 +118,8 @@ const InternationalTransfer = () => {
   const { user } = useSelector(state => state.auth);
   const { loading, error } = useSelector(state => state.transactions);
   
+  const userWallets = user?.savedWallets?.length > 0 ? user.savedWallets : savedWallets;
+  
   const [selectedMethod, setSelectedMethod] = useState(transferMethods[0]);
   const [openTransferDialog, setOpenTransferDialog] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
@@ -125,6 +127,7 @@ const InternationalTransfer = () => {
   const [selectedCrypto, setSelectedCrypto] = useState(cryptoOptions[0]);
   const [uploadedProofs, setUploadedProofs] = useState([]);
   const [errors, setErrors] = useState({});
+  const [transactionId, setTransactionId] = useState('');
   
   // Form state using proper backend field names
   const [transferForm, setTransferForm] = useState({
@@ -161,10 +164,32 @@ const InternationalTransfer = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Handle file upload for transfer proofs
-  const handleProofUpload = (event) => {
+  // Handle file upload for transfer proofs - convert to base64
+  const handleProofUpload = async (event) => {
     const files = Array.from(event.target.files);
-    setUploadedProofs(prev => [...prev, ...files]);
+    const base64Proofs = [];
+    
+    for (const file of files) {
+      const base64 = await readFileAsBase64(file);
+      base64Proofs.push({
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        data: base64
+      });
+    }
+    
+    setUploadedProofs(prev => [...prev, ...base64Proofs]);
+  };
+
+  // Helper to read file as base64 data URL
+  const readFileAsBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   };
 
   // Handle crypto selection change
@@ -238,10 +263,11 @@ const InternationalTransfer = () => {
         walletAddress: transferForm.sourceWalletAddress,
         crypto: transferForm.crypto,
         email: transferForm.recipientEmail,
-        proofs: uploadedProofs.map(file => file.name)
+        proofs: uploadedProofs.map(proof => proof.data)
       };
       
-      await dispatch(processCryptoDeposit(depositData));
+      const result = await dispatch(processCryptoDeposit(depositData)).unwrap();
+      setTransactionId(result.transactionId || result._id || 'N/A');
       // After successful deposit, move to completion step
       setActiveStep(2);
     } else {
@@ -261,10 +287,11 @@ const InternationalTransfer = () => {
           name: transferForm.recipientName,
           bankDetails: transferForm.recipientBankDetails
         },
-        proofs: uploadedProofs.map(file => file.name)
+        proofs: uploadedProofs.map(proof => proof.data)
       };
       
-      await dispatch(createInternationalTransfer(transferData));
+      const result = await dispatch(createInternationalTransfer(transferData)).unwrap();
+      setTransactionId(result.transactionId || result._id || 'N/A');
       setOpenTransferDialog(false);
       setActiveStep(0);
       navigate('/transactions');
@@ -565,15 +592,15 @@ const InternationalTransfer = () => {
                     error={!!errors.sourceWalletAddress}
                     helperText={errors.sourceWalletAddress || "Select from your saved crypto wallets or enter a new one below"}
                   >
-                    {savedWallets.filter(wallet => wallet.crypto === transferForm.crypto).map((wallet) => (
-                      <MenuItem key={wallet.id} value={wallet.address}>
-                        {wallet.label} - {wallet.address.substring(0, 10)}...{wallet.address.substring(wallet.address.length - 8)}
-                      </MenuItem>
-                    ))}
-                    <MenuItem value="new">Enter new wallet address...</MenuItem>
-                    {savedWallets.filter(wallet => wallet.crypto === transferForm.crypto).length === 0 && (
-                      <MenuItem value="" disabled>No saved addresses for this cryptocurrency</MenuItem>
-                    )}
+                     {userWallets.filter(wallet => wallet.crypto === transferForm.crypto).map((wallet) => (
+                       <MenuItem key={wallet.id || wallet._id || wallet.address} value={wallet.address}>
+                         {wallet.label} - {wallet.address.substring(0, 10)}...{wallet.address.substring(wallet.address.length - 8)}
+                       </MenuItem>
+                     ))}
+                     <MenuItem value="new">Enter new wallet address...</MenuItem>
+                     {userWallets.filter(wallet => wallet.crypto === transferForm.crypto).length === 0 && (
+                       <MenuItem value="" disabled>No saved addresses for this cryptocurrency</MenuItem>
+                     )}
                   </TextField>
                 </Grid>
 

@@ -23,7 +23,9 @@ import {
   ListItemAvatar,
   Divider,
   InputAdornment,
-  CircularProgress
+  CircularProgress,
+  Card,
+  CardContent
 } from '@mui/material';
 import ChatIcon from '@mui/icons-material/Chat';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -40,13 +42,13 @@ import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
 import api from '../services/api';
 import { useSocket } from '../contexts/SocketContext';
 
-const LiveSupportConsole = () => {
+const SupportTickets = () => {
   const location = useLocation();
   const { user } = useSelector(state => state.auth);
   const { socket, isConnected, joinChat, leaveChat, sendMessage, emitTyping, emitStopTyping, markMessageAsRead } = useSocket();
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
-  
+
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedTicket, setSelectedTicket] = useState(null);
@@ -64,11 +66,10 @@ const LiveSupportConsole = () => {
   }, [location.pathname]);
 
   useEffect(() => {
-    // Join support-team room to receive all chat events
     if (socket && user) {
       socket.emit('joinSupportTeam', user._id);
     }
-    
+
     return () => {
       if (socket && user) {
         socket.emit('leaveSupportTeam', user._id);
@@ -77,23 +78,19 @@ const LiveSupportConsole = () => {
   }, [socket, user]);
 
   useEffect(() => {
-    // Listen for real-time message events
     if (socket) {
       socket.on('newMessage', (data) => {
         updateTicketMessages(data.ticketId, data.message);
-        
-        // Update unread count if the ticket is not the active one
+
         if (selectedTicket?._id !== data.ticketId) {
           setUnreadCounts(prev => ({
             ...prev,
             [data.ticketId]: (prev[data.ticketId] || 0) + 1
           }));
         } else {
-          // Mark message as read if we're in the chat
           markMessageAsRead(data.ticketId, data.message._id);
         }
-        
-        // Auto-scroll to bottom if we're in the chat
+
         if (selectedTicket?._id === data.ticketId) {
           scrollToBottom();
         }
@@ -133,11 +130,10 @@ const LiveSupportConsole = () => {
   const fetchTickets = async () => {
     try {
       const response = await api.get('/admin/support-tickets');
-      setTickets(response.data);
-      
-      // Initialize message history
+      setTickets(response.data?.data || response.data || []);
+
       const messages = {};
-      response.data.forEach(ticket => {
+      (response.data?.data || response.data || []).forEach(ticket => {
         if (ticket.messages) {
           messages[ticket._id] = ticket.messages;
         } else {
@@ -145,7 +141,7 @@ const LiveSupportConsole = () => {
         }
       });
       setTicketMessages(messages);
-      
+
       setLoading(false);
     } catch (error) {
       console.error('Error fetching support tickets:', error);
@@ -163,10 +159,9 @@ const LiveSupportConsole = () => {
   const handleOpenChat = async (ticket) => {
     setSelectedTicket(ticket);
     setOpenChat(true);
-    setUnreadCounts(prev => ({ ...prev, [ticket._id]: 0 })); // Reset unread count
-    joinChat(ticket._id); // Join the chat room
-    
-    // Mark all existing messages as read
+    setUnreadCounts(prev => ({ ...prev, [ticket._id]: 0 }));
+    joinChat(ticket._id);
+
     if (ticketMessages[ticket._id]) {
       ticketMessages[ticket._id].forEach(msg => {
         if (!msg.read && msg.sender !== user._id) {
@@ -203,8 +198,7 @@ const LiveSupportConsole = () => {
   const handleCloseTicket = async (ticketId) => {
     try {
       await api.patch(`/admin/support-tickets/${ticketId}`, {
-        status: 'closed',
-        closedAt: new Date()
+        status: 'closed'
       });
       handleCloseChat();
       fetchTickets();
@@ -245,14 +239,13 @@ const LiveSupportConsole = () => {
 
   const handleTyping = (e) => {
     setReplyMessage(e.target.value);
-    
-    // Emit typing event with debounce
+
     if (selectedTicket) {
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
       emitTyping(selectedTicket._id);
-      
+
       typingTimeoutRef.current = setTimeout(() => {
         emitStopTyping(selectedTicket._id);
       }, 2000);
@@ -264,12 +257,10 @@ const LiveSupportConsole = () => {
   };
 
   const filteredTickets = tickets.filter(ticket => {
-    // Filter by tab
     if (activeTab === 1 && ticket.status !== 'waiting') return false;
     if (activeTab === 2 && ticket.status !== 'active') return false;
     if (activeTab === 3 && ticket.status !== 'closed') return false;
-    
-    // Filter by search term
+
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
       return (
@@ -288,14 +279,14 @@ const LiveSupportConsole = () => {
       closed: { color: 'default', icon: <CloseIcon fontSize="small" />, label: 'Closed' }
     };
     const config = statusConfig[status] || statusConfig.waiting;
-    
+
     return (
       <Chip
         label={config.label}
         color={config.color}
         size="small"
         icon={config.icon}
-        sx={{ minWidth: 90 }}
+        sx={{ minWidth: 90, fontWeight: 500 }}
       />
     );
   };
@@ -309,12 +300,11 @@ const LiveSupportConsole = () => {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom sx={{ mb: 3, fontWeight: 600 }}>
+    <Box sx={{ p: { xs: 2, md: 3 } }}>
+      <Typography variant="h4" sx={{ fontWeight: 700, mb: 3 }}>
         Live Support Console
       </Typography>
 
-      {/* Connection Status */}
       <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
         <Badge
           variant="dot"
@@ -329,36 +319,35 @@ const LiveSupportConsole = () => {
       </Box>
 
       <Grid container spacing={3}>
-        {/* Main Chat List Panel */}
         <Grid item xs={12} md={8}>
-          <Paper sx={{ p: 2, borderRadius: 2, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
-            {/* Search Bar */}
-            <TextField
-              fullWidth
-              placeholder="Search tickets by user, ID, or subject..."
-              variant="outlined"
-              size="small"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              sx={{ mb: 2 }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon />
-                  </InputAdornment>
-                )
-              }}
-            />
+          <Paper sx={{ borderRadius: 3, overflow: 'hidden' }}>
+            <Box sx={{ p: 3, pb: 2 }}>
+              <TextField
+                fullWidth
+                placeholder="Search tickets by user, ID, or subject..."
+                variant="outlined"
+                size="small"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                  sx: { borderRadius: 2 }
+                }}
+              />
+            </Box>
 
-            {/* Tabs */}
-            <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3 }}>
               <Tabs value={activeTab} onChange={handleTabChange} variant="scrollable" scrollButtons="auto">
                 <Tab label={`All (${tickets.length})`} />
-                <Tab 
-                  label={`Waiting (${tickets.filter(t => t.status === 'waiting').length})`} 
+                <Tab
+                  label={`Waiting (${tickets.filter(t => t.status === 'waiting').length})`}
                   sx={{ '&.Mui-selected': { color: 'warning.main' } }}
                 />
-                <Tab 
+                <Tab
                   label={`Active (${tickets.filter(t => t.status === 'active').length})`}
                   sx={{ '&.Mui-selected': { color: 'success.main' } }}
                 />
@@ -366,7 +355,6 @@ const LiveSupportConsole = () => {
               </Tabs>
             </Box>
 
-            {/* Ticket List */}
             <List sx={{ maxHeight: '60vh', overflow: 'auto' }}>
               {filteredTickets.length === 0 ? (
                 <Box sx={{ textAlign: 'center', py: 8, color: 'text.secondary' }}>
@@ -380,10 +368,11 @@ const LiveSupportConsole = () => {
                       alignItems="flex-start"
                       sx={{
                         borderRadius: 1,
-                        mb: 1,
+                        mx: 2,
+                        my: 1,
                         backgroundColor: unreadCounts[ticket._id] ? 'rgba(0,102,255,0.05)' : 'transparent',
                         '&:hover': { backgroundColor: 'rgba(0,0,0,0.04)' },
-                        transition: 'background-color 0.2s'
+                        transition: 'background-color 0.2s',
                       }}
                       secondaryAction={
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -392,7 +381,7 @@ const LiveSupportConsole = () => {
                               label={unreadCounts[ticket._id]}
                               color="primary"
                               size="small"
-                              sx={{ minWidth: 30 }}
+                              sx={{ minWidth: 30, fontWeight: 600 }}
                             />
                           )}
                           {ticket.status === 'waiting' && (
@@ -400,7 +389,12 @@ const LiveSupportConsole = () => {
                               variant="contained"
                               size="small"
                               onClick={() => handleAcceptTicket(ticket)}
-                              sx={{ background: 'linear-gradient(135deg, #0066ff 0%, #00bfff 100%)' }}
+                              sx={{
+                                background: 'linear-gradient(135deg, #0066ff 0%, #00bfff 100%)',
+                                '&:hover': {
+                                  background: 'linear-gradient(135deg, #0052cc 0%, #0099cc 100%)',
+                                },
+                              }}
                             >
                               Accept
                             </Button>
@@ -420,7 +414,7 @@ const LiveSupportConsole = () => {
                       </ListItemAvatar>
                       <ListItemText
                         primary={
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 0.5 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 0.5, flexWrap: 'wrap' }}>
                             <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                               {ticket.user?.name || 'Unknown User'}
                             </Typography>
@@ -431,6 +425,7 @@ const LiveSupportConsole = () => {
                                 size="small"
                                 color="primary"
                                 variant="outlined"
+                                sx={{ fontWeight: 500 }}
                               />
                             )}
                           </Box>
@@ -438,11 +433,11 @@ const LiveSupportConsole = () => {
                         secondary={
                           <Box>
                             <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                              <strong>#{ticket._id}</strong> • {ticket.subject}
+                              <strong>#{ticket._id}</strong> - {ticket.subject}
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
                               Created: {new Date(ticket.createdAt).toLocaleString()}
-                              {ticket.lastMessageAt && ` • Last message: ${new Date(ticket.lastMessageAt).toLocaleTimeString()}`}
+                              {ticket.lastMessageAt && ` - Last message: ${new Date(ticket.lastMessageAt).toLocaleTimeString()}`}
                             </Typography>
                           </Box>
                         }
@@ -456,49 +451,50 @@ const LiveSupportConsole = () => {
           </Paper>
         </Grid>
 
-        {/* Stats Sidebar */}
         <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 3, borderRadius: 2, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', mb: 3 }}>
-            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>Live Stats</Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={6}>
-                <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'warning.light', borderRadius: 1 }}>
-                  <Typography variant="h4" sx={{ fontWeight: 700, color: 'warning.dark' }}>
-                    {tickets.filter(t => t.status === 'waiting').length}
-                  </Typography>
-                  <Typography variant="body2">Waiting</Typography>
-                </Box>
+          <Card sx={{ borderRadius: 3, mb: 3 }}>
+            <CardContent>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Live Stats</Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'warning.light', borderRadius: 2 }}>
+                    <Typography variant="h4" sx={{ fontWeight: 700, color: 'warning.dark' }}>
+                      {tickets.filter(t => t.status === 'waiting').length}
+                    </Typography>
+                    <Typography variant="body2">Waiting</Typography>
+                  </Box>
+                </Grid>
+                <Grid item xs={6}>
+                  <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'success.light', borderRadius: 2 }}>
+                    <Typography variant="h4" sx={{ fontWeight: 700, color: 'success.dark' }}>
+                      {tickets.filter(t => t.status === 'active').length}
+                    </Typography>
+                    <Typography variant="body2">Active</Typography>
+                  </Box>
+                </Grid>
               </Grid>
-              <Grid item xs={6}>
-                <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'success.light', borderRadius: 1 }}>
-                  <Typography variant="h4" sx={{ fontWeight: 700, color: 'success.dark' }}>
-                    {tickets.filter(t => t.status === 'active').length}
-                  </Typography>
-                  <Typography variant="body2">Active</Typography>
-                </Box>
-              </Grid>
-            </Grid>
-          </Paper>
+            </CardContent>
+          </Card>
 
-          {/* Quick Actions */}
-          <Paper sx={{ p: 3, borderRadius: 2, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
-            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>Quick Actions</Typography>
-            <List>
-              <ListItem button>
-                <ListItemIcon><TransferWithinAStationIcon /></ListItemIcon>
-                <ListItemText primary="Transfer Chat" secondary="Move to another agent" />
-              </ListItem>
-              <Divider />
-              <ListItem button>
-                <ListItemIcon><MarkEmailUnreadIcon /></ListItemIcon>
-                <ListItemText primary="Mark as Unread" secondary="Flag for follow-up" />
-              </ListItem>
-            </List>
-          </Paper>
+          <Card sx={{ borderRadius: 3 }}>
+            <CardContent>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Quick Actions</Typography>
+              <List disablePadding>
+                <ListItem sx={{ px: 0, py: 1.5, borderRadius: 1, '&:hover': { bgcolor: 'rgba(0, 102, 255, 0.03)' } }}>
+                  <ListItemAvatar><TransferWithinAStationIcon /></ListItemAvatar>
+                  <ListItemText primary="Transfer Chat" secondary="Move to another agent" />
+                </ListItem>
+                <Divider />
+                <ListItem sx={{ px: 0, py: 1.5, borderRadius: 1, '&:hover': { bgcolor: 'rgba(0, 102, 255, 0.03)' } }}>
+                  <ListItemAvatar><MarkEmailUnreadIcon /></ListItemAvatar>
+                  <ListItemText primary="Mark as Unread" secondary="Flag for follow-up" />
+                </ListItem>
+              </List>
+            </CardContent>
+          </Card>
         </Grid>
       </Grid>
 
-      {/* Chat Dialog */}
       <Dialog
         open={openChat}
         onClose={handleCloseChat}
@@ -509,13 +505,14 @@ const LiveSupportConsole = () => {
             height: '85vh',
             maxHeight: '800px',
             borderRadius: 3,
-            overflow: 'hidden'
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column'
           }
         }}
       >
         {selectedTicket && (
           <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            {/* Chat Header */}
             <Box
               sx={{
                 p: 2,
@@ -531,7 +528,7 @@ const LiveSupportConsole = () => {
                   Chat with {selectedTicket.user?.name}
                 </Typography>
                 <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                  #{selectedTicket._id} • {selectedTicket.subject}
+                  #{selectedTicket._id} - {selectedTicket.subject}
                   {typingUser && <span style={{ marginLeft: 10, fontStyle: 'italic' }}>typing...</span>}
                 </Typography>
               </Box>
@@ -562,12 +559,11 @@ const LiveSupportConsole = () => {
             </Box>
 
             <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-              {/* Customer Info Sidebar */}
-              <Box sx={{ width: 280, borderRight: 1, borderColor: 'divider', p: 2, bgcolor: '#fafafa' }}>
+              <Box sx={{ width: 280, borderRight: 1, borderColor: 'divider', p: 2, bgcolor: '#fafafa', overflow: 'auto' }}>
                 <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600, color: 'text.secondary' }}>
                   CUSTOMER DETAILS
                 </Typography>
-                
+
                 <Box sx={{ mb: 3, textAlign: 'center' }}>
                   <Avatar
                     sx={{
@@ -642,7 +638,6 @@ const LiveSupportConsole = () => {
                 )}
               </Box>
 
-              {/* Messages Area */}
               <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', bgcolor: '#f7fafc' }}>
                 <Box sx={{ flex: 1, overflow: 'auto', p: 3 }}>
                   {(ticketMessages[selectedTicket._id] || []).map((msg, index) => {
@@ -693,7 +688,6 @@ const LiveSupportConsole = () => {
                   <div ref={messagesEndRef} />
                 </Box>
 
-                {/* Message Input */}
                 <Box sx={{ p: 2, bgcolor: 'white', borderTop: 1, borderColor: 'divider' }}>
                   <Box sx={{ display: 'flex', gap: 1 }}>
                     <TextField
@@ -705,6 +699,7 @@ const LiveSupportConsole = () => {
                       onChange={handleTyping}
                       onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                       disabled={selectedTicket.status === 'closed'}
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                     />
                     <IconButton
                       color="primary"
@@ -714,7 +709,7 @@ const LiveSupportConsole = () => {
                         background: 'linear-gradient(135deg, #0066ff 0%, #00bfff 100%)',
                         color: 'white',
                         '&:hover': {
-                          background: 'linear-gradient(135deg, #0052cc 0%, #0099cc 100%)'
+                          background: 'linear-gradient(135deg, #0052cc 0%, #0099cc 100%)',
                         },
                         '&.Mui-disabled': {
                           background: '#e0e0e0',
@@ -740,4 +735,4 @@ const LiveSupportConsole = () => {
   );
 };
 
-export default LiveSupportConsole;
+export default SupportTickets;

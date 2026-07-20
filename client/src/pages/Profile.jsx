@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Box, Typography, Paper, Grid, Avatar, Button, Divider, Chip, CircularProgress, Alert } from '@mui/material';
+import { Camera } from '@mui/icons-material';
 import { useSelector, useDispatch } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 import { getCurrentUser } from '../store/slices/authSlice';
@@ -7,6 +8,8 @@ import { fetchAccounts } from '../store/slices/accountSlice';
 import CountUp from 'react-countup';
 import api from '../services/api';
 import { motion } from 'framer-motion';
+import PremiumCard from '../components/PremiumCard';
+import PremiumButton from '../components/PremiumButton';
 
 const Profile = () => {
   const dispatch = useDispatch();
@@ -19,7 +22,6 @@ const Profile = () => {
   const fileInputRef = useRef(null);
   
   useEffect(() => {
-    // Always refetch fresh data when navigating to profile page
     dispatch(getCurrentUser());
     dispatch(fetchAccounts());
   }, [dispatch, location.pathname]);
@@ -37,11 +39,9 @@ const Profile = () => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
-  // Track created blob URLs to prevent memory leaks
   const createdBlobUrls = useRef([]);
 
   useEffect(() => {
-    // Cleanup function to revoke all created blob URLs when component unmounts
     return () => {
       createdBlobUrls.current.forEach(url => {
         try {
@@ -57,16 +57,11 @@ const Profile = () => {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Reset status messages
     setUploadError('');
     setUploadSuccess('');
     setUploading(true);
 
     try {
-      // Convert file to base64 to persist it properly in the database
-      // This prevents blob URL ERR_FILE_NOT_FOUND errors when navigating/refreshing
-      const reader = new FileReader();
-      
       const fileToBase64 = (file) => new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
@@ -76,11 +71,10 @@ const Profile = () => {
 
       const base64Image = await fileToBase64(file);
       
-      // Send base64 image to our backend API - this persists permanently
       const response = await api.put('/auth/profile-picture', { profilePicture: base64Image });
 
       setUploadSuccess('Profile picture updated successfully!');
-      dispatch(getCurrentUser()); // Refresh user data
+      dispatch(getCurrentUser());
     } catch (error) {
       console.error('Profile picture upload error:', error);
       setUploadError('Failed to upload profile picture. Please try again.');
@@ -117,7 +111,6 @@ const Profile = () => {
       minHeight: '100vh',
       p: { xs: 2, md: 0 }
     }}>
-      {/* Premium ambient background effects */}
       <Box sx={{
         position: 'fixed',
         top: '-5%',
@@ -143,14 +136,17 @@ const Profile = () => {
         zIndex: 0
       }} />
       <Box sx={{ position: 'relative', zIndex: 1 }}>
-        <Typography variant="h4" sx={{ 
-          fontWeight: 700, 
-          background: 'linear-gradient(135deg, #0f2744 0%, #1e4d8a 50%, #0066ff 100%)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          mb: 1,
-          gutterBottom: true
-        }}>My Profile</Typography>
+        <motion.div
+          initial={{ opacity: 0, y: -30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+        >
+          <Typography variant="h3" sx={{ 
+            fontWeight: 800, 
+            mb: 2,
+            mt: 4
+          }}>My Profile</Typography>
+        </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -159,94 +155,108 @@ const Profile = () => {
         >
           <Grid container spacing={3}>
             <Grid item xs={12} md={4}>
-              <Paper sx={{ 
-                p: 4, 
-                textAlign: 'center',
-                borderRadius: 2,
-                background: 'rgba(255,255,255,0.75)',
-                backdropFilter: 'blur(30px)',
-                border: '1px solid rgba(15,39,68,0.08)',
-                boxShadow: '0 20px 60px -15px rgba(0,0,0,0.1)'
-              }}>
-            <Avatar
-              sx={{ width: 120, height: 120, mx: 'auto', mb: 2, fontSize: 48, bgcolor: 'primary.main' }}
-              src={user?.profilePicture || ''}
-            >
-              {getInitials(user.fullName)}
-            </Avatar>
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              accept="image/*"
-              style={{ display: 'none' }}
-            />
-            <Typography variant="h5">{user.fullName}</Typography>
-            <Chip label={user.isVerified ? 'Verified' : 'Unverified'} color={user.isVerified ? 'success' : 'warning'} sx={{ mt: 1 }} />
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-              Customer ID: {user.customerId || 'N/A'}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Member since: {formatMemberSince(user.createdAt)}
-            </Typography>
-            <Box sx={{ mt: 2 }}>
-              <Button 
-                variant="contained" 
-                onClick={handleUploadClick}
-                disabled={uploading}
-                sx={{ mr: 1 }}
-              >
-                {uploading ? <CircularProgress size={24} /> : 'Upload Photo'}
-              </Button>
-              <Button variant="outlined" sx={{ mt: 2 }}>Edit Profile</Button>
-            </Box>
-            {uploadError && <Alert severity="error" sx={{ mt: 2 }}>{uploadError}</Alert>}
-            {uploadSuccess && <Alert severity="success" sx={{ mt: 2 }}>{uploadSuccess}</Alert>}
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} md={8}>
-              <Paper sx={{ 
-                p: 4,
-                borderRadius: 2,
-                background: 'rgba(255,255,255,0.75)',
-                backdropFilter: 'blur(30px)',
-                border: '1px solid rgba(15,39,68,0.08)',
-                boxShadow: '0 20px 60px -15px rgba(0,0,0,0.1)'
-              }}>
-                <Typography variant="h6" gutterBottom>Personal Information</Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <Typography variant="body2" color="text.secondary">Email</Typography>
-                <Typography variant="body1">{user.email}</Typography>
-              </Grid>
-              <Grid item xs={12}>
-                <Typography variant="body2" color="text.secondary">Phone</Typography>
-                <Typography variant="body1">{user.phone || 'Not provided'}</Typography>
-              </Grid>
-              <Grid item xs={12}>
-                <Typography variant="body2" color="text.secondary">Address</Typography>
-                <Typography variant="body1">
-                  {typeof user.address === 'string' ? user.address : 
-                   user.address?.street ? `${user.address.street}, ${user.address.city}, ${user.address.state} ${user.address.zipCode}` : 'Not provided'}
+              <PremiumCard sx={{ textAlign: 'center' }}>
+                <Box sx={{ position: 'relative', display: 'inline-block', mb: 2 }}>
+                  <Avatar
+                    sx={{ width: 120, height: 120, mx: 'auto', fontSize: 48, bgcolor: 'primary.main' }}
+                    src={user?.profilePicture || ''}
+                  >
+                    {getInitials(user.fullName)}
+                  </Avatar>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                  />
+                  <Button
+                    variant="contained"
+                    size="small"
+                    onClick={handleUploadClick}
+                    disabled={uploading}
+                    sx={{
+                      position: 'absolute',
+                      bottom: 0,
+                      right: 0,
+                      minWidth: 'auto',
+                      width: 36,
+                      height: 36,
+                      borderRadius: '50%',
+                      p: 0
+                    }}
+                  >
+                    {uploading ? <CircularProgress size={20} /> : <Camera sx={{ fontSize: 18 }} />}
+                  </Button>
+                </Box>
+                <Typography variant="h5" sx={{ fontWeight: 700 }}>{user.fullName}</Typography>
+                <Chip label={user.isVerified ? 'Verified' : 'Unverified'} color={user.isVerified ? 'success' : 'warning'} sx={{ mt: 1 }} />
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                  Customer ID: {user.customerId || 'N/A'}
                 </Typography>
-              </Grid>
+                <Typography variant="body2" color="text.secondary">
+                  Member since: {formatMemberSince(user.createdAt)}
+                </Typography>
+                <Box sx={{ mt: 3, display: 'flex', gap: 2, justifyContent: 'center' }}>
+                  <PremiumButton variant="primary" onClick={handleUploadClick} disabled={uploading}>
+                    {uploading ? 'Uploading...' : 'Upload Photo'}
+                  </PremiumButton>
+                  <PremiumButton variant="outline">Edit Profile</PremiumButton>
+                </Box>
+                {uploadError && <Alert severity="error" sx={{ mt: 2 }}>{uploadError}</Alert>}
+                {uploadSuccess && <Alert severity="success" sx={{ mt: 2 }}>{uploadSuccess}</Alert>}
+              </PremiumCard>
             </Grid>
 
-            <Divider sx={{ my: 4 }} />
+            <Grid item xs={12} md={8}>
+              <PremiumCard title="Personal Information">
+                <Grid container spacing={3}>
+                  <Grid item xs={12}>
+                    <Typography variant="body2" color="text.secondary">Email</Typography>
+                    <Typography variant="body1">{user.email}</Typography>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Typography variant="body2" color="text.secondary">Phone</Typography>
+                    <Typography variant="body1">{user.phone || 'Not provided'}</Typography>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Typography variant="body2" color="text.secondary">Address</Typography>
+                    <Typography variant="body1">
+                      {typeof user.address === 'string' ? user.address : 
+                       user.address?.street ? `${user.address.street}, ${user.address.city}, ${user.address.state} ${user.address.zipCode}` : 'Not provided'}
+                    </Typography>
+                  </Grid>
+                </Grid>
 
-            <Typography variant="h6" gutterBottom>Account Summary</Typography>
-            <Grid container spacing={3}>
-              <Grid item xs={12} sm={6}>
-                <Paper sx={{ p: 2, bgcolor: 'primary.light', color: 'white' }}>
-                  <Typography variant="body2">Total Accounts</Typography>
-                  <Typography variant="h4">{totalAccounts}</Typography>
-                </Paper>
-              </Grid>
+                <Divider sx={{ my: 4 }} />
+
+                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>Account Summary</Typography>
+                <Grid container spacing={3}>
+                  <Grid item xs={12} sm={6}>
+                    <Paper sx={{ p: 3, bgcolor: 'primary.light', color: 'white', borderRadius: 2 }}>
+                      <Typography variant="body2" sx={{ opacity: 0.9 }}>Total Accounts</Typography>
+                      <Typography variant="h4">{totalAccounts}</Typography>
+                    </Paper>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Paper sx={{ p: 3, bgcolor: 'secondary.main', color: 'white', borderRadius: 2 }}>
+                      <Typography variant="body2" sx={{ opacity: 0.9 }}>Total Balance</Typography>
+                      <Typography variant="h4">
+                        <CountUp
+                          start={0}
+                          end={totalBalance}
+                          duration={2.5}
+                          prefix="$"
+                          separator=","
+                          decimals={2}
+                        />
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                </Grid>
+              </PremiumCard>
             </Grid>
-          </Paper>
-        </Grid>
-      </Grid>
+          </Grid>
         </motion.div>
       </Box>
     </Box>

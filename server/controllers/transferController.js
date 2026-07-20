@@ -365,7 +365,6 @@ exports.deleteTransfer = async (req, res, next) => {
 // ------------------------------
 // Alias getUserTransfers to getTransfers for route compatibility
 exports.getTransfers = exports.getUserTransfers;
-// Rename the admin's getTransfer to avoid conflict, and set client-side getTransfer as the main getTransfer
 const adminGetTransfer = exports.getTransfer;
 exports.adminGetTransfer = adminGetTransfer;
 // Client-side getTransfer is what the route expects

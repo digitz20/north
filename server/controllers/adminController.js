@@ -1,5 +1,11 @@
 const User = require('../models/User');
 const AuditLog = require('../models/AuditLog');
+const Account = require('../models/Account');
+const Transfer = require('../models/Transfer');
+const SupportTicket = require('../models/SupportTicket');
+const Transaction = require('../models/Transaction');
+const Notification = require('../models/Notification');
+const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 
 // @desc    Get dashboard statistics
@@ -9,11 +15,8 @@ exports.getDashboardStats = async (req, res, next) => {
   try {
     // Get real counts from the database
     const totalUsers = await User.countDocuments();
-    const Account = require('../models/Account');
     const totalAccounts = await Account.countDocuments();
-    const Transfer = require('../models/Transfer');
     const totalTransactions = await Transfer.countDocuments();
-    const SupportTicket = require('../models/SupportTicket');
     const openTickets = await SupportTicket.countDocuments({ status: 'open' });
     
     res.status(200).json({
@@ -130,12 +133,12 @@ exports.updateUser = async (req, res, next) => {
     }).select('-password -ssnLastFour -twoFactorSecret');
 
     // Create audit log for admin action
-    await AuditLog.create({
-      user: req.user.id,
+    await AuditLog.log({
+      actor: { user: req.user.id, role: req.user.role, ip: req.ip, userAgent: req.get('User-Agent') },
       action: `Updated user: ${user._id}`,
-      details: `Admin modified user account: ${user.firstName} ${user.lastName} (${user.email})`,
-      ip: req.ip,
-      userAgent: req.get('user-agent')
+      category: 'user-management',
+      description: `Admin modified user account: ${user.firstName} ${user.lastName} (${user.email})`,
+      entity: { type: 'user', id: user._id, name: user.fullName }
     });
 
     res.status(200).json({
@@ -181,11 +184,12 @@ exports.deleteUser = async (req, res, next) => {
     await Account.deleteMany({ user: user._id }).session(session);
     await Transaction.deleteMany({ 'sender.user': user._id }).session(session);
     await Notification.deleteMany({ user: user._id }).session(session);
-    await AuditLog.create({
-      user: req.user.id,
+    await AuditLog.log({
+      actor: { user: req.user.id, role: req.user.role, ip: req.ip, userAgent: req.get('User-Agent') },
       action: `Deleted user: ${user.email}`,
+      category: 'user-management',
       description: `Super admin deleted user account: ${user.fullName} (${user.email})`,
-      ipAddress: req.ip
+      entity: { type: 'user', id: user._id, name: user.fullName }
     }, { session });
 
     // Delete the user itself

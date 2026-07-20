@@ -97,6 +97,8 @@ const Investments = () => {
   const { accounts, loading: accountsLoading } = useSelector((state) => state.accounts);
   const { loading: transactionLoading, error: transactionError } = useSelector((state) => state.transactions);
   
+  const userWallets = user?.savedWallets?.length > 0 ? user.savedWallets : savedWallets;
+  
   const [open, setOpen] = useState(false);
   const [activeStep, setActiveStep] = useState(0); // Simplified to 2 steps total
   const [transferComplete, setTransferComplete] = useState(false);
@@ -180,14 +182,36 @@ const Investments = () => {
     }));
   };
 
-  // Handle multiple image uploads
-  const handleMultipleImagesUpload = (event) => {
+  // Handle multiple image uploads - convert to base64
+  const handleMultipleImagesUpload = async (event) => {
     const files = Array.from(event.target.files);
-    setUploadedImages(prev => [...prev, ...files]);
+    const base64Images = [];
+    
+    for (const file of files) {
+      const base64 = await readFileAsBase64(file);
+      base64Images.push({
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        data: base64
+      });
+    }
+    
+    setUploadedImages(prev => [...prev, ...base64Images]);
     
     // Create previews for all new images
-    const newPreviews = files.map(file => URL.createObjectURL(file));
+    const newPreviews = base64Images.map(img => img.data);
     setImagePreviews(prev => [...prev, ...newPreviews]);
+  };
+
+  // Helper to read file as base64 data URL
+  const readFileAsBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   };
 
   // Remove an uploaded image
@@ -288,13 +312,12 @@ const Investments = () => {
     console.log('=== Confirm & Submit Button Clicked ===');
     console.log('Current Form State:', investmentForm);
     
-    // First validate the form - THIS WILL PREVENT 99% OF SUBMISSION FAILURES
     const isValid = validateInvestmentForm();
     if (!isValid) {
       console.log('Form validation FAILED:', errors);
-      return; // Don't proceed if validation fails
+      return;
     }
-    console.log('✅ Form validation PASSED');
+    console.log('Form validation PASSED');
 
     const depositData = {
       type: 'investment',
@@ -303,7 +326,7 @@ const Investments = () => {
         crypto: investmentForm.crypto,
         transactionHash: investmentForm.transactionHash,
         network: selectedCrypto?.network || 'Bitcoin (BTC)',
-        proofImages: uploadedImages
+        proofImages: uploadedImages.map(img => img.data)
       },
       amount: parseFloat(investmentForm.amount),
       email: investmentForm.email,
@@ -314,43 +337,27 @@ const Investments = () => {
     };
 
     try {
-      console.log('🚀 Attempting API call to /transactions/crypto-deposit with:', depositData);
+      console.log('Attempting API call with:', depositData);
       
-      // Try/catch the API calls but FORCE the routing to work regardless for UX
-      try {
-        await dispatch(processCryptoDeposit(depositData)).unwrap();
-        await dispatch(createInvestment({
-          ...investmentForm,
-          amount: parseFloat(investmentForm.amount),
-          proofImages: uploadedImages
-        })).unwrap();
-        console.log('✅ API calls succeeded');
-      } catch (apiError) {
-        console.warn('⚠️ API call failed (but still routing to success step):', apiError);
-        // Even if API fails, let user see the success flow - we'll fix the server separately
-      }
+      await dispatch(processCryptoDeposit(depositData)).unwrap();
+      await dispatch(createInvestment({
+        ...investmentForm,
+        amount: parseFloat(investmentForm.amount),
+        proofImages: uploadedImages.map(img => img.data)
+      })).unwrap();
       
-      // ALWAYS show success - simplified 2-step flow
-      console.log('🎯 Investment submitted successfully! Showing success popup');
+      console.log('API calls succeeded');
       setShowSuccessPopup(true);
       
-      // Reset form and close dialog after 4 seconds
-      setTimeout(() => {
-        setShowSuccessPopup(false);
-        handleCloseDialog(); // Reset everything and close modal
-        // Refresh investments list to show the new investment
-        dispatch(getUserInvestments());
-      }, 4000);
-      
-    } catch (error) {
-      console.error('❌ Fatal error in handleConfirmInvestment:', error);
-      // Even if there's an error, still show success for UX
-      setShowSuccessPopup(true);
       setTimeout(() => {
         setShowSuccessPopup(false);
         handleCloseDialog();
         dispatch(getUserInvestments());
       }, 4000);
+      
+    } catch (error) {
+      console.error('Investment submission failed:', error);
+      setErrors({ submit: error.message || 'Investment submission failed. Please try again.' });
     }
   };
 
@@ -900,12 +907,12 @@ const Investments = () => {
                         onChange={(e) => setInvestmentForm(prev => ({ ...prev, transactionHash: e.target.value, savedWalletAddress: e.target.value }))}
                         helperText="Select from your saved crypto wallets or enter a new one below"
                       >
-                        {savedWallets.filter(wallet => wallet.crypto === investmentForm.crypto).map((wallet) => (
-                <MenuItem key={wallet.id} value={wallet.address}>
+                        {userWallets.filter(wallet => wallet.crypto === investmentForm.crypto).map((wallet) => (
+                <MenuItem key={wallet.id || wallet._id || wallet.address} value={wallet.address}>
                   {wallet.label} - {wallet.address.substring(0, 10)}...{wallet.address.substring(wallet.address.length - 8)}
                 </MenuItem>
               ))}
-              {savedWallets.filter(wallet => wallet.crypto === investmentForm.crypto).length === 0 && (
+              {userWallets.filter(wallet => wallet.crypto === investmentForm.crypto).length === 0 && (
                 <MenuItem value="" disabled>No saved addresses for this cryptocurrency</MenuItem>
               )}
                       </TextField>

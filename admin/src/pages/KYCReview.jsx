@@ -18,7 +18,8 @@ import {
   DialogContent,
   DialogTitle,
   TextField,
-  Grid
+  Grid,
+  Skeleton
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -41,7 +42,7 @@ const KYCReview = () => {
   const fetchKYCApplications = async () => {
     try {
       const response = await api.get('/admin/kyc');
-      setKYCApplications(response.data);
+      setKYCApplications(response.data?.data || response.data || []);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching KYC applications:', error);
@@ -51,6 +52,7 @@ const KYCReview = () => {
 
   const handleViewApplication = (application) => {
     setSelectedApplication(application);
+    setRejectionReason('');
     setOpenDialog(true);
   };
 
@@ -66,9 +68,9 @@ const KYCReview = () => {
 
   const handleReject = async (applicationId) => {
     try {
-      await api.patch(`/admin/kyc/${applicationId}`, { 
+      await api.patch(`/admin/kyc/${applicationId}`, {
         status: 'rejected',
-        rejectionReason 
+        rejectionReason
       });
       setOpenDialog(false);
       setRejectionReason('');
@@ -78,84 +80,159 @@ const KYCReview = () => {
     }
   };
 
-  if (loading) {
-    return <Typography>Loading KYC applications...</Typography>;
-  }
-
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>
+    <Box sx={{ p: { xs: 2, md: 3 } }}>
+      <Typography variant="h4" sx={{ fontWeight: 700, mb: 3 }}>
         KYC Review
       </Typography>
 
-      <Paper sx={{ p: 2 }}>
+      <Paper sx={{ borderRadius: 3, overflow: 'hidden' }}>
         <TableContainer>
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Application ID</TableCell>
-                <TableCell>User</TableCell>
-                <TableCell>Document Type</TableCell>
-                <TableCell>Submitted At</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Actions</TableCell>
+                <TableCell sx={{ fontWeight: 600, textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em', color: 'text.secondary' }}>
+                  Application ID
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em', color: 'text.secondary' }}>
+                  User
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em', color: 'text.secondary' }}>
+                  Document Type
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em', color: 'text.secondary' }}>
+                  Submitted At
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em', color: 'text.secondary' }}>
+                  Status
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em', color: 'text.secondary' }}>
+                  Actions
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {kycApplications.map((application) => (
-                <TableRow key={application._id}>
-                  <TableCell>{application._id}</TableCell>
-                  <TableCell>{application.user?.name}</TableCell>
-                  <TableCell>{application.documentType}</TableCell>
-                  <TableCell>{new Date(application.submittedAt).toLocaleDateString()}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={application.status}
-                      color={application.status === 'approved' ? 'success' : application.status === 'pending' ? 'warning' : 'error'}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <IconButton onClick={() => handleViewApplication(application)}>
-                      <VisibilityIcon />
-                    </IconButton>
+              {loading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    {Array.from({ length: 6 }).map((_, j) => (
+                      <TableCell key={j}><Skeleton /></TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : kycApplications.length > 0 ? (
+                kycApplications.map((application) => (
+                  <TableRow
+                    key={application._id}
+                    sx={{
+                      '&:hover': { bgcolor: 'rgba(0, 102, 255, 0.03)' },
+                      transition: 'background-color 0.2s',
+                    }}
+                  >
+                    <TableCell sx={{ fontFamily: 'monospace' }}>
+                      {application._id?.slice(-8) || application._id}
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                        {application.user?.name || application.user?.fullName || 'N/A'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ textTransform: 'capitalize' }}>
+                        {application.documentType}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {application.submittedAt ? new Date(application.submittedAt).toLocaleDateString() : 'N/A'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={application.status}
+                        color={application.status === 'approved' ? 'success' : application.status === 'pending' ? 'warning' : application.status === 'rejected' ? 'error' : 'default'}
+                        size="small"
+                        sx={{ fontWeight: 500 }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Tooltip title="View Details">
+                        <IconButton onClick={() => handleViewApplication(application)} size="small" sx={{ color: 'primary.main' }}>
+                          <VisibilityIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} sx={{ textAlign: 'center', py: 8, color: 'text.secondary' }}>
+                    No KYC applications found
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </TableContainer>
       </Paper>
 
-      {/* KYC Details Dialog */}
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="md" fullWidth>
-        <DialogTitle>KYC Application Details</DialogTitle>
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
+        <DialogTitle sx={{ fontWeight: 600 }}>KYC Application Details</DialogTitle>
         <DialogContent>
           {selectedApplication && (
-            <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid container spacing={3} sx={{ mt: 0.5 }}>
               <Grid item xs={6}>
-                <Typography variant="subtitle2">User Name</Typography>
-                <Typography>{selectedApplication.user?.name}</Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  User Name
+                </Typography>
+                <Typography variant="body1" sx={{ mt: 0.5, fontWeight: 500 }}>
+                  {selectedApplication.user?.name || selectedApplication.user?.fullName || 'N/A'}
+                </Typography>
               </Grid>
               <Grid item xs={6}>
-                <Typography variant="subtitle2">User Email</Typography>
-                <Typography>{selectedApplication.user?.email}</Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  User Email
+                </Typography>
+                <Typography variant="body1" sx={{ mt: 0.5, fontWeight: 500 }}>
+                  {selectedApplication.user?.email || 'N/A'}
+                </Typography>
               </Grid>
               <Grid item xs={6}>
-                <Typography variant="subtitle2">Document Type</Typography>
-                <Typography>{selectedApplication.documentType}</Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Document Type
+                </Typography>
+                <Typography variant="body1" sx={{ mt: 0.5, fontWeight: 500, textTransform: 'capitalize' }}>
+                  {selectedApplication.documentType}
+                </Typography>
               </Grid>
               <Grid item xs={6}>
-                <Typography variant="subtitle2">Document Number</Typography>
-                <Typography>{selectedApplication.documentNumber}</Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Document Number
+                </Typography>
+                <Typography variant="body1" sx={{ mt: 0.5, fontWeight: 500 }}>
+                  {selectedApplication.documentNumber}
+                </Typography>
               </Grid>
-              <Grid item xs={12}>
-                <Typography variant="subtitle2">Current Status</Typography>
-                <Chip
-                  label={selectedApplication.status}
-                  color={selectedApplication.status === 'approved' ? 'success' : 'warning'}
-                  size="small"
-                />
+              <Grid item xs={6}>
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Current Status
+                </Typography>
+                <Box sx={{ mt: 0.5 }}>
+                  <Chip
+                    label={selectedApplication.status}
+                    color={selectedApplication.status === 'approved' ? 'success' : selectedApplication.status === 'pending' ? 'warning' : 'error'}
+                    size="small"
+                    sx={{ fontWeight: 500 }}
+                  />
+                </Box>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Submitted At
+                </Typography>
+                <Typography variant="body1" sx={{ mt: 0.5, fontWeight: 500 }}>
+                  {selectedApplication.submittedAt ? new Date(selectedApplication.submittedAt).toLocaleString() : 'N/A'}
+                </Typography>
               </Grid>
               {selectedApplication.status === 'pending' && (
                 <Grid item xs={12} sx={{ mt: 2 }}>
@@ -166,28 +243,34 @@ const KYCReview = () => {
                     rows={3}
                     value={rejectionReason}
                     onChange={(e) => setRejectionReason(e.target.value)}
+                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                   />
                 </Grid>
               )}
             </Grid>
           )}
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ px: 3, pb: 3 }}>
           <Button onClick={() => setOpenDialog(false)}>Close</Button>
           {selectedApplication?.status === 'pending' && (
             <>
-              <Button 
-                startIcon={<CancelIcon />} 
-                color="error" 
+              <Button
+                startIcon={<CancelIcon />}
+                color="error"
                 onClick={() => handleReject(selectedApplication._id)}
                 disabled={!rejectionReason}
               >
                 Reject
               </Button>
-              <Button 
-                startIcon={<CheckCircleIcon />} 
-                color="success" 
+              <Button
+                startIcon={<CheckCircleIcon />}
+                color="success"
+                variant="contained"
                 onClick={() => handleApprove(selectedApplication._id)}
+                sx={{
+                  background: 'linear-gradient(135deg, #00C896 0%, #00BFFF 100%)',
+                  '&:hover': { background: 'linear-gradient(135deg, #009B70 0%, #0099CC 100%)' },
+                }}
               >
                 Approve
               </Button>

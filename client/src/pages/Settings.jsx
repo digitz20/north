@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Paper, Grid, TextField, Button, Switch, FormControlLabel, Divider, Alert, MenuItem, InputAdornment, CircularProgress } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
 import { useLocation } from 'react-router-dom';
-import { getCurrentUser } from '../store/slices/authSlice';
+import { Box, Typography, Paper, Grid, TextField, Button, Switch, FormControlLabel, Divider, Alert, MenuItem, InputAdornment, CircularProgress } from '@mui/material';
 import { motion } from 'framer-motion';
+import { getCurrentUser, updateSettings } from '../store/slices/authSlice';
+import PremiumCard from '../components/PremiumCard';
+import PremiumButton from '../components/PremiumButton';
 
-// Same country codes list
 const countryCodes = [
   { code: '+1', country: 'United States' },
   { code: '+44', country: 'United Kingdom' },
@@ -59,36 +60,37 @@ const Settings = () => {
   const dispatch = useDispatch();
   const location = useLocation();
   const { user, loading: authLoading } = useSelector((state) => state.auth);
-  
+
   const [formData, setFormData] = useState({
     email: '',
     phone: '',
     countryCode: '+1'
   });
-  
+
   const [settings, setSettings] = useState({
-    emailNotifications: user?.settings?.emailNotifications ?? true,
-    smsAlerts: user?.settings?.smsAlerts ?? true,
-    twoFactorAuth: user?.settings?.twoFactorAuth ?? false,
-    monthlyStatements: user?.settings?.monthlyStatements ?? true,
-    darkMode: user?.settings?.darkMode ?? false
+    emailNotifications: true,
+    smsAlerts: true,
+    twoFactorAuth: false,
+    monthlyStatements: true,
+    darkMode: false
   });
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (!user) {
       dispatch(getCurrentUser());
     } else {
-      // Populate form data with real user information
       const userPhone = user.phone || '';
       const phoneMatch = userPhone.match(/^(\+\d+)\s*(.*)$/);
-      
+
       setFormData({
         email: user.email || '',
         phone: phoneMatch ? phoneMatch[2] : userPhone.replace(/^\+\d+\s*/, ''),
         countryCode: phoneMatch ? phoneMatch[1] : (user.phone ? user.phone.split(' ')[0] : '+1')
       });
-      
+
       if (user.settings) {
         setSettings({
           emailNotifications: user.settings.emailNotifications ?? true,
@@ -102,10 +104,10 @@ const Settings = () => {
   }, [dispatch, user, location.pathname]);
 
   const handleToggle = (setting) => {
-    setSettings({
-      ...settings,
-      [setting]: !settings[setting]
-    });
+    setSettings(prev => ({
+      ...prev,
+      [setting]: !prev[setting]
+    }));
   };
 
   const handleInputChange = (e) => {
@@ -116,9 +118,22 @@ const Settings = () => {
     }));
   };
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  const handleSave = async () => {
+    setSaving(true);
+    setError('');
+    try {
+      await dispatch(updateSettings({
+        email: formData.email,
+        phone: `${formData.countryCode} ${formData.phone}`,
+        settings
+      })).unwrap();
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      setError(err.message || 'Failed to save settings');
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (authLoading) {
@@ -137,7 +152,6 @@ const Settings = () => {
       minHeight: '100vh',
       p: { xs: 2, md: 0 }
     }}>
-      {/* Premium ambient background effects */}
       <Box sx={{
         position: 'fixed',
         top: '-5%',
@@ -163,126 +177,150 @@ const Settings = () => {
         zIndex: 0
       }} />
       <Box sx={{ position: 'relative', zIndex: 1 }}>
-        <Typography variant="h4" sx={{ 
-          fontWeight: 700, 
-          background: 'linear-gradient(135deg, #0f2744 0%, #1e4d8a 50%, #0066ff 100%)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          mb: 1,
-          gutterBottom: true
-        }}>Settings</Typography>
+        <motion.div
+          initial={{ opacity: 0, y: -30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+        >
+          <Typography variant="h3" sx={{ 
+            fontWeight: 800, 
+            mb: 2,
+            mt: 4
+          }}>Settings</Typography>
+        </motion.div>
 
         {saved && <Alert severity="success" sx={{ mb: 3 }}>Settings saved successfully!</Alert>}
+        {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <Paper sx={{ 
-            p: 4,
-            borderRadius: 2,
-            background: 'rgba(255,255,255,0.75)',
-            backdropFilter: 'blur(30px)',
-            border: '1px solid rgba(15,39,68,0.08)',
-            boxShadow: '0 20px 60px -15px rgba(0,0,0,0.1)'
-          }}>
-            <Typography variant="h6" gutterBottom>Account Settings</Typography>
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Email Address"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-            />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Phone Number"
-              name="phone"
-              value={formData.phone}
-              onChange={handleInputChange}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <TextField
-                      select
-                      name="countryCode"
-                      value={formData.countryCode}
-                      onChange={handleInputChange}
-                      sx={{ minWidth: 120, '& .MuiInputBase-input': { py: 1 } }}
-                      variant="standard"
-                      size="small"
-                    >
-                      {countryCodes.map((country, index) => (
-                        <MenuItem key={`${country.code}-${index}`} value={country.code}>
-                          {country.code} ({country.country})
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  </InputAdornment>
-                )
-              }}
-            />
-          </Grid>
-        </Grid>
+          <PremiumCard title="Account Settings" subtitle="Update your account information">
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Email Address"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Phone Number"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <TextField
+                          select
+                          name="countryCode"
+                          value={formData.countryCode}
+                          onChange={handleInputChange}
+                          sx={{ minWidth: 120, '& .MuiInputBase-input': { py: 1 } }}
+                          variant="standard"
+                          size="small"
+                        >
+                          {countryCodes.map((country, index) => (
+                            <MenuItem key={`${country.code}-${index}`} value={country.code}>
+                              {country.code} ({country.country})
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                      </InputAdornment>
+                    )
+                  }}
+                />
+              </Grid>
+            </Grid>
+          </PremiumCard>
+        </motion.div>
 
-        <Divider sx={{ my: 4 }} />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+        >
+          <PremiumCard title="Notifications" subtitle="Manage how you receive notifications">
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <FormControlLabel
+                  control={<Switch checked={settings.emailNotifications} onChange={() => handleToggle('emailNotifications')} />}
+                  label="Email Notifications"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <FormControlLabel
+                  control={<Switch checked={settings.smsAlerts} onChange={() => handleToggle('smsAlerts')} />}
+                  label="SMS Alerts"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <FormControlLabel
+                  control={<Switch checked={settings.monthlyStatements} onChange={() => handleToggle('monthlyStatements')} />}
+                  label="Receive Monthly Statements"
+                />
+              </Grid>
+            </Grid>
+          </PremiumCard>
+        </motion.div>
 
-        <Typography variant="h6" gutterBottom>Notifications</Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <FormControlLabel
-              control={<Switch checked={settings.emailNotifications} onChange={() => handleToggle('emailNotifications')} />}
-              label="Email Notifications"
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <FormControlLabel
-              control={<Switch checked={settings.smsAlerts} onChange={() => handleToggle('smsAlerts')} />}
-              label="SMS Alerts"
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <FormControlLabel
-              control={<Switch checked={settings.monthlyStatements} onChange={() => handleToggle('monthlyStatements')} />}
-              label="Receive Monthly Statements"
-            />
-          </Grid>
-        </Grid>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <PremiumCard title="Security" subtitle="Manage your account security settings">
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <FormControlLabel
+                  control={<Switch checked={settings.twoFactorAuth} onChange={() => handleToggle('twoFactorAuth')} />}
+                  label="Two-Factor Authentication"
+                />
+              </Grid>
+            </Grid>
+          </PremiumCard>
+        </motion.div>
 
-        <Divider sx={{ my: 4 }} />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        >
+          <PremiumCard title="Preferences" subtitle="Customize your experience">
+            <Grid item xs={12}>
+              <FormControlLabel
+                control={<Switch checked={settings.darkMode} onChange={() => handleToggle('darkMode')} />}
+                label="Dark Mode"
+              />
+            </Grid>
+          </PremiumCard>
+        </motion.div>
 
-        <Typography variant="h6" gutterBottom>Security</Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <FormControlLabel
-              control={<Switch checked={settings.twoFactorAuth} onChange={() => handleToggle('twoFactorAuth')} />}
-              label="Two-Factor Authentication"
-            />
-          </Grid>
-        </Grid>
-
-        <Divider sx={{ my: 4 }} />
-
-        <Typography variant="h6" gutterBottom>Preferences</Typography>
-        <Grid item xs={12}>
-          <FormControlLabel
-            control={<Switch checked={settings.darkMode} onChange={() => handleToggle('darkMode')} />}
-            label="Dark Mode"
-          />
-        </Grid>
-
-        <Box sx={{ mt: 4 }}>
-          <Button variant="contained" size="large" onClick={handleSave}>Save Changes</Button>
-        </Box>
-        </Paper>
-      </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
+          <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end' }}>
+            <PremiumButton
+              variant="primary"
+              size="large"
+              onClick={handleSave}
+              loading={saving}
+            >
+              Save Changes
+            </PremiumButton>
+          </Box>
+        </motion.div>
+      </Box>
     </Box>
-  </Box>
   );
 };
 

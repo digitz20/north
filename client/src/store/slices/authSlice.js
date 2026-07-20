@@ -100,6 +100,19 @@ export const resendVerificationEmail = createAsyncThunk(
   }
 );
 
+// Update user settings
+export const updateSettings = createAsyncThunk(
+  'auth/updateSettings',
+  async (settingsData, { rejectWithValue }) => {
+    try {
+      const response = await axios.post('/auth/settings', settingsData);
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update settings');
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -184,6 +197,19 @@ const authSlice = createSlice({
         state.loading = false;
       })
       .addCase(resendVerificationEmail.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      
+      // Update settings cases
+      .addCase(updateSettings.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateSettings.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user.settings = action.payload.settings || state.user.settings;
+      })
+      .addCase(updateSettings.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

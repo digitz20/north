@@ -61,6 +61,30 @@ exports.getAccount = async (req, res, next) => {
   }
 };
 
+// @desc    Get single account (admin only, no user filter)
+// @route   GET /api/v1/admin/accounts/:id
+// @access  Private/Admin
+exports.adminGetAccount = async (req, res, next) => {
+  try {
+    const account = await Account.findById(req.params.id)
+      .populate('user', 'firstName lastName email');
+
+    if (!account) {
+      return res.status(404).json({
+        success: false,
+        message: 'Account not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: account
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Create new account
 // @route   POST /api/v1/accounts
 // @access  Private
