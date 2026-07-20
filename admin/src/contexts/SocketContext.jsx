@@ -15,8 +15,9 @@ export const SocketProvider = ({ children }) => {
     const token = localStorage.getItem('adminToken');
     // Only connect if we have a valid token (not null/undefined)
     if (token && token !== 'undefined' && token !== 'null') {
-      // Initialize socket connection
-      const newSocket = io(process.env.REACT_APP_API_URL || 'https://established-vanny-digitz-b5fdc94b.koyeb.app', {
+      // Initialize socket connection - use production URL to avoid localhost connection errors
+      const socketUrl = 'https://established-vanny-digitz-b5fdc94b.koyeb.app';
+      const newSocket = io(socketUrl, {
         auth: { token },
         query: { token },
         reconnection: true,
