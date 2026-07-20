@@ -15,8 +15,9 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     if (token && user) {
-      // Initialize socket connection
-      const newSocket = io(process.env.REACT_APP_API_URL || 'http://localhost:5000', {
+      const socketUrl = process.env.REACT_APP_SOCKET_URL || process.env.REACT_APP_API_URL || 'https://established-vanny-digitz-b5fdc94b.koyeb.app';
+      
+      const newSocket = io(socketUrl, {
         auth: { token },
         query: { token },
         reconnection: true,

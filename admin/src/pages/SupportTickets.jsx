@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
@@ -159,7 +159,7 @@ const SupportTickets = () => {
     }));
   };
 
-  const handleOpenChat = async (ticket) => {
+  const handleOpenChat = useCallback(async (ticket) => {
     setSelectedTicket(ticket);
     setOpenChat(true);
     setUnreadCounts(prev => ({ ...prev, [ticket._id]: 0 }));
@@ -173,9 +173,9 @@ const SupportTickets = () => {
       });
     }
     scrollToBottom();
-  };
+  }, [joinChat, markMessageAsRead, scrollToBottom, ticketMessages, user._id]);
 
-  const handleCloseChat = () => {
+  const handleCloseChat = useCallback(() => {
     if (selectedTicket) {
       leaveChat(selectedTicket._id);
     }
@@ -183,9 +183,9 @@ const SupportTickets = () => {
     setSelectedTicket(null);
     setReplyMessage('');
     setTypingUser(null);
-  };
+  }, [leaveChat, selectedTicket]);
 
-  const handleAcceptTicket = async (ticket) => {
+  const handleAcceptTicket = useCallback(async (ticket) => {
     try {
       await api.patch(`/admin/support-tickets/${ticket._id}`, {
         status: 'active',
@@ -196,9 +196,9 @@ const SupportTickets = () => {
     } catch (error) {
       console.error('Error accepting ticket:', error);
     }
-  };
+  }, [fetchTickets, handleOpenChat, user._id]);
 
-  const handleCloseTicket = async (ticketId) => {
+  const handleCloseTicket = useCallback(async (ticketId) => {
     try {
       await api.patch(`/admin/support-tickets/${ticketId}`, {
         status: 'closed'
@@ -208,9 +208,9 @@ const SupportTickets = () => {
     } catch (error) {
       console.error('Error closing ticket:', error);
     }
-  };
+  }, [fetchTickets, handleCloseChat]);
 
-  const handleReopenTicket = async (ticketId) => {
+  const handleReopenTicket = useCallback(async (ticketId) => {
     try {
       await api.patch(`/admin/support-tickets/${ticketId}`, {
         status: 'active'
@@ -219,7 +219,7 @@ const SupportTickets = () => {
     } catch (error) {
       console.error('Error reopening ticket:', error);
     }
-  };
+  }, [fetchTickets]);
 
   const handleSendMessage = () => {
     if (!replyMessage.trim() || !selectedTicket) return;
@@ -255,27 +255,29 @@ const SupportTickets = () => {
     }
   };
 
-  const handleTabChange = (event, newValue) => {
+  const handleTabChange = useCallback((event, newValue) => {
     setActiveTab(newValue);
-  };
+  }, []);
 
-  const filteredTickets = tickets.filter(ticket => {
-    if (activeTab === 1 && ticket.status !== 'waiting') return false;
-    if (activeTab === 2 && ticket.status !== 'active') return false;
-    if (activeTab === 3 && ticket.status !== 'closed') return false;
+  const filteredTickets = useMemo(() => {
+    return tickets.filter(ticket => {
+      if (activeTab === 1 && ticket.status !== 'waiting') return false;
+      if (activeTab === 2 && ticket.status !== 'active') return false;
+      if (activeTab === 3 && ticket.status !== 'closed') return false;
 
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      return (
-        ticket.user?.name?.toLowerCase().includes(searchLower) ||
-        ticket._id.toLowerCase().includes(searchLower) ||
-        ticket.subject?.toLowerCase().includes(searchLower)
-      );
-    }
-    return true;
-  });
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        return (
+          ticket.user?.name?.toLowerCase().includes(searchLower) ||
+          ticket._id.toLowerCase().includes(searchLower) ||
+          ticket.subject?.toLowerCase().includes(searchLower)
+        );
+      }
+      return true;
+    });
+  }, [tickets, activeTab, searchTerm]);
 
-  const getStatusChip = (status) => {
+  const getStatusChip = useCallback((status) => {
     const statusConfig = {
       waiting: { color: 'warning', icon: <HourglassEmptyIcon fontSize="small" />, label: 'Waiting' },
       active: { color: 'success', icon: <PlayCircleFilledIcon fontSize="small" />, label: 'Active' },
@@ -292,7 +294,7 @@ const SupportTickets = () => {
         sx={{ minWidth: 90, fontWeight: 500 }}
       />
     );
-  };
+  }, []);
 
   if (loading) {
     return (
