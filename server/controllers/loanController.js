@@ -1161,6 +1161,60 @@ exports.getAllLoans = async (req, res, next) => {
   }
 };
 
+// @desc    Get loan statistics (admin only)
+// @route   GET /api/v1/admin/loans/stats
+// @access  Private/Admin
+exports.getLoanStats = async (req, res, next) => {
+  try {
+    const totalLoans = await UserLoan.countDocuments();
+    const pendingLoans = await UserLoan.countDocuments({ status: 'pending' });
+    const approvedLoans = await UserLoan.countDocuments({ status: 'approved' });
+    const rejectedLoans = await UserLoan.countDocuments({ status: 'rejected' });
+    const activeLoans = await UserLoan.countDocuments({ status: 'active' });
+
+    let totalAmount = 0;
+    try {
+      const amountStats = await UserLoan.aggregate([
+        { $group: { _id: null, totalAmount: { $sum: '$amount' } } }
+      ]);
+      if (amountStats.length > 0) {
+        totalAmount = amountStats[0].totalAmount || 0;
+      }
+    } catch (aggError) {
+      logger.warn('Loan stats aggregation warning:', aggError.message);
+    }
+
+    const stats = {
+      total: totalLoans,
+      pending: pendingLoans,
+      approved: approvedLoans,
+      rejected: rejectedLoans,
+      active: activeLoans,
+      totalAmount
+    };
+
+    await AuditLog.log({
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
+      action: 'admin_loan_stats_viewed',
+      category: 'loan-management',
+      description: `Admin viewed loan statistics`,
+      entity: { type: 'loan', id: null }
+    });
+
+    res.status(200).json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Approve loan (admin only)
 // @route   PUT /api/v1/loans/admin/:id/approve
 // @access  Private/Admin

@@ -233,6 +233,14 @@ const LiveSupportChat = () => {
     return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  // Get header title and status
+  const headerTitle = 'northcrestbankofusa';
+  const headerStatus = supportOnline ? 'Online' : 'Offline';
+  const emptyStateTitle = 'how can we help you...';
+  const emptyStateSubtitle = supportOnline
+    ? 'Send us a message and we\'ll respond shortly.'
+    : 'Our support team is currently offline. Leave a message and we\'ll get back to you soon.';
+
   // Check if message is from current user
   const isOwnMessage = (message) => {
     return message.sender?._id === user?.id;
@@ -341,10 +349,10 @@ const LiveSupportChat = () => {
                 <SupportAgentIcon />
               </Avatar>
               <Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
-                  Live Support
+                <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2, letterSpacing: '0.02em' }}>
+                  {headerTitle}
                 </Typography>
-                <Typography variant="caption" sx={{ opacity: 0.9, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Typography variant="caption" sx={{ opacity: 0.9, display: 'flex', alignItems: 'center', gap: 0.5, textTransform: 'capitalize' }}>
                   <Box 
                     component="span"
                     sx={{
@@ -354,7 +362,7 @@ const LiveSupportChat = () => {
                       bgcolor: supportOnline ? '#4ade80' : '#f87171'
                     }}
                   />
-                  {supportOnline ? 'Support Online' : 'Support Offline - Leave a message'}
+                  {headerStatus}
                 </Typography>
               </Box>
             </Box>
@@ -400,10 +408,11 @@ const LiveSupportChat = () => {
                 ) : messages.length === 0 ? (
                   <Box sx={{ textAlign: 'center', py: 4 }}>
                     <SupportAgentIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
-                    <Typography variant="body1" color="text.secondary">
-                      {supportOnline 
-                        ? "Hi! How can we help you today?" 
-                        : "Our support team is currently offline. Leave a message and we'll get back to you soon."}
+                    <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 500 }}>
+                      {emptyStateTitle}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                      {emptyStateSubtitle}
                     </Typography>
                   </Box>
                 ) : (

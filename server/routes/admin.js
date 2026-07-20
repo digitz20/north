@@ -79,9 +79,11 @@ router.route('/investments/:id')
   .delete(protect, authorize('super-admin'), deleteInvestment);
 
 // Loans CRUD
-const { getAllLoans, getLoan, updateLoan, deleteLoan } = require('../controllers/loanController');
+const { getAllLoans, getLoan, getLoanStats, updateLoan, deleteLoan } = require('../controllers/loanController');
 router.route('/loans')
   .get(protect, authorize('admin', 'super-admin'), getAllLoans);
+router.route('/loans/stats')
+  .get(protect, authorize('admin', 'super-admin'), getLoanStats);
 router.route('/loans/:id')
   .get(protect, authorize('admin', 'super-admin'), getLoan)
   .put(protect, authorize('admin', 'super-admin'), updateLoan)
