@@ -414,7 +414,7 @@ const Dashboard = () => {
         <motion.div variants={itemVariants}>
           <Grid container spacing={{ xs: 2, sm: 3, md: 4 }} sx={{ mb: 5 }}>
             {realtimeStats.map((stat, index) => (
-              <Grid item xs={12} sm={6} lg={3} key={stat.title}>
+              <Grid item xs={12} sm={6} lg={6} key={stat.title}>
                 <motion.div
                   whileHover={{ y: -3 }}
                   transition={{ duration: 0.2 }}
@@ -461,7 +461,7 @@ const Dashboard = () => {
                         />
                       </Box>
                       <Typography variant="body1" sx={{ mb: 1, opacity: 0.8 }}>{stat.title}</Typography>
-                      <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>
+                      <Typography variant="h3" sx={{ fontWeight: 700, mb: 1, fontSize: { xs: '2rem', md: '3rem' } }}>
                         {inView && (
                           <CountUp
                             start={0}
