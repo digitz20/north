@@ -82,11 +82,15 @@ export const processCryptoDeposit = createAsyncThunk(
   async (depositData, { rejectWithValue }) => {
     try {
       const response = await api.post('/transactions/crypto-deposit', depositData);
-      await api.post('/notifications/send-email', {
-        email: depositData.email,
-        type: 'deposit_confirmation',
-        transactionDetails: response.data.data
-      });
+      try {
+        await api.post('/notifications/send-email', {
+          email: depositData.email,
+          type: 'deposit_confirmation',
+          transactionDetails: response.data.data
+        });
+      } catch (emailError) {
+        console.warn('Deposit email notification failed:', emailError);
+      }
       return response.data.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Deposit failed');

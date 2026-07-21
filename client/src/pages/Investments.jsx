@@ -156,7 +156,7 @@ const Investments = () => {
       setInvestmentForm(prev => ({ ...prev, email: user.email }));
     }
     if (accounts.length > 0) {
-      setInvestmentForm(prev => ({ ...prev, destinationAccount: accounts[0].id }));
+      setInvestmentForm(prev => ({ ...prev, destinationAccount: accounts[0]._id }));
     }
     // Set default selected plan for crypto category
     if (investmentPlans.crypto.length > 0 && !investmentForm.selectedPlan) {

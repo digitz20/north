@@ -166,9 +166,9 @@ const Deposit = () => {
     if (user?.email) {
       setCryptoForm(prev => ({ ...prev, email: user.email }));
     }
-    if (accounts.length > 0) {
-      setCryptoForm(prev => ({ ...prev, destinationAccount: accounts[0].id }));
-    }
+   if (accounts.length > 0) {
+     setCryptoForm(prev => ({ ...prev, destinationAccount: accounts[0]._id }));
+   }
   }, [user, accounts]);
 
   const handleImageUpload = (event) => {
