@@ -17,7 +17,7 @@ import {
   Payments, MoreHoriz, Person, ShoppingCart, Restaurant, Home,
   ShowChart, AccountTree, Security, Speed, AttachMoney, CreditCard,
   ArrowForward, Notifications, Settings, HelpOutline, ChevronRight, PlayCircle,
-  LocalHospital, Flight, Payment, AccessTime
+  LocalHospital, Flight, Payment, AccessTime, Visibility, VisibilityOff
 } from '@mui/icons-material';
 // Alias for icon names used in component
 const ArrowUpwardIcon = ArrowUpward;
@@ -48,6 +48,14 @@ const Dashboard = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedTimeframe, setSelectedTimeframe] = useState('Today');
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [hideBalance, setHideBalance] = useState(false);
+
+  const formatBalance = (value) => {
+    if (hideBalance) {
+      return '••••••••';
+    }
+    return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+  };
 
   useEffect(() => {
     // Always refetch data when navigating to dashboard to ensure fresh data
@@ -376,7 +384,18 @@ const Dashboard = () => {
                   </Box>
                 </Box>
               </Box>
-              <Box sx={{ display: 'flex', gap: 2, mt: { xs: 2, md: 0 } }}>
+              <Box sx={{ display: 'flex', gap: 2, mt: { xs: 2, md: 0 }, alignItems: 'center' }}>
+                <IconButton
+                  onClick={() => setHideBalance(prev => !prev)}
+                  sx={{
+                    background: 'rgba(0,102,255,0.08)',
+                    border: '1px solid rgba(0,102,255,0.15)',
+                    '&:hover': { background: 'rgba(0,102,255,0.15)' }
+                  }}
+                  title={hideBalance ? 'Show balance' : 'Hide balance'}
+                >
+                  {hideBalance ? <VisibilityOff sx={{ fontSize: 18, color: 'primary.main' }} /> : <Visibility sx={{ fontSize: 18, color: 'primary.main' }} />}
+                </IconButton>
                 {['Today', 'Week', 'Month', 'Year'].map((period) => (
                   <Button
                     key={period}
@@ -463,14 +482,16 @@ const Dashboard = () => {
                       <Typography variant="body1" sx={{ mb: 1, opacity: 0.8 }}>{stat.title}</Typography>
                       <Typography variant="h3" sx={{ fontWeight: 700, mb: 1, fontSize: { xs: '2rem', md: '3rem' } }}>
                         {inView && (
-                          <CountUp
-                            start={0}
-                            end={stat.value}
-                            duration={2.5}
-                            prefix={stat.prefix}
-                            separator=","
-                            decimals={2}
-                          />
+                          hideBalance ? '••••••••' : (
+                            <CountUp
+                              start={0}
+                              end={stat.value}
+                              duration={2.5}
+                              prefix={stat.prefix}
+                              separator=","
+                              decimals={2}
+                            />
+                          )
                         )}
                       </Typography>
                       <Box sx={{ mt: 2, display: 'flex', alignItems: 'center' }}>
@@ -656,7 +677,9 @@ const Dashboard = () => {
                         <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: index === 0 ? '#0066FF' : index === 1 ? '#00BFFF' : '#00C896', mr: 2 }} />
                         <Typography variant="body2">{account.nickname || `${account.accountType.charAt(0).toUpperCase() + account.accountType.slice(1)} Account`}</Typography>
                       </Box>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>${account.balance.toLocaleString()}</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        {hideBalance ? '••••••••' : `$${account.balance.toLocaleString()}`}
+                      </Typography>
                     </Box>
                   ))}
                   {/* Add wallet balance */}
@@ -665,7 +688,9 @@ const Dashboard = () => {
                       <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#FFC857', mr: 2 }} />
                       <Typography variant="body2">Digital Wallet</Typography>
                     </Box>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>${(wallet?.balance || 0).toLocaleString()}</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      {hideBalance ? '••••••••' : `$${(wallet?.balance || 0).toLocaleString()}`}
+                    </Typography>
                   </Box>
                 </Box>
               </Paper>
@@ -919,7 +944,7 @@ const Dashboard = () => {
                           <Box>
                             <Typography variant="body2" sx={{ opacity: 0.7, mb: 1 }}>{account.nickname}</Typography>
                             <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                              ${account.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                              {hideBalance ? '••••••••' : `$${account.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
                             </Typography>
                           </Box>
                           <CreditCard sx={{ fontSize: 40, opacity: 0.5 }} />

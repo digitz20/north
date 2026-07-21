@@ -247,13 +247,33 @@ const LiveSupportChat = () => {
     }
   };
 
+  const markMessagesAsReadIfNeeded = useCallback((ticket) => {
+    if (!ticket?._id || !user?.id) return;
+    messages.forEach(msg => {
+      const isFromAdmin = ['admin', 'super-admin', 'support'].includes(msg.sender?.role);
+      const alreadyRead = Array.isArray(msg.readBy) && msg.readBy.some(r => (r.user?._id || r.user)?.toString?.() === user.id.toString?.());
+      if (isFromAdmin && !alreadyRead) {
+        markMessageAsRead(ticket._id, msg._id);
+      }
+    });
+  }, [messages, user?.id, markMessageAsRead]);
+
   // Handle opening the chat
   const handleOpen = () => {
     setIsOpen(true);
     setIsMinimized(false);
+    if (currentTicket) {
+      markMessagesAsReadIfNeeded(currentTicket);
+    }
   };
 
-  // Handle closing the chat
+  const handleSelectTicket = (ticket) => {
+    setCurrentTicket(ticket);
+    setIsOpen(true);
+    setIsMinimized(false);
+    setMessages(ticket.messages || []);
+    markMessagesAsReadIfNeeded(ticket);
+  };
   const handleClose = () => {
     setIsOpen(false);
     setIsMinimized(false);
@@ -468,10 +488,6 @@ const LiveSupportChat = () => {
 
       if (!isOpen || document.hidden) {
         setUnreadCount(prev => prev + 1);
-      }
-
-      if (['admin', 'super-admin', 'support'].includes(message.sender?.role) && currentTicket?._id) {
-        markMessageAsReadRef(currentTicket._id, message._id);
       }
     };
 

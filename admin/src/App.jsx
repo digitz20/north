@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import AdminLogin from './pages/Login';
@@ -29,14 +29,35 @@ function App() {
   const user = useSelector((state) => state.auth.user);
   const isAdmin = user?.role === 'admin' || user?.role === 'super-admin';
   const hasRestoredRef = useRef(false);
+  const [fallbackReady, setFallbackReady] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
     if (token && !hasRestoredRef.current) {
       hasRestoredRef.current = true;
-      dispatch(getCurrentAdmin());
+      const timeout = setTimeout(() => {
+        dispatch(getCurrentAdmin());
+      }, 0);
+      return () => clearTimeout(timeout);
     }
   }, [dispatch]);
+
+  useEffect(() => {
+    if (restoring) {
+      const fallback = setTimeout(() => {
+        setFallbackReady(true);
+      }, 8000);
+      return () => clearTimeout(fallback);
+    }
+  }, [restoring]);
+
+  if (restoring && !fallbackReady) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   if (restoring) {
     return (
