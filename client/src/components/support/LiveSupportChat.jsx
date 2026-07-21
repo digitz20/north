@@ -320,6 +320,8 @@ const LiveSupportChat = () => {
     };
 
     setMessages(prev => {
+      const exists = prev.some(msg => msg._id === localMessage._id);
+      if (exists) return prev;
       const updated = [...prev, localMessage];
       saveMessagesToStorage(ticketId, updated);
       return updated;
@@ -460,11 +462,29 @@ const LiveSupportChat = () => {
     const handleReceiveMessage = (data) => {
       const { message } = data;
       if (!message) return;
-      
+
       setMessages(prev => {
-        const exists = prev.some(msg => msg._id === message._id);
-        if (exists) return prev;
-        return [...prev, message];
+        if (prev.some(msg => msg._id === message._id)) {
+          return prev;
+        }
+
+        const tempIndex = prev.findIndex(msg => 
+          msg._id.startsWith('temp-') &&
+          msg.sender?._id === message.sender?._id &&
+          msg.message === message.message &&
+          Math.abs(new Date(msg.createdAt) - new Date(message.createdAt || msg.createdAt)) < 5000
+        );
+
+        if (tempIndex !== -1) {
+          const updated = [...prev];
+          updated[tempIndex] = message;
+          saveMessagesToStorage(currentTicketRef._id, updated);
+          return updated;
+        }
+
+        const updated = [...prev, message];
+        saveMessagesToStorage(currentTicketRef._id, updated);
+        return updated;
       });
       
       if (!isOpen || document.hidden) {
@@ -479,7 +499,8 @@ const LiveSupportChat = () => {
         const key = `chat_${currentTicketRef._id}`;
         try {
           const existing = JSON.parse(localStorage.getItem(key) || '[]');
-          const updated = [...existing, message].slice(-100);
+          const filtered = existing.filter(msg => msg._id !== message._id);
+          const updated = [...filtered, message].slice(-100);
           localStorage.setItem(key, JSON.stringify(updated));
         } catch (e) {
           console.error('Error saving message to localStorage:', e);
@@ -508,9 +529,10 @@ const LiveSupportChat = () => {
 
     const handleMessageRead = (data) => {
       if (!data?.messageId) return;
+      const readerId = data.readBy?.user || data.readBy;
       setMessages(prev => prev.map(msg =>
         msg._id === data.messageId
-          ? { ...msg, read: true, readAt: data.readBy?.readAt }
+          ? { ...msg, read: true, readAt: data.readBy?.readAt, readBy: [...(msg.readBy || []), { user: readerId, readAt: data.readBy?.readAt }] }
           : msg
       ));
     };
@@ -548,17 +570,17 @@ const LiveSupportChat = () => {
     return senderId?.toString?.() === user?.id?.toString?.();
   };
 
-  // Get message status icon
+  // Get message status icon and label
   const getMessageStatus = (message) => {
     if (!isOwnMessage(message)) return null;
     
     const isRead = message.readBy?.some(read => {
       const readUserId = read.user?._id || read.user;
       return readUserId?.toString?.() === user?.id?.toString?.();
-    });
+    }) || message.read;
     
     if (isRead) {
-      return <DoneAllIcon fontSize="small" sx={{ fontSize: 16, color: '#4ade80' }} />;
+      return <Typography variant="caption" sx={{ fontSize: 11, color: '#4ade80', fontWeight: 500 }}>Seen</Typography>;
     }
     if (message.delivered) {
       return <DoneAllIcon fontSize="small" sx={{ fontSize: 16, opacity: 0.7 }} />;

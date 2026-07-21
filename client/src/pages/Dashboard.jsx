@@ -17,7 +17,7 @@ import {
   Payments, MoreHoriz, Person, ShoppingCart, Restaurant, Home,
   ShowChart, AccountTree, Security, Speed, AttachMoney, CreditCard,
   ArrowForward, Notifications, Settings, HelpOutline, ChevronRight, PlayCircle,
-  LocalHospital, Flight, Payment
+  LocalHospital, Flight, Payment, AccessTime
 } from '@mui/icons-material';
 // Alias for icon names used in component
 const ArrowUpwardIcon = ArrowUpward;
@@ -47,6 +47,7 @@ const Dashboard = () => {
   
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedTimeframe, setSelectedTimeframe] = useState('Today');
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
     // Always refetch data when navigating to dashboard to ensure fresh data
@@ -54,6 +55,13 @@ const Dashboard = () => {
     dispatch(getWallet());
     dispatch(getTransactions({ limit: 5 }));
   }, [dispatch, location.pathname]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -342,13 +350,30 @@ const Dashboard = () => {
                   }}>
                     Welcome back, {user?.firstName || 'User'}!
                   </Typography>
-                  <Typography variant="body1" color="text.secondary" sx={{ 
-                    fontSize: '1.15rem',
-                    color: '#64748b',
-                    fontWeight: 400
-                  }}>
-                    Here's your comprehensive financial overview for {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                    <Typography variant="body1" color="text.secondary" sx={{ 
+                      fontSize: '1.15rem',
+                      color: '#64748b',
+                      fontWeight: 400
+                    }}>
+                      Here's your comprehensive financial overview for {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                    </Typography>
+                    <Box sx={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      px: 1.5,
+                      py: 0.5,
+                      borderRadius: 2,
+                      background: 'rgba(0, 102, 255, 0.08)',
+                      border: '1px solid rgba(0, 102, 255, 0.15)'
+                    }}>
+                      <AccessTime sx={{ fontSize: 18, color: 'primary.main' }} />
+                      <Typography variant="body2" sx={{ fontWeight: 700, color: 'primary.main', fontFamily: 'monospace', fontSize: '1rem', letterSpacing: '0.05em' }}>
+                        {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                      </Typography>
+                    </Box>
+                  </Box>
                 </Box>
               </Box>
               <Box sx={{ display: 'flex', gap: 2, mt: { xs: 2, md: 0 } }}>

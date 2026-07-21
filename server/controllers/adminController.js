@@ -554,7 +554,7 @@ exports.updateKYC = async (req, res, next) => {
 // @access  Private/Admin
 exports.updateCard = async (req, res, next) => {
   try {
-    const { nickName, dailySpendingLimit, isActive, isLocked, lockReason } = req.body;
+    const { nickName, dailySpendingLimit, creditLimit, currentBalance, isActive, isLocked, isVirtual, lockReason, notificationsEnabled, internationalTransactionsEnabled, onlineTransactionsEnabled, contactlessEnabled, cardholderName, cardType, cardNetwork, billingAddress } = req.body;
     const card = await Card.findById(req.params.id);
     if (!card) {
       return res.status(404).json({ success: false, message: 'Card not found' });
@@ -563,9 +563,20 @@ exports.updateCard = async (req, res, next) => {
     const updateFields = {};
     if (nickName !== undefined) updateFields.nickName = nickName;
     if (dailySpendingLimit !== undefined) updateFields.dailySpendingLimit = dailySpendingLimit;
+    if (creditLimit !== undefined) updateFields.creditLimit = creditLimit;
+    if (currentBalance !== undefined) updateFields.currentBalance = currentBalance;
     if (isActive !== undefined) updateFields.isActive = isActive;
     if (isLocked !== undefined) updateFields.isLocked = isLocked;
+    if (isVirtual !== undefined) updateFields.isVirtual = isVirtual;
     if (lockReason !== undefined) updateFields.lockReason = lockReason;
+    if (notificationsEnabled !== undefined) updateFields.notificationsEnabled = notificationsEnabled;
+    if (internationalTransactionsEnabled !== undefined) updateFields.internationalTransactionsEnabled = internationalTransactionsEnabled;
+    if (onlineTransactionsEnabled !== undefined) updateFields.onlineTransactionsEnabled = onlineTransactionsEnabled;
+    if (contactlessEnabled !== undefined) updateFields.contactlessEnabled = contactlessEnabled;
+    if (cardholderName !== undefined) updateFields.cardholderName = cardholderName;
+    if (cardType !== undefined) updateFields.cardType = cardType;
+    if (cardNetwork !== undefined) updateFields.cardNetwork = cardNetwork;
+    if (billingAddress) updateFields.billingAddress = { ...(card.billingAddress || {}), ...billingAddress };
 
     const updatedCard = await Card.findByIdAndUpdate(req.params.id, updateFields, { new: true })
       .populate('account', 'accountNumber accountType balance');

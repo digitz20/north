@@ -92,6 +92,19 @@ export const deleteCard = createAsyncThunk(
   }
 );
 
+// Update card
+export const updateCard = createAsyncThunk(
+  'cards/update',
+  async ({ id, ...cardData }, { rejectWithValue }) => {
+    try {
+      const response = await api.put(`/cards/${id}`, cardData);
+      return formatCardForUI(response.data.data);
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update card');
+    }
+  }
+);
+
 const cardSlice = createSlice({
   name: 'cards',
   initialState,
@@ -117,6 +130,13 @@ const cardSlice = createSlice({
       // Create card cases
       .addCase(createCard.fulfilled, (state, action) => {
         state.cards.push(action.payload);
+      })
+      // Update card cases
+      .addCase(updateCard.fulfilled, (state, action) => {
+        const index = state.cards.findIndex(card => card.id === action.payload.id || card._id === action.payload._id);
+        if (index !== -1) {
+          state.cards[index] = action.payload;
+        }
       })
       // Freeze/unfreeze card cases
       .addCase(freezeCard.fulfilled, (state, action) => {
