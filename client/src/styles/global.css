@@ -82,11 +82,35 @@ body {
   color: var(--nc-primary-dark);
 }
 
-/* Focus styles */
+/* Focus styles - only show on keyboard navigation, not mouse clicks */
 *:focus-visible {
   outline: 2px solid var(--nc-primary);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Remove persistent active/focus shadows on click */
+*:active,
+*:focus {
+  outline: none;
+}
+
+.MuiTouchRipple-root {
+  display: none !important;
+}
+
+/* Ensure clicked elements don't keep dark shadows */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+*:active {
+  transform: none !important;
+  filter: none !important;
 }
 
 /* Animations */
