@@ -423,10 +423,13 @@ exports.login = async (req, res, next) => {
           email: user.email,
           role: user.role,
           isVerified: user.isVerified,
-          profilePicture: user.profilePicture
+          profilePicture: user.profilePicture,
+          monthlyIncome: user.monthlyIncome || 0,
+          monthlyExpenses: user.monthlyExpenses || 0,
+          netSavings: user.netSavings || 0
         }
       }
-    });
+    }););
 
   } catch (error) {
     next(error);

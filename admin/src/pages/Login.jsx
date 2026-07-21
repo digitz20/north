@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -8,7 +8,9 @@ import {
   Alert,
   Container,
   IconButton,
-  InputAdornment
+  InputAdornment,
+  FormControlLabel,
+  Checkbox
 } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
@@ -23,8 +25,17 @@ const AdminLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('admin_remember_email');
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,8 +43,12 @@ const AdminLogin = () => {
     setLoading(true);
 
     try {
-      // Use the Redux authSlice login thunk which handles everything properly
       await dispatch(login({ email, password })).unwrap();
+      if (rememberMe) {
+        localStorage.setItem('admin_remember_email', email);
+      } else {
+        localStorage.removeItem('admin_remember_email');
+      }
       navigate('/dashboard');
     } catch (err) {
       setError(err || 'Login failed. Please check your credentials.');
@@ -106,6 +121,16 @@ const AdminLogin = () => {
             >
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  color="primary"
+                />
+              }
+              label="Remember Me"
+            />
           </Box>
         </Paper>
       </Box>

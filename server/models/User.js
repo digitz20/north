@@ -109,7 +109,19 @@ const userSchema = new mongoose.Schema({
       type: Date,
       default: Date.now
     }
-  }]
+  }],
+  monthlyIncome: {
+    type: Number,
+    default: 0
+  },
+  monthlyExpenses: {
+    type: Number,
+    default: 0
+  },
+  netSavings: {
+    type: Number,
+    default: 0
+  }
 }, {
   timestamps: true,
   toJSON: { virtuals: true },

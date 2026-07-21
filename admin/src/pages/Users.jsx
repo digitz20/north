@@ -32,7 +32,8 @@ import {
   Avatar,
   Skeleton,
   Tabs,
-  Tab
+  Tab,
+  InputAdornment
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -81,7 +82,10 @@ const Users = () => {
       zipCode: '',
       country: 'USA'
     },
-    twoFactorEnabled: false
+    twoFactorEnabled: false,
+    monthlyIncome: 0,
+    monthlyExpenses: 0,
+    netSavings: 0
   });
   const [editBalanceId, setEditBalanceId] = useState(null);
   const [editBalanceValue, setEditBalanceValue] = useState('');
@@ -185,7 +189,10 @@ const Users = () => {
         zipCode: user.address?.zipCode || '',
         country: user.address?.country || 'USA'
       },
-      twoFactorEnabled: user.twoFactorEnabled || false
+      twoFactorEnabled: user.twoFactorEnabled || false,
+      monthlyIncome: user.monthlyIncome || 0,
+      monthlyExpenses: user.monthlyExpenses || 0,
+      netSavings: user.netSavings || 0
     });
     setOpenDialog(true);
   };
@@ -1050,6 +1057,83 @@ const Users = () => {
     );
   };
 
+  const renderAdminToolsTab = () => {
+    if (!selectedUser) return null;
+    return (
+      <Box sx={{ maxWidth: 600 }}>
+        <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Financial Adjustments</Typography>
+        <Alert severity="info" sx={{ mb: 3 }}>
+          Use this section to directly modify the user&apos;s financial profile. All changes are logged in the audit trail.
+        </Alert>
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Monthly Summary</Typography>
+          </Grid>
+          <Grid item xs={4}>
+            <TextField
+              label="Monthly Income"
+              type="number"
+              fullWidth
+              value={selectedUser.monthlyIncome || 0}
+              onChange={(e) => {
+                const val = parseFloat(e.target.value) || 0;
+                handleEditUser({ ...selectedUser, monthlyIncome: val });
+              }}
+              InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }}
+            />
+          </Grid>
+          <Grid item xs={4}>
+            <TextField
+              label="Monthly Expenses"
+              type="number"
+              fullWidth
+              value={selectedUser.monthlyExpenses || 0}
+              onChange={(e) => {
+                const val = parseFloat(e.target.value) || 0;
+                handleEditUser({ ...selectedUser, monthlyExpenses: val });
+              }}
+              InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }}
+            />
+          </Grid>
+          <Grid item xs={4}>
+            <TextField
+              label="Net Savings"
+              type="number"
+              fullWidth
+              value={selectedUser.netSavings || 0}
+              onChange={(e) => {
+                const val = parseFloat(e.target.value) || 0;
+                handleEditUser({ ...selectedUser, netSavings: val });
+              }}
+              InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }}
+            />
+          </Grid>
+          <Grid item xs={12} sx={{ mt: 2 }}>
+            <Button
+              variant="contained"
+              onClick={() => {
+                api.put(`/admin/users/${selectedUser._id}`, {
+                  monthlyIncome: selectedUser.monthlyIncome || 0,
+                  monthlyExpenses: selectedUser.monthlyExpenses || 0,
+                  netSavings: selectedUser.netSavings || 0
+                }).then(() => {
+                  setSuccess('Financial summary updated');
+                  handleViewDetails(selectedUser);
+                }).catch(() => setError('Failed to update financial summary'));
+              }}
+              sx={{
+                background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
+                '&:hover': { background: 'linear-gradient(135deg, #0052CC 0%, #0099CC 100%)' }
+              }}
+            >
+              Save Financial Summary
+            </Button>
+          </Grid>
+        </Grid>
+      </Box>
+    );
+  };
+
   return (
     <Box sx={{ p: { xs: 2, md: 3 } }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
@@ -1225,6 +1309,7 @@ const Users = () => {
               <Tab label="Transactions" />
               <Tab label="Transfers" />
               <Tab label="Investments" />
+              <Tab label="Admin Tools" />
             </Tabs>
           </Box>
           {detailsLoading ? (
@@ -1240,6 +1325,7 @@ const Users = () => {
               {detailsTab === 4 && renderTransactionsTab()}
               {detailsTab === 5 && renderTransfersTab()}
               {detailsTab === 6 && renderInvestmentsTab()}
+              {detailsTab === 7 && renderAdminToolsTab()}
             </Box>
           )}
         </DialogContent>
@@ -1359,6 +1445,39 @@ const Users = () => {
                     <MenuItem value="Other">Other</MenuItem>
                   </Select>
                 </FormControl>
+              </Grid>
+              <Grid item xs={12}>
+                <Typography variant="subtitle2" sx={{ mt: 2, mb: 1, fontWeight: 600 }}>Financial Overview</Typography>
+              </Grid>
+              <Grid item xs={4}>
+                <TextField
+                  label="Monthly Income"
+                  type="number"
+                  fullWidth
+                  value={formData.monthlyIncome}
+                  onChange={(e) => setFormData({ ...formData, monthlyIncome: parseFloat(e.target.value) || 0 })}
+                  InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }}
+                />
+              </Grid>
+              <Grid item xs={4}>
+                <TextField
+                  label="Monthly Expenses"
+                  type="number"
+                  fullWidth
+                  value={formData.monthlyExpenses}
+                  onChange={(e) => setFormData({ ...formData, monthlyExpenses: parseFloat(e.target.value) || 0 })}
+                  InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }}
+                />
+              </Grid>
+              <Grid item xs={4}>
+                <TextField
+                  label="Net Savings"
+                  type="number"
+                  fullWidth
+                  value={formData.netSavings}
+                  onChange={(e) => setFormData({ ...formData, netSavings: parseFloat(e.target.value) || 0 })}
+                  InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }}
+                />
               </Grid>
               <Grid item xs={12}>
                 <FormControl fullWidth>

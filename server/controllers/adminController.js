@@ -160,7 +160,10 @@ exports.updateUser = async (req, res, next) => {
       isVerified: req.body.isVerified,
       isActive: req.body.isActive,
       isFrozen: req.body.isFrozen,
-      twoFactorEnabled: req.body.twoFactorEnabled
+      twoFactorEnabled: req.body.twoFactorEnabled,
+      monthlyIncome: req.body.monthlyIncome,
+      monthlyExpenses: req.body.monthlyExpenses,
+      netSavings: req.body.netSavings
     };
 
     // Remove undefined fields to preserve existing values

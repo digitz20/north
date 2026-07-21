@@ -4,7 +4,7 @@ import { useInView } from 'react-intersection-observer';
 import CountUp from 'react-countup';
 import {
   Box, Typography, Grid, Avatar, Chip, Divider, IconButton, Tooltip, Dialog, DialogTitle, DialogContent,
-  DialogActions, TextField, Stack, CircularProgress, Alert
+  DialogActions, TextField, Stack, CircularProgress, Alert, InputAdornment
 } from '@mui/material';
 import {
   CreditCard, Add, Visibility, Lock, Delete, Refresh, Security,
@@ -30,7 +30,10 @@ const Cards = () => {
   const [newCardData, setNewCardData] = useState({
     accountId: '',
     cardType: 'debit',
-    cardNetwork: 'VISA'
+    cardNetwork: 'visa',
+    cardholderName: '',
+    billingAddress: {},
+    creditLimit: ''
   });
 
   const { accounts } = useSelector(state => state.accounts);
@@ -49,7 +52,7 @@ const Cards = () => {
     try {
       await dispatch(createCard(newCardData)).unwrap();
       setOpen(false);
-      setNewCardData({ accountId: accounts[0]?._id || '', cardType: 'debit', cardNetwork: 'VISA' });
+      setNewCardData({ accountId: accounts[0]?._id || '', cardType: 'debit', cardNetwork: 'visa', cardholderName: '', billingAddress: {}, creditLimit: '' });
     } catch (err) {
       console.error('Failed to create card:', err);
     }
@@ -509,7 +512,7 @@ const Cards = () => {
             >
               <option value="debit">Debit Card</option>
               <option value="credit">Credit Card</option>
-              <option value="premium">Premium Credit Card</option>
+              <option value="prepaid">Prepaid Card</option>
             </TextField>
             <TextField
               label="Card Network"
@@ -521,27 +524,43 @@ const Cards = () => {
                 native: true,
               }}
             >
-              <option value="VISA">VISA</option>
-              <option value="Mastercard">Mastercard</option>
-              <option value="Amex">American Express</option>
+              <option value="visa">VISA</option>
+              <option value="mastercard">Mastercard</option>
+              <option value="amex">American Express</option>
+              <option value="discover">Discover</option>
             </TextField>
-            {accounts.length > 1 && (
+            <TextField
+              label="Cardholder Name"
+              fullWidth
+              value={newCardData.cardholderName}
+              onChange={(e) => setNewCardData({...newCardData, cardholderName: e.target.value})}
+              required
+            />
+            <TextField
+              label="Link to Account"
+              select
+              fullWidth
+              value={newCardData.accountId}
+              onChange={(e) => setNewCardData({...newCardData, accountId: e.target.value})}
+              SelectProps={{
+                native: true,
+              }}
+            >
+              {accounts.map(account => (
+                <option key={account._id} value={account._id}>
+                  {account.accountType} - ****{account.accountNumber.slice(-4)}
+                </option>
+              ))}
+            </TextField>
+            {newCardData.cardType === 'credit' && (
               <TextField
-                label="Link to Account"
-                select
+                label="Credit Limit"
+                type="number"
                 fullWidth
-                value={newCardData.accountId}
-                onChange={(e) => setNewCardData({...newCardData, accountId: e.target.value})}
-                SelectProps={{
-                  native: true,
-                }}
-              >
-                {accounts.map(account => (
-                  <option key={account._id} value={account._id}>
-                    {account.accountType} - ****{account.accountNumber.slice(-4)}
-                  </option>
-                ))}
-              </TextField>
+                value={newCardData.creditLimit}
+                onChange={(e) => setNewCardData({...newCardData, creditLimit: e.target.value})}
+                InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }}
+              />
             )}
           </Stack>
         </DialogContent>

@@ -33,15 +33,13 @@ import ChatIcon from '@mui/icons-material/Chat';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 import CloseIcon from '@mui/icons-material/Close';
-import SendIcon from '@mui/icons-material/Send';
-import SearchIcon from '@mui/icons-material/Search';
-import PersonIcon from '@mui/icons-material/Person';
-import PhoneIcon from '@mui/icons-material/Phone';
-import EmailIcon from '@mui/icons-material/Email';
-import TransferWithinAStationIcon from '@mui/icons-material/TransferWithinAStation';
-import MarkEmailUnreadIcon from '@mui/icons-material/MarkEmailUnread';
-import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
-import DeleteIcon from '@mui/icons-material/Delete';
+  import SendIcon from '@mui/icons-material/Send';
+  import SearchIcon from '@mui/icons-material/Search';
+  import PersonIcon from '@mui/icons-material/Person';
+  import PhoneIcon from '@mui/icons-material/Phone';
+  import EmailIcon from '@mui/icons-material/Email';
+  import CheckIcon from '@mui/icons-material/Check';
+  import DeleteIcon from '@mui/icons-material/Delete';
   import DoneAllIcon from '@mui/icons-material/DoneAll';
   import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
   import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
@@ -119,6 +117,13 @@ const SupportTickets = () => {
     setLoading(true);
     fetchTickets();
   }, [location.pathname]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchTickets();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [fetchTickets]);
 
   useEffect(() => {
     if (socket && user) {

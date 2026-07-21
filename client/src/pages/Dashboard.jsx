@@ -72,23 +72,26 @@ const Dashboard = () => {
   // Get recent transactions (max 5)
   const recentTransactions = transactions.slice(0, 5);
   
-  // Memoize expensive transaction calculations
   const currentDate = new Date();
   const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
   
-  const monthlyIncome = useMemo(() => 
+  const computedMonthlyIncome = useMemo(() => 
     transactions
       .filter(tx => new Date(tx.createdAt) >= firstDayOfMonth && tx.direction === 'credit')
       .reduce((sum, tx) => sum + tx.amount, 0),
     [transactions, firstDayOfMonth]
   );
   
-  const monthlyExpenses = useMemo(() => 
+  const computedMonthlyExpenses = useMemo(() => 
     transactions
       .filter(tx => new Date(tx.createdAt) >= firstDayOfMonth && tx.direction === 'debit')
       .reduce((sum, tx) => sum + tx.amount, 0),
     [transactions, firstDayOfMonth]
   );
+  
+  const monthlyIncome = user?.monthlyIncome ?? computedMonthlyIncome;
+  const monthlyExpenses = user?.monthlyExpenses ?? computedMonthlyExpenses;
+  const netSavings = user?.netSavings ?? (monthlyIncome - monthlyExpenses);
   
   const categorySpending = useMemo(() => {
     const spending = {};
