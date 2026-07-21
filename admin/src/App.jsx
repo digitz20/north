@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import AdminLogin from './pages/Login';
 import AdminDashboard from './pages/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -19,10 +19,32 @@ import TaxRefunds from './pages/TaxRefunds';
 import Settings from './pages/Settings';
 import AuditLogs from './pages/AuditLogs';
 import { SocketProvider } from './contexts/SocketContext';
+import CircularProgress from '@mui/material/CircularProgress';
+import Box from '@mui/material/Box';
+import { getCurrentAdmin } from './store/slices/authSlice';
 
 function App() {
-  const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+  const { isAuthenticated, restoring } = useSelector((state) => state.auth);
+  const user = useSelector((state) => state.auth.user);
   const isAdmin = user?.role === 'admin' || user?.role === 'super-admin';
+  const hasRestoredRef = useRef(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem('adminToken');
+    if (token && !hasRestoredRef.current) {
+      hasRestoredRef.current = true;
+      dispatch(getCurrentAdmin());
+    }
+  }, [dispatch]);
+
+  if (restoring) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <SocketProvider>

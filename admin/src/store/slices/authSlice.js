@@ -8,7 +8,8 @@ const initialState = {
   refreshToken: localStorage.getItem('adminRefreshToken'),
   isAuthenticated: false,
   loading: false,
-  error: null
+  error: null,
+  restoring: true
 };
 
 // Admin login
@@ -112,14 +113,17 @@ const authSlice = createSlice({
       // Get current user cases
       .addCase(getCurrentAdmin.pending, (state) => {
         state.loading = true;
+        state.restoring = true;
       })
       .addCase(getCurrentAdmin.fulfilled, (state, action) => {
         state.loading = false;
+        state.restoring = false;
         state.isAuthenticated = true;
         state.user = action.payload;
       })
       .addCase(getCurrentAdmin.rejected, (state, action) => {
         state.loading = false;
+        state.restoring = false;
         state.isAuthenticated = false;
         state.user = null;
         state.token = null;
