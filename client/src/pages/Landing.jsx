@@ -21,7 +21,7 @@ import CountUp from 'react-countup';
 import { useInView } from 'react-intersection-observer';
 import NorthCrestLogo from '../components/common/NorthCrestLogo';
 import { useNavigationWithSplash } from '../hooks/useNavigationWithSplash';
-import LiveSupportChat from '../components/support/LiveSupportChat';
+import AIChatBot from '../components/support/AIChatBot';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -1488,8 +1488,8 @@ const Landing = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Support Chat Widget */}
-      <LiveSupportChat />
+      {/* AI Chat Widget */}
+      <AIChatBot />
 
     </Box>
     </>

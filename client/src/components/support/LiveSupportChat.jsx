@@ -10,7 +10,9 @@ import {
   Badge,
   CircularProgress,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
+  Chip,
+  Divider
 } from '@mui/material';
 import {
   Chat as ChatIcon,
@@ -19,7 +21,11 @@ import {
   Send as SendIcon,
   SupportAgent as SupportAgentIcon,
   Check as CheckIcon,
-  DoneAll as DoneAllIcon
+  DoneAll as DoneAllIcon,
+  Image as ImageIcon,
+  Mic as MicIcon,
+  Stop as StopIcon,
+  InsertDriveFile as FileIcon
 } from '@mui/icons-material';
 import { useSelector } from 'react-redux';
 import { useSocket } from '../../contexts/SocketContext';
@@ -49,8 +55,13 @@ const LiveSupportChat = () => {
   const [loading, setLoading] = useState(false);
   const [agentTyping, setAgentTyping] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [isRecording, setIsRecording] = useState(false);
+  const [pendingImage, setPendingImage] = useState(null);
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const fileInputRef = useRef(null);
 
   // Scroll to bottom of messages
   const scrollToBottom = useCallback(() => {
@@ -61,26 +72,35 @@ const LiveSupportChat = () => {
     scrollToBottom();
   }, [messages, agentTyping, scrollToBottom]);
 
+  // Re-initialize chat when socket reconnects and chat is open
+  useEffect(() => {
+    if (!isOpen || !currentTicket || !isConnected) return;
+    
+    const timer = setTimeout(() => {
+      initializeChat();
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, [isConnected, isOpen, currentTicket]);
+
   // Initialize or get existing chat
   const initializeChat = async () => {
     if (!user || !token) return;
     
     setLoading(true);
     try {
-      const headers = { Authorization: `Bearer ${token}` };
-      
       const ticketsResponse = await api.get('/support/tickets?status=open,in-progress,awaiting-user');
       
       const tickets = ticketsResponse.data?.data?.tickets || ticketsResponse.data?.tickets || [];
       let activeTicket = tickets[0];
       
       if (!activeTicket) {
-        const createResponse = await axios.post('/api/v1/support/tickets', {
+        const createResponse = await api.post('/support/tickets', {
           subject: 'Live Chat Inquiry',
           description: 'Customer started a live chat session',
           category: 'technical',
           priority: 'medium'
-        }, { headers });
+        });
         
         activeTicket = createResponse.data?.data || createResponse.data;
       }
@@ -134,8 +154,8 @@ const LiveSupportChat = () => {
   };
 
   // Send message handler
-  const handleSendMessage = async () => {
-    if (!newMessage.trim() || !user) return;
+  const handleSendMessage = async (attachments = []) => {
+    if (!newMessage.trim() && attachments.length === 0) return;
 
     const messageText = newMessage.trim();
     setNewMessage('');
@@ -173,7 +193,12 @@ const LiveSupportChat = () => {
       sender: { _id: user?.id, name: user?.fullName || 'You' },
       createdAt: new Date().toISOString(),
       delivered: false,
-      read: false
+      read: false,
+      attachments: attachments.map(att => ({
+        name: att.name || 'Attachment',
+        url: att.url || att,
+        uploadedAt: new Date().toISOString()
+      }))
     };
 
     setMessages(prev => [...prev, localMessage]);
@@ -181,12 +206,14 @@ const LiveSupportChat = () => {
     if (socket && isConnected) {
       sendMessage({
         ticketId,
-        message: messageText
+        message: messageText,
+        attachments: localMessage.attachments
       });
     } else {
       try {
         const response = await api.post(`/support/tickets/${ticketId}/messages`, {
-          message: messageText
+          message: messageText,
+          attachments: localMessage.attachments
         });
         
         const savedMessage = response.data?.data;
@@ -196,6 +223,88 @@ const LiveSupportChat = () => {
       } catch (error) {
         console.error('Error sending message:', error);
       }
+    }
+  };
+
+  // Handle image upload
+  const handleImageUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const uploadResponse = await api.post('/support/tickets/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      if (uploadResponse.data?.success) {
+        const attachment = uploadResponse.data.data;
+        handleSendMessage([attachment]);
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+    }
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Handle audio recording
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const audioFile = new File([audioBlob], `voice-message-${Date.now()}.webm`, { type: 'audio/webm' });
+
+        try {
+          const formData = new FormData();
+          formData.append('file', audioFile);
+
+          const uploadResponse = await api.post('/support/tickets/upload', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          });
+
+          if (uploadResponse.data?.success) {
+            const attachment = uploadResponse.data.data;
+            attachment.name = '🎤 Voice Message';
+            handleSendMessage([attachment]);
+          }
+        } catch (error) {
+          console.error('Error uploading audio:', error);
+        }
+
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (error) {
+      console.error('Error starting recording:', error);
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
     }
   };
 
@@ -303,13 +412,17 @@ const LiveSupportChat = () => {
 
   // Get message status icon
   const getMessageStatus = (message) => {
-    if (message.readBy?.some(read => read.user !== user?.id)) {
+    const isRead = message.readBy?.some(read => {
+      const readUserId = read.user?._id || read.user;
+      return readUserId === user?.id;
+    });
+    if (isRead) {
       return <DoneAllIcon fontSize="small" color="primary" />;
     }
     if (message.delivered) {
-      return <CheckIcon fontSize="small" />;
+      return <CheckIcon fontSize="small" color="action" />;
     }
-    return <CheckIcon fontSize="small" color="disabled" />;
+    return null;
   };
 
   return (
@@ -492,6 +605,50 @@ const LiveSupportChat = () => {
                           borderBottomLeftRadius: isOwnMessage(message) ? 2 : 4
                         }}
                       >
+                        {message.attachments && message.attachments.length > 0 && (
+                          <Box sx={{ mb: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            {message.attachments.map((attachment, attIndex) => (
+                              <Box key={attIndex}>
+                                {attachment.url && (
+                                  <>
+                                    {attachment.url.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? (
+                                      <Box
+                                        component="img"
+                                        src={attachment.url}
+                                        alt={attachment.name}
+                                        sx={{
+                                          maxWidth: '100%',
+                                          maxHeight: 200,
+                                          borderRadius: 1,
+                                          mt: 1
+                                        }}
+                                      />
+                                    ) : attachment.url.match(/\.(mp3|wav|ogg|webm)$/i) ? (
+                                      <Box sx={{ mt: 1 }}>
+                                        <audio controls src={attachment.url} style={{ maxWidth: '100%', height: 40 }} />
+                                      </Box>
+                                    ) : (
+                                      <Box
+                                        sx={{
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          gap: 1,
+                                          mt: 1,
+                                          p: 1,
+                                          borderRadius: 1,
+                                          bgcolor: 'rgba(255,255,255,0.1)'
+                                        }}
+                                      >
+                                        <FileIcon fontSize="small" />
+                                        <Typography variant="caption">{attachment.name}</Typography>
+                                      </Box>
+                                    )}
+                                  </>
+                                )}
+                              </Box>
+                            ))}
+                          </Box>
+                        )}
                         <Typography variant="body2">{message.message}</Typography>
                       </Paper>
                       <Box
@@ -565,7 +722,7 @@ const LiveSupportChat = () => {
                   bgcolor: theme.palette.background.paper
                 }}
               >
-                <Box sx={{ display: 'flex', gap: 1 }}>
+                <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-end' }}>
                   <TextField
                     fullWidth
                     size="small"
@@ -587,9 +744,23 @@ const LiveSupportChat = () => {
                     }}
                   />
                   <IconButton
+                    size="small"
+                    onClick={() => fileInputRef.current?.click()}
+                    sx={{ color: 'text.secondary' }}
+                  >
+                    <ImageIcon />
+                  </IconButton>
+                  <IconButton
+                    size="small"
+                    onClick={isRecording ? stopRecording : startRecording}
+                    sx={{ color: isRecording ? 'error.main' : 'text.secondary' }}
+                  >
+                    {isRecording ? <StopIcon /> : <MicIcon />}
+                  </IconButton>
+                  <IconButton
                     color="primary"
-                    onClick={handleSendMessage}
-                    disabled={!newMessage.trim() || loading}
+                    onClick={() => handleSendMessage()}
+                    disabled={!newMessage.trim() && !isRecording}
                     sx={{
                       bgcolor: 'primary.main',
                       color: 'white',
@@ -605,6 +776,13 @@ const LiveSupportChat = () => {
                     <SendIcon fontSize="small" />
                   </IconButton>
                 </Box>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,audio/*,video/*,.pdf,.doc,.docx"
+                  style={{ display: 'none' }}
+                  onChange={handleImageUpload}
+                />
               </Box>
             </>
           )}

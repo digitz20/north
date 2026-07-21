@@ -221,21 +221,42 @@ const SupportTickets = () => {
     }
   }, [fetchTickets]);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!replyMessage.trim() || !selectedTicket) return;
+
+    const messageText = replyMessage.trim();
+    setReplyMessage('');
 
     const messageData = {
       ticketId: selectedTicket._id,
-      message: replyMessage.trim(),
+      message: messageText,
       sender: user._id,
       senderName: user.name,
       senderRole: 'admin',
       timestamp: new Date()
     };
 
-    sendMessage(messageData);
-    updateTicketMessages(selectedTicket._id, messageData);
-    setReplyMessage('');
+    if (isConnected && socket) {
+      sendMessage(messageData);
+    } else {
+      try {
+        await api.post(`/support/tickets/${selectedTicket._id}/messages`, {
+          message: messageText,
+          sender: user._id,
+          senderName: user.name,
+          senderRole: 'admin'
+        });
+      } catch (error) {
+        console.error('Error sending message:', error);
+        return;
+      }
+    }
+
+    updateTicketMessages(selectedTicket._id, {
+      ...messageData,
+      message: messageText,
+      sender: { _id: user._id, name: user.name, role: 'admin' }
+    });
     emitStopTyping(selectedTicket._id);
     scrollToBottom();
   };
@@ -642,7 +663,7 @@ const SupportTickets = () => {
               <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', bgcolor: '#f7fafc' }}>
                 <Box sx={{ flex: 1, overflow: 'auto', p: 3 }}>
                   {(ticketMessages[selectedTicket._id] || []).map((msg, index) => {
-                    const isAgent = msg.senderRole === 'admin';
+                    const isAgent = msg.senderRole === 'admin' || msg.sender?.role === 'admin';
                     return (
                       <Box
                         key={index}
