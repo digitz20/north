@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Box, Typography, Paper, Grid, Table, TableBody, TableCell, 
@@ -108,6 +108,7 @@ const Investments = () => {
   // Support multiple uploaded images/proofs
   const [uploadedImages, setUploadedImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
+  const plansSectionRef = useRef(null);
   
   // Form states
   const [investmentForm, setInvestmentForm] = useState({
@@ -180,6 +181,9 @@ const Investments = () => {
       selectedPlan: plans[0].id,
       amount: ''
     }));
+    setTimeout(() => {
+      plansSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
   };
 
   // Handle multiple image uploads - convert to base64
@@ -796,7 +800,7 @@ const Investments = () => {
               </Grid>
 
               {/* Investment Plans for Selected Category */}
-              <Grid item xs={12}>
+              <Grid item xs={12} ref={plansSectionRef}>
                 <Divider sx={{ my: 4 }} />
                 <Typography variant="h5" gutterBottom fontWeight="bold">
                   {investmentForm.investmentCategory === 'crypto' ? 'Crypto Investment Plans' : 
