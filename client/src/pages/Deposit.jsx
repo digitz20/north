@@ -98,6 +98,7 @@ const addressValidators = {
   doge: /^D[5-9A-HJ-NP-Ua-km-z]{33}$/
 };
 
+
 const isValidEthereumAddress = (address) => {
   if (!/^0x[a-fA-F0-9]{40}$/.test(address)) return false;
   const isAllLower = address === address.toLowerCase();
