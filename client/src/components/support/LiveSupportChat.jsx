@@ -454,8 +454,8 @@ const LiveSupportChat = () => {
   useEffect(() => {
     if (!socket || !isOpen) return;
     
-    const markMessageAsReadRef = useRef(markMessageAsRead).current;
-    const currentTicketRef = useRef(currentTicket).current;
+    const markMessageAsReadRef = markMessageAsRead;
+    const currentTicketRef = currentTicket;
 
     const handleReceiveMessage = (data) => {
       const { message } = data;
@@ -476,10 +476,14 @@ const LiveSupportChat = () => {
       }
       
       if (currentTicketRef) {
-        localStorage.setItem(`chat_${currentTicketRef._id}`, JSON.stringify([
-          ...(JSON.parse(localStorage.getItem(`chat_${currentTicketRef._id}`) || '[]')),
-          message
-        ].slice(-100)));
+        const key = `chat_${currentTicketRef._id}`;
+        try {
+          const existing = JSON.parse(localStorage.getItem(key) || '[]');
+          const updated = [...existing, message].slice(-100);
+          localStorage.setItem(key, JSON.stringify(updated));
+        } catch (e) {
+          console.error('Error saving message to localStorage:', e);
+        }
       }
     };
 
