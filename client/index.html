@@ -6,6 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NorthCrest Bank - Personal Online Banking</title>
     <meta name="description" content="Secure online banking with NorthCrest Bank of USA. Manage your accounts, transfer money, invest, and more." />
+    <script>
+      (function() {
+        try {
+          var darkMode = localStorage.getItem('darkMode');
+          if (darkMode === 'true') {
+            document.documentElement.style.backgroundColor = '#0a0e1a';
+            document.body.style.backgroundColor = '#0a0e1a';
+            document.body.style.color = '#f9fafb';
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

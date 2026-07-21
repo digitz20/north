@@ -151,7 +151,7 @@ router.route('/reports/investments')
   .get(protect, authorize('admin', 'super-admin'), getInvestmentsReport);
 
 // Support ticket actions
-const { closeTicket, assignTicket } = require('../controllers/supportController');
+const { closeTicket, assignTicket, deleteTicket } = require('../controllers/supportController');
 router.route('/support-tickets')
   .get(protect, authorize('admin', 'super-admin', 'support'), require('../controllers/supportController').getAllTickets);
 router.route('/support-tickets/:id/assign')
@@ -160,6 +160,7 @@ router.route('/support-tickets/:id/close')
   .put(protect, authorize('admin', 'super-admin', 'support'), closeTicket)
   .patch(protect, authorize('admin', 'super-admin', 'support'), closeTicket);
 router.route('/support-tickets/:id')
+  .delete(protect, authorize('admin', 'super-admin', 'support'), deleteTicket)
   .patch(protect, authorize('admin', 'super-admin', 'support'), (req, res, next) => {
     const { status } = req.body;
     if (status === 'closed') return closeTicket(req, res, next);

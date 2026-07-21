@@ -294,28 +294,31 @@ const AIChatBot = () => {
               justifyContent: 'space-between'
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 40, height: 40 }}>
-                <AIIcon />
-              </Avatar>
-              <Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2, letterSpacing: '0.02em' }}>
-                  NorthCrest AI Assistant
-                </Typography>
-                <Typography variant="caption" sx={{ opacity: 0.9, display: 'flex', alignItems: 'center', gap: 0.5, textTransform: 'capitalize' }}>
-                  <Box
-                    component="span"
-                    sx={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: '50%',
-                      bgcolor: '#4ade80'
-                    }}
-                  />
-                  Online
-                </Typography>
-              </Box>
-            </Box>
+             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+               <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 40, height: 40 }}>
+                 <AIIcon />
+               </Avatar>
+               <Box>
+                 <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2, letterSpacing: '0.02em' }}>
+                   northcrestbankofusa
+                 </Typography>
+                 <Typography variant="caption" sx={{ opacity: 0.9, display: 'flex', alignItems: 'center', gap: 0.5, textTransform: 'capitalize' }}>
+                   <Box
+                     component="span"
+                     sx={{
+                       width: 8,
+                       height: 8,
+                       borderRadius: '50%',
+                       bgcolor: '#4ade80'
+                     }}
+                   />
+                   Online
+                 </Typography>
+                 <Typography variant="caption" sx={{ opacity: 0.75, display: 'block', lineHeight: 1.2 }}>
+                   hi how can we help you?
+                 </Typography>
+               </Box>
+             </Box>
             <Box sx={{ display: 'flex', gap: 0.5 }}>
               <IconButton
                 size="small"

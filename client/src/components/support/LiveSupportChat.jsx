@@ -62,62 +62,125 @@ const LiveSupportChat = () => {
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const fileInputRef = useRef(null);
-  const isInitializingRef = useRef(false);
-  const prevIsConnectedRef = useRef(false);
-  const currentTicketIdRef = useRef(null);
-  const initializedTicketIdsRef = useRef(new Set());
+  const initializedRef = useRef(false);
   const currentTicketRef = useRef(null);
-
-  // Scroll to bottom of messages
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, []);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, agentTyping, scrollToBottom]);
+  const lastFetchRef = useRef(0);
+  const ticketsCacheRef = useRef({ data: null, timestamp: 0 });
+  const MIN_FETCH_INTERVAL = 3000;
 
   // Keep ref in sync with state
   useEffect(() => {
     currentTicketRef.current = currentTicket;
   }, [currentTicket]);
 
-  // Re-initialize chat only when socket transitions from disconnected to connected
+  // Initialize chat once when opened
   useEffect(() => {
-    if (!isOpen || !currentTicket) return;
-    if (currentTicket._id === currentTicketIdRef.current) return;
-    if (initializedTicketIdsRef.current.has(currentTicket._id)) return;
-    
-    currentTicketIdRef.current = currentTicket._id;
-    
-    if (!isConnected) return;
-    
-    const justConnected = isConnected && !prevIsConnectedRef.current;
-    if (!justConnected) return;
-    
-    prevIsConnectedRef.current = isConnected;
-    
-    if (isInitializingRef.current) return;
-    isInitializingRef.current = true;
-    
-    const timer = setTimeout(async () => {
-      await initializeChat();
-      initializedTicketIdsRef.current.add(currentTicket._id);
-      isInitializingRef.current = false;
-    }, 500);
-    
-    return () => clearTimeout(timer);
-  }, [isConnected, isOpen, currentTicket]);
+    if (!isOpen) return;
+    if (initializedRef.current) return;
+    if (!user || !token) return;
+
+    initializedRef.current = true;
+    let cancelled = false;
+
+    const init = async () => {
+      setLoading(true);
+      try {
+        const ticketsResponse = await api.get('/support/tickets?status=open,in-progress,awaiting-user');
+        const tickets = ticketsResponse.data?.data?.tickets || ticketsResponse.data?.tickets || [];
+        let activeTicket = tickets[0];
+
+        if (!activeTicket) {
+          const createResponse = await api.post('/support/tickets', {
+            subject: 'Live Chat Inquiry',
+            description: 'Customer started a live chat session',
+            category: 'technical',
+            priority: 'medium'
+          });
+          activeTicket = createResponse.data?.data || createResponse.data;
+        }
+
+        if (!cancelled && activeTicket) {
+          setCurrentTicket(activeTicket);
+          setMessages(activeTicket.messages || []);
+          setUnreadCount(0);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error('Error initializing chat:', error);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    init();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, user, token]);
+
+  // Join chat room when socket connects and we have a ticket
+  useEffect(() => {
+    if (!socket || !isConnected || !currentTicket) return;
+    joinChat(currentTicket._id);
+  }, [socket, isConnected, currentTicket, joinChat]);
+
+  // Reset initialization flag when chat closes
+  useEffect(() => {
+    if (!isOpen) {
+      initializedRef.current = false;
+    }
+  }, [isOpen]);
 
   // Initialize or get existing chat
   const initializeChat = async () => {
     if (!user || !token) return;
+    
+    const now = Date.now();
+    if (now - lastFetchRef.current < MIN_FETCH_INTERVAL && ticketsCacheRef.current.data) {
+      const cached = ticketsCacheRef.current.data;
+      let activeTicket = cached[0];
+      
+      if (!activeTicket && cached.length === 0) {
+        return;
+      }
+      
+      if (activeTicket) {
+        const ticketIdChanged = currentTicket?._id !== activeTicket._id;
+        const messagesChanged = JSON.stringify(activeTicket.messages || []) !== JSON.stringify(currentTicket?.messages || []);
+        
+        if (ticketIdChanged || messagesChanged) {
+          setCurrentTicket(activeTicket);
+          setMessages(activeTicket.messages || []);
+        }
+        
+        if (socket && isConnected) {
+          joinChat(activeTicket._id);
+        }
+  
+        if (activeTicket.messages && activeTicket.messages.length > 0) {
+          activeTicket.messages.forEach(msg => {
+            if (!msg.readBy || !Array.isArray(msg.readBy)) return;
+            if (!msg.readBy.some(read => read.user?.toString?.() === user.id)) {
+              markMessageAsRead(activeTicket._id, msg._id);
+            }
+          });
+        }
+        setUnreadCount(0);
+      }
+      return;
+    }
     
     setLoading(true);
     try {
       const ticketsResponse = await api.get('/support/tickets?status=open,in-progress,awaiting-user');
       
       const tickets = ticketsResponse.data?.data?.tickets || ticketsResponse.data?.tickets || [];
+      ticketsCacheRef.current = { data: tickets, timestamp: now };
+      lastFetchRef.current = now;
       let activeTicket = tickets[0];
       
       if (!activeTicket) {
@@ -165,9 +228,6 @@ const LiveSupportChat = () => {
   const handleOpen = () => {
     setIsOpen(true);
     setIsMinimized(false);
-    if (!currentTicket) {
-      initializeChat();
-    }
   };
 
   // Handle closing the chat
@@ -177,6 +237,10 @@ const LiveSupportChat = () => {
     if (currentTicket && socket) {
       leaveChat(currentTicket._id);
     }
+    setCurrentTicket(null);
+    setMessages([]);
+    setUnreadCount(0);
+    setNewMessage('');
   };
 
   // Handle toggle minimize
@@ -432,7 +496,8 @@ const LiveSupportChat = () => {
 
   // Get header title and status
   const headerTitle = 'northcrestbankofusa';
-  const headerStatus = 'Online';
+  const headerSubtitle = 'hi how can we help you?';
+  const headerStatus = isConnected ? 'Online' : 'Connecting...';
   const emptyStateTitle = 'hi how can we help you?';
   const emptyStateSubtitle = 'Send us a message and we\'ll respond shortly.';
 
@@ -562,6 +627,9 @@ const LiveSupportChat = () => {
                       }}
                     />
                     {headerStatus}
+                  </Typography>
+                  <Typography variant="caption" sx={{ opacity: 0.75, display: 'block', lineHeight: 1.2 }}>
+                    {headerSubtitle}
                   </Typography>
                 </Box>
             </Box>

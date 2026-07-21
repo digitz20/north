@@ -22,19 +22,21 @@ import { useInView } from 'react-intersection-observer';
 import NorthCrestLogo from '../components/common/NorthCrestLogo';
 import { useNavigationWithSplash } from '../hooks/useNavigationWithSplash';
 import AIChatBot from '../components/support/AIChatBot';
+import { translations, languages } from '../utils/translations';
 
 gsap.registerPlugin(ScrollTrigger);
 
 const Landing = () => {
   const navigate = useNavigate();
   const { navigateWithSplash, NavigationSplash } = useNavigationWithSplash();
-  const [isPageLoading, setIsPageLoading] = useState(true);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [languageAnchor, setLanguageAnchor] = useState(null);
-  const [searchAnchor, setSearchAnchor] = useState(null);
   const [selectedLanguage, setSelectedLanguage] = useState(() => {
-    return localStorage.getItem('selectedLanguage') || 'EN';
+    return localStorage.getItem('selectedLanguage') || 'en';
   });
+  
+  const t = (key) => {
+    const lang = translations[selectedLanguage] || translations.en;
+    return lang[key] || translations.en[key] || key;
+  };
   const [activeSection, setActiveSection] = useState('home');
   const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [newsletterEmail, setNewsletterEmail] = useState('');
@@ -168,10 +170,10 @@ const Landing = () => {
     });
   }, []);
 
-  const services = [
-    { title: 'Personal Banking', icon: <Person sx={{ fontSize: 48 }} />, description: 'Manage your personal finances with our comprehensive banking solutions designed for everyday life.', image: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=600' },
-    { title: 'Business Banking', icon: <Business sx={{ fontSize: 48 }} />, description: 'Empower your business with tailored financial solutions that drive growth and success.', image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600' },
-    { title: 'Investment Banking', icon: <TrendingUp sx={{ fontSize: 48 }} />, description: 'Grow your wealth with expert investment strategies and personalized financial guidance.', image: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=600' },
+   const services = [
+     { title: t('personal'), icon: <Person sx={{ fontSize: 48 }} />, description: 'Manage your personal finances with our comprehensive banking solutions designed for everyday life.', image: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=600' },
+     { title: t('business'), icon: <Business sx={{ fontSize: 48 }} />, description: 'Empower your business with tailored financial solutions that drive growth and success.', image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600' },
+     { title: t('investments'), icon: <TrendingUp sx={{ fontSize: 48 }} />, description: 'Grow your wealth with expert investment strategies and personalized financial guidance.', image: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=600' },
     { title: 'Insurance Services', icon: <Security sx={{ fontSize: 48 }} />, description: 'Protect what matters most with our comprehensive insurance coverage options.', image: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=600' },
     { title: 'Private Banking', icon: <CreditCard sx={{ fontSize: 48 }} />, description: 'Exclusive banking services for high-net-worth individuals with personalized attention.', image: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600' },
     { title: 'Corporate Banking', icon: <Business sx={{ fontSize: 48 }} />, description: 'Comprehensive financial solutions for large corporations and institutional clients.', image: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=600' }
@@ -307,14 +309,14 @@ const Landing = () => {
                           borderRadius: 2
                         },
                         '&:hover::after': { width: '100%' }
-                      }}
-                      onClick={() => {
-                        setActiveSection(item.toLowerCase());
-                        navigate(routeMap[item]);
-                      }}
-                    >
-                      {item}
-                    </Typography>
+                       }}
+                       onClick={() => {
+                         setActiveSection(item.toLowerCase());
+                         navigate(routeMap[item]);
+                       }}
+                     >
+                       {t(item.toLowerCase())}
+                     </Typography>
                   </motion.div>
                 );
               })}
@@ -347,11 +349,11 @@ const Landing = () => {
                   '&:hover': { borderColor: 'white', background: 'rgba(255,255,255,0.1)' },
                   display: { xs: 'none', sm: 'flex' }
                 }}
-                startIcon={<Login />}
-              >
-                Login
-              </Button>
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                 startIcon={<Login />}
+               >
+                 {t('signIn')}
+               </Button>
+               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Button
                 variant="contained"
                 onClick={() => navigate('/register')}
@@ -413,9 +415,9 @@ const Landing = () => {
         onClose={() => setLanguageAnchor(null)}
         sx={{ mt: 2 }}
       >
-        {['English', 'Español', 'Français', 'Deutsch', '中文'].map((lang) => (
-          <MenuItem key={lang} onClick={() => { setSelectedLanguage(lang.slice(0, 2).toUpperCase()); setLanguageAnchor(null); }}>
-            {lang}
+        {languages.map((lang) => (
+          <MenuItem key={lang.code} onClick={() => { setSelectedLanguage(lang.code); setLanguageAnchor(null); }}>
+            {lang.flag} {lang.name}
           </MenuItem>
         ))}
       </Menu>
@@ -451,16 +453,16 @@ const Landing = () => {
                 'About': '/about-us'
               };
               return (
-                <ListItem
-                  key={item}
-                  onClick={() => { 
-                    setActiveSection(item.toLowerCase()); 
-                    setMobileOpen(false);
-                    navigate(routeMap[item]);
-                  }}
-                  sx={{ borderRadius: 2, mb: 1, '&:hover': { background: 'rgba(255,255,255,0.1)' } }}
-                >
-                  <ListItemText primary={item} />
+                 <ListItem
+                   key={item}
+                   onClick={() => { 
+                     setActiveSection(item.toLowerCase()); 
+                     setMobileOpen(false);
+                     navigate(routeMap[item]);
+                   }}
+                   sx={{ borderRadius: 2, mb: 1, '&:hover': { background: 'rgba(255,255,255,0.1)' } }}
+                 >
+                   <ListItemText primary={t(item.toLowerCase())} />
                   <ChevronRight />
                 </ListItem>
               );
@@ -473,7 +475,7 @@ const Landing = () => {
               onClick={() => { navigate('/login'); setMobileOpen(false); }}
               sx={{ borderColor: 'rgba(255,255,255,0.5)', color: 'white' }}
             >
-              Login
+              {t('signIn')}
             </Button>
             <Button
               fullWidth
@@ -612,18 +614,18 @@ const Landing = () => {
                     Boundaries
                   </span>
                 </Typography>
-                <Typography
-                  variant="h5"
-                  sx={{
-                    color: 'rgba(255,255,255,0.95)',
-                    mb: 6,
-                    maxWidth: 600,
-                    lineHeight: 1.6,
-                    textShadow: '0 1px 4px rgba(0,0,0,0.8)' // Subtle shadow for subtitle readability
-                  }}
-                >
-                  Experience the future of global banking with instant international transfers, market-leading exchange rates, and unparalleled security.
-                </Typography>
+                 <Typography
+                   variant="h5"
+                   sx={{
+                     color: 'rgba(255,255,255,0.95)',
+                     mb: 6,
+                     maxWidth: 600,
+                     lineHeight: 1.6,
+                     textShadow: '0 1px 4px rgba(0,0,0,0.8)' // Subtle shadow for subtitle readability
+                   }}
+                 >
+                   {t('heroSubtitle')}
+                 </Typography>
                 <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                     <Button
@@ -640,11 +642,11 @@ const Landing = () => {
                         fontSize: '1.1rem',
                         boxShadow: '0 8px 40px rgba(0, 102, 255, 0.5)',
                         '&:hover': { boxShadow: '0 12px 60px rgba(0, 102, 255, 0.7)' }
-                      }}
-                      endIcon={<ArrowForward />}
-                    >
-                      Get Started
-                    </Button>
+                       }}
+                       endIcon={<ArrowForward />}
+                     >
+                       {t('getStarted')}
+                     </Button>
                   </motion.div>
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                     <Button
@@ -797,8 +799,8 @@ const Landing = () => {
       <Box sx={{ py: 15, bgcolor: '#F5F7FA' }} className="animate-section">
         <Container maxWidth="xl">
           <Box sx={{ textAlign: 'center', mb: 10 }}>
-            <Chip label="Our Services" sx={{ background: 'rgba(0, 102, 255, 0.1)', color: '#0066FF', mb: 3, fontSize: '0.9rem' }} />
-            <Typography variant="h2" sx={{ fontSize: { xs: '2.5rem', md: '3.5rem' }, fontWeight: 800, color: '#0F172A', mb: 3 }}>Comprehensive Banking Solutions</Typography>
+             <Chip label="Our Services" sx={{ background: 'rgba(0, 102, 255, 0.1)', color: '#0066FF', mb: 3, fontSize: '0.9rem' }} />
+             <Typography variant="h2" sx={{ fontSize: { xs: '2.5rem', md: '3.5rem' }, fontWeight: 800, color: '#0F172A', mb: 3 }}>{t('features')}</Typography>
             <Typography sx={{ color: '#64748B', fontSize: '1.25rem', maxWidth: 600, margin: '0 auto' }}>Everything you need to manage, grow, and protect your wealth in one powerful platform.</Typography>
           </Box>
 
@@ -835,7 +837,7 @@ const Landing = () => {
                       <Typography variant="h5" sx={{ fontWeight: 700, color: '#0F172A', mb: 2 }}>{service.title}</Typography>
                       <Typography sx={{ color: '#64748B', lineHeight: 1.7, mb: 3 }}>{service.description}</Typography>
                       <Button endIcon={<ArrowForward />} sx={{ color: '#0066FF', fontWeight: 600, p: 0, '&:hover': { background: 'transparent' } }}>
-                        Learn More
+                        {t('learnMore')}
                       </Button>
                     </CardContent>
                   </Card>
@@ -903,11 +905,11 @@ const Landing = () => {
         <Container maxWidth="xl">
           <Grid container spacing={4}>
             {[
-              { value: 18, suffix: 'M+', label: 'Happy Customers', icon: <Person /> },
-              { value: 120, suffix: '+', label: 'Countries Served', icon: <Language /> },
+              { value: 18, suffix: 'M+', label: t('stat1'), icon: <Person /> },
+              { value: 120, suffix: '+', label: t('stat3'), icon: <Language /> },
               { value: 420, suffix: 'B+', label: 'Assets Under Management', icon: <Money /> },
-              { value: 99.99, suffix: '%', label: 'Uptime Guaranteed', icon: <Check /> },
-              { value: 8, suffix: 'M+', label: 'Daily Transactions', icon: <TrendingUp /> }
+               { value: 99.99, suffix: '%', label: t('stat4'), icon: <Check /> },
+               { value: 8, suffix: 'M+', label: t('stat2'), icon: <TrendingUp /> }
             ].map((stat, index) => (
               <Grid item xs={12} sm={6} md={2.4} key={index}>
                 <Box sx={{ textAlign: 'center' }}>
@@ -1054,8 +1056,8 @@ const Landing = () => {
                     startIcon={<Apple sx={{ fontSize: 28 }} />}
                   >
                     <Box sx={{ textAlign: 'left' }}>
-                      <Box sx={{ fontSize: '0.75rem', opacity: 0.8 }}>Download on the</Box>
-                      <Box sx={{ fontSize: '1.2rem', fontWeight: 700 }}>App Store</Box>
+                       <Box sx={{ fontSize: '0.75rem', opacity: 0.8 }}>Download on the</Box>
+                       <Box sx={{ fontSize: '1.2rem', fontWeight: 700 }}>{t('appStore')}</Box>
                     </Box>
                   </Button>
                 </motion.div>
@@ -1074,8 +1076,8 @@ const Landing = () => {
                     startIcon={<Google sx={{ fontSize: 28 }} />}
                   >
                     <Box sx={{ textAlign: 'left' }}>
-                      <Box sx={{ fontSize: '0.75rem', opacity: 0.8 }}>Get it on</Box>
-                      <Box sx={{ fontSize: '1.2rem', fontWeight: 700 }}>Google Play</Box>
+                       <Box sx={{ fontSize: '0.75rem', opacity: 0.8 }}>Get it on</Box>
+                       <Box sx={{ fontSize: '1.2rem', fontWeight: 700 }}>{t('googlePlay')}</Box>
                     </Box>
                   </Button>
                 </motion.div>
@@ -1206,7 +1208,7 @@ const Landing = () => {
               <Chip label="Latest News" sx={{ background: 'rgba(0, 102, 255, 0.1)', color: '#0066FF', mb: 3, fontSize: '0.9rem' }} />
               <Typography variant="h2" sx={{ fontSize: { xs: '2.5rem', md: '3.5rem' }, fontWeight: 800, color: '#0F172A' }}>Financial Insights</Typography>
             </Box>
-            <Button endIcon={<ArrowForward />} sx={{ color: '#0066FF', fontWeight: 600, fontSize: '1.1rem' }}>View All News</Button>
+            <Button endIcon={<ArrowForward />} sx={{ color: '#0066FF', fontWeight: 600, fontSize: '1.1rem' }}>{t('viewAll')}</Button>
           </Box>
 
           <Grid container spacing={6}>
@@ -1223,7 +1225,7 @@ const Landing = () => {
                         <Typography sx={{ color: '#64748B', fontSize: '0.85rem' }}>{item.date}</Typography>
                       </Box>
                       <Typography variant="h6" sx={{ color: '#0F172A', fontWeight: 700, lineHeight: 1.5, mb: 2 }}>{item.title}</Typography>
-                      <Button sx={{ color: '#0066FF', p: 0, fontWeight: 600 }}>Read More</Button>
+                      <Button sx={{ color: '#0066FF', p: 0, fontWeight: 600 }}>{t('readMore')}</Button>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -1289,8 +1291,8 @@ const Landing = () => {
         ))}
         <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 2 }}>
           <Box sx={{ textAlign: 'center' }}>
-            <Typography variant="h2" sx={{ fontSize: { xs: '2.5rem', md: '4rem' }, fontWeight: 800, color: 'white', mb: 4 }}>Ready to Transform Your Banking?</Typography>
-            <Typography sx={{ color: 'rgba(255,255,255,0.8)', fontSize: '1.4rem', maxWidth: 700, margin: '0 auto', mb: 8 }}>Join over 18 million customers who trust NorthCrest Bank with their financial future.</Typography>
+            <Typography variant="h2" sx={{ fontSize: { xs: '2.5rem', md: '4rem' }, fontWeight: 800, color: 'white', mb: 4 }}>{t('ctaTitle')}</Typography>
+            <Typography sx={{ color: 'rgba(255,255,255,0.8)', fontSize: '1.4rem', maxWidth: 700, margin: '0 auto', mb: 8 }}>{t('ctaSubtitle')}</Typography>
             <Box sx={{ display: 'flex', gap: 4, justifyContent: 'center', flexWrap: 'wrap' }}>
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Button
@@ -1307,11 +1309,11 @@ const Landing = () => {
                     fontSize: '1.2rem',
                     boxShadow: '0 10px 40px rgba(255,255,255,0.3)',
                     '&:hover': { background: '#f8f9fa', boxShadow: '0 15px 50px rgba(255,255,255,0.4)' }
-                  }}
-                  endIcon={<ArrowForward />}
-                >
-                  Open Free Account
-                </Button>
+                   }}
+                   endIcon={<ArrowForward />}
+                 >
+                   {t('createAccount')}
+                 </Button>
               </motion.div>
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Button
@@ -1326,10 +1328,10 @@ const Landing = () => {
                     borderRadius: 2,
                     fontSize: '1.2rem',
                     '&:hover': { borderColor: 'rgba(255,255,255,0.8)', background: 'rgba(255,255,255,0.1)' }
-                  }}
-                >
-                  Contact Sales
-                </Button>
+                   }}
+                 >
+                   {t('contactUs')}
+                 </Button>
               </motion.div>
             </Box>
           </Box>
@@ -1340,11 +1342,11 @@ const Landing = () => {
       <Box sx={{ bgcolor: '#021024', py: 12, color: 'white' }}>
         <Container maxWidth="xl">
           <Grid container spacing={8}>
-            <Grid item xs={12} md={4}>
-              <NorthCrestLogo color="white" />
-              <Typography sx={{ color: 'rgba(255,255,255,0.6)', mt: 3, lineHeight: 1.8, mb: 4 }}>
-                NorthCrest Bank is redefining modern banking for the digital age. Join millions of customers worldwide who trust us with their financial future.
-              </Typography>
+             <Grid item xs={12} md={4}>
+               <NorthCrestLogo color="white" />
+               <Typography sx={{ color: 'rgba(255,255,255,0.6)', mt: 3, lineHeight: 1.8, mb: 4 }}>
+                 {t('footerDesc')}
+               </Typography>
               <Box sx={{ display: 'flex', gap: 2 }}>
                 {[Twitter, Facebook, Instagram, LinkedIn, YouTube].map((Icon, i) => (
                   <IconButton key={i} sx={{ color: 'rgba(255,255,255,0.6)', '&:hover': { color: 'white', background: 'rgba(255,255,255,0.1)' } }}>
@@ -1406,9 +1408,9 @@ const Landing = () => {
             <Grid item xs={12} md={6}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
                 <Typography sx={{ color: 'rgba(255,255,255,0.6)', mr: 2 }}>Subscribe to our newsletter:</Typography>
-                <TextField
-                  size="small"
-                  placeholder="Enter your email"
+                 <TextField
+                   size="small"
+                   placeholder={t('emailPlaceholder')}
                   value={newsletterEmail}
                   onChange={(e) => setNewsletterEmail(e.target.value)}
                   onKeyPress={(e) => {

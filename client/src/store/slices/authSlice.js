@@ -11,6 +11,20 @@ const initialState = {
   error: null
 };
 
+// Check if session has expired
+const isSessionExpired = () => {
+  const sessionExpiry = localStorage.getItem('sessionExpiry');
+  if (!sessionExpiry) return false;
+  return Date.now() > parseInt(sessionExpiry);
+};
+
+// Clear session data
+const clearSession = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('refreshToken');
+  localStorage.removeItem('sessionExpiry');
+};
+
 // Register user
 export const register = createAsyncThunk(
   'auth/register',
@@ -35,6 +49,7 @@ export const login = createAsyncThunk(
       // Store tokens in localStorage
       localStorage.setItem('token', token);
       localStorage.setItem('refreshToken', refreshToken);
+      localStorage.setItem('sessionExpiry', Date.now() + 24 * 60 * 60 * 1000); // 24 hours
       
       return { token, refreshToken, user };
     } catch (error) {
@@ -49,11 +64,9 @@ export const logout = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       await axios.post('/auth/logout');
-      localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
+      clearSession();
     } catch (error) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
+      clearSession();
       return rejectWithValue(error.response?.data?.message);
     }
   }
@@ -64,11 +77,14 @@ export const getCurrentUser = createAsyncThunk(
   'auth/getMe',
   async (_, { rejectWithValue }) => {
     try {
+      if (isSessionExpired()) {
+        clearSession();
+        return rejectWithValue('Session expired');
+      }
       const response = await axios.get('/auth/me');
       return response.data.data;
     } catch (error) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
+      clearSession();
       return rejectWithValue(error.response?.data?.message);
     }
   }

@@ -39,6 +39,7 @@ import EmailIcon from '@mui/icons-material/Email';
 import TransferWithinAStationIcon from '@mui/icons-material/TransferWithinAStation';
 import MarkEmailUnreadIcon from '@mui/icons-material/MarkEmailUnread';
 import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
+import DeleteIcon from '@mui/icons-material/Delete';
 import api from '../services/api';
 import { useSocket } from '../contexts/SocketContext';
 
@@ -59,6 +60,8 @@ const SupportTickets = () => {
   const [unreadCounts, setUnreadCounts] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
   const [ticketMessages, setTicketMessages] = useState({});
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -220,6 +223,19 @@ const SupportTickets = () => {
       console.error('Error reopening ticket:', error);
     }
   }, [fetchTickets]);
+
+  const handleDeleteTicket = useCallback(async (ticketId) => {
+    setDeleteLoading(true);
+    try {
+      await api.delete(`/admin/support-tickets/${ticketId}`);
+      setTickets(prev => prev.filter(t => t._id !== ticketId));
+      setDeleteConfirmId(null);
+    } catch (error) {
+      console.error('Error deleting ticket:', error);
+    } finally {
+      setDeleteLoading(false);
+    }
+  }, []);
 
   const handleSendMessage = async () => {
     if (!replyMessage.trim() || !selectedTicket) return;
@@ -430,6 +446,15 @@ const SupportTickets = () => {
                               <ChatIcon color={ticket.status === 'active' ? 'primary' : 'disabled'} />
                             </IconButton>
                           )}
+                          <Tooltip title="Delete Ticket">
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => setDeleteConfirmId(ticket._id)}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
                         </Box>
                       }
                     >
@@ -516,6 +541,29 @@ const SupportTickets = () => {
           </Card>
         </Grid>
       </Grid>
+
+      <Dialog
+        open={Boolean(deleteConfirmId)}
+        onClose={() => setDeleteConfirmId(null)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Delete Ticket</DialogTitle>
+        <DialogContent>
+          <Typography>Are you sure you want to delete this ticket? This action cannot be undone.</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteConfirmId(null)} disabled={deleteLoading}>Cancel</Button>
+          <Button
+            onClick={() => deleteConfirmId && handleDeleteTicket(deleteConfirmId)}
+            color="error"
+            variant="contained"
+            disabled={deleteLoading}
+          >
+            {deleteLoading ? 'Deleting...' : 'Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog
         open={openChat}

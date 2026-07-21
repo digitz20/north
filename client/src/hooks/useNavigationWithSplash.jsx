@@ -49,7 +49,7 @@ export const useNavigationWithSplash = () => {
           left: 0,
           width: '100vw',
           height: '100vh',
-          background: 'linear-gradient(135deg, #1a365d 0%, #2c5282 50%, #3182ce 100%)',
+          background: '#ffffff',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

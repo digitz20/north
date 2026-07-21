@@ -132,6 +132,22 @@ exports.createTicket = async (req, res, next) => {
       });
     }
 
+    // Check if user already has an open ticket
+    const existingTicket = await SupportTicket.findOne({
+      user: req.user.id,
+      status: { $nin: ['closed', 'resolved'] }
+    }).session(session);
+
+    if (existingTicket) {
+      await session.commitTransaction();
+      session.endSession();
+      return res.status(200).json({
+        success: true,
+        message: 'Existing ticket found',
+        data: existingTicket
+      });
+    }
+
     // Create ticket data
     const ticketData = {
       user: req.user.id,
@@ -607,6 +623,56 @@ exports.assignTicket = async (req, res, next) => {
       success: true,
       message: 'Ticket assigned successfully',
       data: ticket
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    next(error);
+  }
+};
+
+// @desc    Delete support ticket (admin/support only)
+// @route   DELETE /api/v1/support/admin/tickets/:id
+// @access  Private/Admin
+exports.deleteTicket = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const ticket = await SupportTicket.findById(req.params.id).session(session);
+    if (!ticket) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({
+        success: false,
+        message: 'Support ticket not found'
+      });
+    }
+
+    const isAgent = ['admin', 'super-admin', 'support'].includes(req.user.role);
+    if (!isAgent) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to delete this ticket'
+      });
+    }
+
+    await AuditLog.log({
+      actor: { user: req.user.id, role: req.user.role, ip: req.ip, userAgent: req.get('User-Agent') },
+      action: 'support_ticket_deleted',
+      category: 'support',
+      description: `Agent deleted ticket: ${ticket.ticketId}`,
+      entity: { type: 'other', id: ticket._id, name: ticket.ticketId }
+    });
+
+    await SupportTicket.deleteOne({ _id: ticket._id }).session(session);
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(200).json({
+      success: true,
+      message: 'Support ticket deleted successfully'
     });
   } catch (error) {
     await session.abortTransaction();
