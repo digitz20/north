@@ -20,12 +20,10 @@ export const login = createAsyncThunk(
       const response = await axios.post('/admin/login', credentials);
       const { token, refreshToken, user } = response.data.data;
       
-      // Ensure user has admin privileges
       if (user.role !== 'admin' && user.role !== 'super-admin') {
         return rejectWithValue('Unauthorized: Admin access required');
       }
       
-      // Store tokens in localStorage
       localStorage.setItem('adminToken', token);
       localStorage.setItem('adminRefreshToken', refreshToken);
       
@@ -60,7 +58,6 @@ export const getCurrentAdmin = createAsyncThunk(
       const response = await axios.get('/auth/me');
       const user = response.data.data.user;
       
-      // Verify admin privileges
       if (user.role !== 'admin' && user.role !== 'super-admin') {
         localStorage.removeItem('adminToken');
         localStorage.removeItem('adminRefreshToken');
@@ -82,16 +79,19 @@ const authSlice = createSlice({
   reducers: {
     clearError: (state) => {
       state.error = null;
+    },
+    setRestoring: (state, action) => {
+      state.restoring = action.payload;
     }
   },
   extraReducers: (builder) => {
     builder
-      // Login cases
       .addCase(login.pending, (state) => {
         state.loading = true;
       })
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false;
+        state.restoring = false;
         state.isAuthenticated = true;
         state.token = action.payload.token;
         state.refreshToken = action.payload.refreshToken;
@@ -99,18 +99,16 @@ const authSlice = createSlice({
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
+        state.restoring = false;
         state.error = action.payload;
       })
-      
-      // Logout cases
       .addCase(logout.fulfilled, (state) => {
         state.user = null;
         state.token = null;
         state.refreshToken = null;
         state.isAuthenticated = false;
+        state.restoring = false;
       })
-      
-      // Get current user cases
       .addCase(getCurrentAdmin.pending, (state) => {
         state.loading = true;
         state.restoring = true;
@@ -133,5 +131,5 @@ const authSlice = createSlice({
   }
 });
 
-export const { clearError } = authSlice.actions;
+export const { clearError, setRestoring } = authSlice.actions;
 export default authSlice.reducer;

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import AdminLogin from './pages/Login';
@@ -21,7 +21,7 @@ import AuditLogs from './pages/AuditLogs';
 import { SocketProvider } from './contexts/SocketContext';
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
-import { getCurrentAdmin } from './store/slices/authSlice';
+import { getCurrentAdmin, setRestoring } from './store/slices/authSlice';
 
 function App() {
   const dispatch = useDispatch();
@@ -29,7 +29,6 @@ function App() {
   const user = useSelector((state) => state.auth.user);
   const isAdmin = user?.role === 'admin' || user?.role === 'super-admin';
   const hasRestoredRef = useRef(false);
-  const [fallbackReady, setFallbackReady] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -39,27 +38,15 @@ function App() {
         dispatch(getCurrentAdmin());
       }, 0);
       return () => clearTimeout(timeout);
+    } else if (!token) {
+      const timeout = setTimeout(() => {
+        dispatch(setRestoring(false));
+      }, 0);
+      return () => clearTimeout(timeout);
     }
   }, [dispatch]);
 
-  useEffect(() => {
-    if (restoring) {
-      const fallback = setTimeout(() => {
-        setFallbackReady(true);
-      }, 8000);
-      return () => clearTimeout(fallback);
-    }
-  }, [restoring]);
-
-  if (restoring && !fallbackReady) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (restoring) {
+  if (restoring && !isAuthenticated) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <CircularProgress />
