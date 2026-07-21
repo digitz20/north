@@ -84,7 +84,7 @@ const SupportTickets = () => {
 
   useEffect(() => {
     if (socket) {
-      socket.on('newMessage', (data) => {
+      socket.on('receiveMessage', (data) => {
         updateTicketMessages(data.ticketId, data.message);
 
         if (selectedTicket?._id !== data.ticketId) {
@@ -120,13 +120,13 @@ const SupportTickets = () => {
 
     return () => {
       if (socket) {
-        socket.off('newMessage');
+        socket.off('receiveMessage');
         socket.off('typing');
         socket.off('stopTyping');
         socket.off('ticketUpdated');
       }
     };
-  }, [socket, selectedTicket]);
+  }, [socket, selectedTicket, markMessageAsRead, scrollToBottom]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -158,16 +158,36 @@ const SupportTickets = () => {
   };
 
   const updateTicketMessages = (ticketId, newMessage) => {
-    setTicketMessages(prev => ({
-      ...prev,
-      [ticketId]: [...(prev[ticketId] || []), newMessage]
-    }));
+    setTicketMessages(prev => {
+      const existing = prev[ticketId] || [];
+      if (existing.some(msg => msg._id === newMessage._id)) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [ticketId]: [...existing, newMessage]
+      };
+    });
   };
 
   const handleOpenChat = useCallback(async (ticket) => {
     setSelectedTicket(ticket);
     setOpenChat(true);
     setUnreadCounts(prev => ({ ...prev, [ticket._id]: 0 }));
+    
+    try {
+      const response = await api.get(`/support/tickets/${ticket._id}`);
+      const ticketData = response.data?.data || response.data;
+      if (ticketData && ticketData.messages) {
+        setTicketMessages(prev => ({
+          ...prev,
+          [ticket._id]: ticketData.messages
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching ticket messages:', error);
+    }
+    
     joinChat(ticket._id);
 
     if (ticketMessages[ticket._id]) {
@@ -177,7 +197,7 @@ const SupportTickets = () => {
         }
       });
     }
-    scrollToBottom();
+    setTimeout(scrollToBottom, 100);
   }, [joinChat, markMessageAsRead, scrollToBottom, ticketMessages, user._id]);
 
   const handleCloseChat = useCallback(() => {
@@ -245,38 +265,32 @@ const SupportTickets = () => {
     const messageText = replyMessage.trim();
     setReplyMessage('');
 
-    const messageData = {
-      ticketId: selectedTicket._id,
-      message: messageText,
-      sender: user._id,
-      senderName: user.name,
-      senderRole: 'admin',
-      timestamp: new Date()
-    };
-
     if (isConnected && socket) {
-      sendMessage(messageData);
+      sendMessage({
+        ticketId: selectedTicket._id,
+        message: messageText
+      });
+      emitStopTyping(selectedTicket._id);
+      scrollToBottom();
     } else {
       try {
-        await api.post(`/support/tickets/${selectedTicket._id}/messages`, {
+        const response = await api.post(`/support/tickets/${selectedTicket._id}/messages`, {
           message: messageText,
           sender: user._id,
-          senderName: user.name,
-          senderRole: 'admin'
+          senderName: user?.firstName || user?.name || 'Admin'
         });
+        
+        const savedMessage = response.data?.data || response.data;
+        if (savedMessage) {
+          updateTicketMessages(selectedTicket._id, savedMessage);
+        }
       } catch (error) {
         console.error('Error sending message:', error);
         return;
       }
+      emitStopTyping(selectedTicket._id);
+      scrollToBottom();
     }
-
-    updateTicketMessages(selectedTicket._id, {
-      ...messageData,
-      message: messageText,
-      sender: { _id: user._id, name: user.name, role: 'admin' }
-    });
-    emitStopTyping(selectedTicket._id);
-    scrollToBottom();
   };
 
   const handleTyping = (e) => {
@@ -409,7 +423,8 @@ const SupportTickets = () => {
                 filteredTickets.map((ticket) => (
                   <React.Fragment key={ticket._id}>
                     <ListItem
-                      alignItems="flex-start"
+                      button
+                      onClick={() => handleOpenChat(ticket)}
                       sx={{
                         borderRadius: 1,
                         mx: 2,
@@ -419,7 +434,7 @@ const SupportTickets = () => {
                         transition: 'background-color 0.2s',
                       }}
                       secondaryAction={
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }} onClick={(e) => e.stopPropagation()}>
                           {unreadCounts[ticket._id] > 0 && (
                             <Chip
                               label={unreadCounts[ticket._id]}
@@ -468,7 +483,7 @@ const SupportTickets = () => {
                       <Box sx={{ minWidth: 0, flex: 1 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 0.5, flexWrap: 'wrap' }}>
                           <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                            {ticket.user?.name || 'Unknown User'}
+                            {ticket.user?.firstName} {ticket.user?.lastName || 'Unknown User'}
                           </Typography>
                           {getStatusChip(ticket.status)}
                           {ticket.assignedTo && ticket.assignedTo._id === user._id && (
@@ -597,7 +612,7 @@ const SupportTickets = () => {
             >
               <Box>
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  Chat with {selectedTicket.user?.name}
+                  Chat with {selectedTicket.user?.firstName} {selectedTicket.user?.lastName}
                 </Typography>
                 <Typography variant="body2" sx={{ opacity: 0.9 }}>
                   #{selectedTicket._id} - {selectedTicket.subject}

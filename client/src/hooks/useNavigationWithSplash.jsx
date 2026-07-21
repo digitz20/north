@@ -1,29 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NorthCrestLogo from '../components/common/NorthCrestLogo';
-import { Box, keyframes } from '@mui/material';
+import { Box } from '@mui/material';
 
-// Define the fade in and out animation
-const splashAnimation = keyframes`
-  0% { 
-    opacity: 0; 
-    transform: scale(0.8);
-  }
-  15% { 
-    opacity: 1; 
-    transform: scale(1);
-  }
-  85% { 
-    opacity: 1; 
-    transform: scale(1);
-  }
-  100% { 
-    opacity: 0; 
-    transform: scale(1.1);
-  }
-`;
-
-// Custom hook to handle navigation with logo splash screen
 export const useNavigationWithSplash = () => {
   const navigate = useNavigate();
   const [isNavigating, setIsNavigating] = useState(false);
@@ -34,10 +13,9 @@ export const useNavigationWithSplash = () => {
     setTimeout(() => {
       navigate(path);
       setIsNavigating(false);
-    }, 150);
+    }, 80);
   };
 
-  // Splash screen component to render when navigating
   const NavigationSplash = () => {
     if (!isNavigating) return null;
     
@@ -56,16 +34,12 @@ export const useNavigationWithSplash = () => {
           zIndex: 9999,
         }}
       >
-        <Box
-          sx={{
-            animation: `${splashAnimation} 3s ease-in-out forwards`,
-          }}
-        >
-          <NorthCrestLogo />
-        </Box>
+        <NorthCrestLogo />
       </Box>
     );
   };
 
   return { navigateWithSplash, NavigationSplash };
 };
+
+export default useNavigationWithSplash;
