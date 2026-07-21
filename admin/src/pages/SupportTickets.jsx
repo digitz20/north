@@ -42,6 +42,8 @@ import TransferWithinAStationIcon from '@mui/icons-material/TransferWithinAStati
 import MarkEmailUnreadIcon from '@mui/icons-material/MarkEmailUnread';
 import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
 import DeleteIcon from '@mui/icons-material/Delete';
+import CheckIcon from '@mui/icons-material/Check';
+import DoneAllIcon from '@mui/icons-material/DoneAll';
 import api from '../services/api';
 import { useSocket } from '../contexts/SocketContext';
 
@@ -734,12 +736,31 @@ const SupportTickets = () => {
                 <Box sx={{ flex: 1, overflow: 'auto', p: 3 }}>
                   {(ticketMessages[selectedTicket._id] || []).map((msg, index) => {
                     const isAgent = msg.senderRole === 'admin' || msg.sender?.role === 'admin';
+                    const isOwn = isAgent;
+                    
+                    const getMessageStatus = (message) => {
+                      if (!isOwn) return null;
+                      
+                      const isRead = message.readBy?.some(read => {
+                        const readUserId = read.user?._id || read.user;
+                        return readUserId?.toString?.() === user._id?.toString?.();
+                      });
+                      
+                      if (isRead) {
+                        return <DoneAllIcon fontSize="small" sx={{ fontSize: 14, color: '#4ade80' }} />;
+                      }
+                      if (message.delivered) {
+                        return <DoneAllIcon fontSize="small" sx={{ fontSize: 14, opacity: 0.7 }} />;
+                      }
+                      return <CheckIcon fontSize="small" sx={{ fontSize: 14, opacity: 0.7 }} />;
+                    };
+                    
                     return (
                       <Box
                         key={msg._id || index}
                         sx={{
                           display: 'flex',
-                          justifyContent: isAgent ? 'flex-end' : 'flex-start',
+                          justifyContent: isOwn ? 'flex-end' : 'flex-start',
                           mb: 2
                         }}
                       >
@@ -748,8 +769,8 @@ const SupportTickets = () => {
                             maxWidth: '70%',
                             p: 2,
                             borderRadius: 2,
-                            bgcolor: isAgent ? '#0066ff' : 'white',
-                            color: isAgent ? 'white' : 'text.primary',
+                            bgcolor: isOwn ? '#0066ff' : 'white',
+                            color: isOwn ? 'white' : 'text.primary',
                             boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
                             position: 'relative'
                           }}
@@ -769,9 +790,7 @@ const SupportTickets = () => {
                             >
                               {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </Typography>
-                            {isAgent && msg.read && (
-                              <CheckCircleIcon fontSize="small" sx={{ fontSize: 14, opacity: 0.8 }} />
-                            )}
+                            {getMessageStatus(msg)}
                           </Box>
                         </Box>
                       </Box>

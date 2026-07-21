@@ -503,22 +503,26 @@ const LiveSupportChat = () => {
 
   // Check if message is from current user
   const isOwnMessage = (message) => {
-    return message.sender?._id === user?.id;
+    const senderId = message.sender?._id || message.sender;
+    return senderId?.toString?.() === user?.id?.toString?.();
   };
 
   // Get message status icon
   const getMessageStatus = (message) => {
+    if (!isOwnMessage(message)) return null;
+    
     const isRead = message.readBy?.some(read => {
       const readUserId = read.user?._id || read.user;
-      return readUserId === user?.id;
+      return readUserId?.toString?.() === user?.id?.toString?.();
     });
+    
     if (isRead) {
-      return <DoneAllIcon fontSize="small" color="primary" />;
+      return <DoneAllIcon fontSize="small" sx={{ fontSize: 16, color: '#4ade80' }} />;
     }
     if (message.delivered) {
-      return <CheckIcon fontSize="small" color="action" />;
+      return <DoneAllIcon fontSize="small" sx={{ fontSize: 16, opacity: 0.7 }} />;
     }
-    return null;
+    return <CheckIcon fontSize="small" sx={{ fontSize: 16, opacity: 0.7 }} />;
   };
 
   return (
