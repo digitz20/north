@@ -128,9 +128,9 @@ const SupportTickets = () => {
     };
   }, [socket, selectedTicket, markMessageAsRead, scrollToBottom]);
 
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  }, []);
 
   const fetchTickets = async () => {
     try {
