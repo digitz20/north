@@ -910,11 +910,11 @@ const Investments = () => {
                       error={!!errors.destinationAccount}
                       helperText={errors.destinationAccount}
                     >
-                      {accounts.map((account) => (
-                        <MenuItem key={account.id} value={account.id}>
-                          {account.nickname} - ${account.balance.toLocaleString()}
-                        </MenuItem>
-                      ))}
+                       {accounts.map((account) => (
+                         <MenuItem key={account._id} value={account._id}>
+                           {account.nickname} - ${account.balance.toLocaleString()}
+                         </MenuItem>
+                       ))}
                     </TextField>
                   </Grid>
                   <Grid item xs={12} md={6}>
@@ -1009,11 +1009,11 @@ const Investments = () => {
                       error={!!errors.destinationAccount}
                       helperText={errors.destinationAccount}
                     >
-                      {accounts.map((account) => (
-                        <MenuItem key={account.id} value={account.id}>
-                          {account.nickname} - ${account.balance.toLocaleString()}
-                        </MenuItem>
-                      ))}
+                       {accounts.map((account) => (
+                         <MenuItem key={account._id} value={account._id}>
+                           {account.nickname} - ${account.balance.toLocaleString()}
+                         </MenuItem>
+                       ))}
                     </TextField>
                   </Grid>
                   <Grid item xs={12} md={6}>

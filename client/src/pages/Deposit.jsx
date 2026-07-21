@@ -231,6 +231,16 @@ const Deposit = () => {
   };
 
   const handleConfirmDeposit = async () => {
+    const newErrors = {};
+    if (!cryptoForm.destinationAccount) newErrors.destinationAccount = 'Please select a destination account';
+    if (!cryptoForm.amount || parseFloat(cryptoForm.amount) <= 0) newErrors.amount = 'Valid amount is required';
+    if (!cryptoForm.crypto) newErrors.crypto = 'Please select a cryptocurrency';
+    if (!cryptoForm.transactionHash) newErrors.transactionHash = 'Transaction hash is required';
+    if (!uploadedImage) newErrors.image = 'Please upload a screenshot/proof of your transaction';
+    
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
+
     const depositData = {
       type: 'crypto',
       destinationAccountId: cryptoForm.destinationAccount,
@@ -238,7 +248,7 @@ const Deposit = () => {
         crypto: cryptoForm.crypto,
         transactionHash: cryptoForm.transactionHash,
         network: selectedCrypto.network,
-        proofImage: uploadedImage
+        proofImages: uploadedImage ? [uploadedImage] : []
       },
       amount: parseFloat(cryptoForm.amount),
       email: cryptoForm.email
@@ -273,7 +283,7 @@ const Deposit = () => {
     <Box sx={{ 
       position: 'relative', 
       overflow: 'hidden',
-      background: 'linear-gradient(135deg, #021024 0%, #063970 25%, #0066ff 50%, #00bfff 75%, #0066ff 100%)',
+      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%)',
       minHeight: '100vh',
       p: { xs: 2, md: 0 }
     }}>
@@ -363,11 +373,11 @@ const Deposit = () => {
                       error={!!errors.destinationAccount}
                       helperText={errors.destinationAccount}
                     >
-                      {accounts.map((account) => (
-                        <MenuItem key={account.id} value={account.id}>
-                          {account.nickname} - ${account.balance.toLocaleString()}
-                        </MenuItem>
-                      ))}
+                       {accounts.map((account) => (
+                         <MenuItem key={account._id} value={account._id}>
+                           {account.nickname} - ${account.balance.toLocaleString()}
+                         </MenuItem>
+                       ))}
                     </TextField>
                   </Grid>
                   <Grid item xs={12} md={6}>

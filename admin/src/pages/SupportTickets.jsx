@@ -12,6 +12,7 @@ import {
   Button,
   IconButton,
   Dialog,
+  DialogTitle,
   DialogContent,
   TextField,
   Avatar,

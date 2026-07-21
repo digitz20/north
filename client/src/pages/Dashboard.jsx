@@ -648,7 +648,7 @@ const Dashboard = () => {
                 elevation={0}
                 sx={{
                   p: { xs: 3, sm: 5 },
-                  background: 'linear-gradient(135deg, #021024 0%, #063970 100%)',
+                  background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
                   color: 'white',
                   borderRadius: 4,
                   position: 'relative',

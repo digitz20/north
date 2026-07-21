@@ -7,7 +7,7 @@ import { darkTheme, lightTheme } from '../styles/theme';
 
 const useDarkMode = () => {
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.auth);
+  const { user, isAuthenticated } = useSelector((state) => state.auth);
   
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
@@ -28,7 +28,10 @@ const useDarkMode = () => {
     setDarkMode(prev => !prev);
   };
 
-  const theme = useMemo(() => darkMode ? darkTheme : lightTheme, [darkMode]);
+  const theme = useMemo(() => {
+    if (isAuthenticated) return lightTheme;
+    return darkMode ? darkTheme : lightTheme;
+  }, [darkMode, isAuthenticated]);
 
   return { darkMode, theme, toggleDarkMode };
 };

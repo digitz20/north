@@ -509,11 +509,11 @@ const InternationalTransfer = () => {
                   helperText={errors.destinationAccount}
                   sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                 >
-                  {accounts?.map((account) => (
-                    <MenuItem key={account.id} value={account.id}>
-                      {account.nickname} - ${account.balance.toLocaleString()}
-                    </MenuItem>
-                  ))}
+                   {accounts?.map((account) => (
+                     <MenuItem key={account._id} value={account._id}>
+                       {account.nickname} - ${account.balance.toLocaleString()}
+                     </MenuItem>
+                   ))}
                 </TextField>
               </Grid>
               <Grid item xs={12} md={6}>
@@ -1010,7 +1010,7 @@ const InternationalTransfer = () => {
     <Box sx={{ 
       position: 'relative', 
       overflow: 'hidden',
-      background: 'linear-gradient(135deg, #021024 0%, #063970 25%, #0066ff 50%, #00bfff 75%, #0066ff 100%)',
+      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%)',
       minHeight: '100vh',
       p: { xs: 2, md: 0 }
     }}>
