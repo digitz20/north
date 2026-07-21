@@ -258,10 +258,28 @@ const Investments = () => {
   const validateInvestmentForm = () => {
     const newErrors = {};
     if (!investmentForm.destinationAccount) newErrors.destinationAccount = 'Please select a destination account';
-    if (!investmentForm.walletAddress) newErrors.walletAddress = 'Please select a payment wallet';
     if (!investmentForm.amount || parseFloat(investmentForm.amount) <= 0) newErrors.amount = 'Please enter a valid amount';
     
     // Validate amount against selected plan's minimum
+    const currentPlan = investmentPlans[investmentForm.investmentCategory]?.find(p => p.id === investmentForm.selectedPlan);
+    if (currentPlan && parseFloat(investmentForm.amount) < currentPlan.minAmount) {
+      newErrors.amount = `Minimum investment for this plan is $${currentPlan.minAmount.toLocaleString()}`;
+    }
+
+    if (investmentForm.investmentCategory === 'crypto' && !investmentForm.transactionHash) {
+      newErrors.transactionHash = 'Please enter your transaction hash or source wallet address';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Validate final submission with proofs
+  const validateFinalSubmission = () => {
+    const newErrors = {};
+    if (!investmentForm.destinationAccount) newErrors.destinationAccount = 'Please select a destination account';
+    if (!investmentForm.amount || parseFloat(investmentForm.amount) <= 0) newErrors.amount = 'Please enter a valid amount';
+    
     const currentPlan = investmentPlans[investmentForm.investmentCategory]?.find(p => p.id === investmentForm.selectedPlan);
     if (currentPlan && parseFloat(investmentForm.amount) < currentPlan.minAmount) {
       newErrors.amount = `Minimum investment for this plan is $${currentPlan.minAmount.toLocaleString()}`;
@@ -278,23 +296,12 @@ const Investments = () => {
     const isValid = validateInvestmentForm();
     if (isValid) {
       if (activeStep === 0) {
-        // From plan selection (step 0) to payment method (step 1) - this is what "Continue to Payment Review" button should do
         setActiveStep(1);
-        // Smooth scroll to the new content
         setTimeout(() => {
           window.scrollTo({
             top: document.querySelector('[role="dialog"]')?.offsetTop || 0,
             behavior: 'smooth'
           });
-        }, 100);
-      } else if (activeStep === 1) {
-        // From payment method (step 1) to confirmation, which will show the confirm & submit button
-        // The UI already has the confirmation section rendered when activeStep === 1, so we just ensure it's visible
-        setTimeout(() => {
-          const confirmSection = document.querySelector('.MuiDialogActions-root');
-          if (confirmSection) {
-            confirmSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
         }, 100);
       }
     }
@@ -312,7 +319,7 @@ const Investments = () => {
     console.log('=== Confirm & Submit Button Clicked ===');
     console.log('Current Form State:', investmentForm);
     
-    const isValid = validateInvestmentForm();
+    const isValid = validateFinalSubmission();
     if (!isValid) {
       console.log('Form validation FAILED:', errors);
       return;
@@ -350,14 +357,27 @@ const Investments = () => {
       setShowSuccessPopup(true);
       
       setTimeout(() => {
-        setShowSuccessPopup(false);
         handleCloseDialog();
-        dispatch(getUserInvestments());
-      }, 4000);
-      
+        setShowSuccessPopup(false);
+        setActiveStep(0);
+        setInvestmentForm({
+          investmentCategory: 'crypto',
+          selectedPlan: investmentPlans.crypto[0]?.id || '',
+          amount: '',
+          destinationAccount: accounts[0]?.id || '',
+          crypto: 'btc',
+          transactionHash: '',
+          walletAddress: '',
+          savedWalletAddress: '',
+          email: user?.email || ''
+        });
+        setUploadedImages([]);
+        setImagePreviews([]);
+        setErrors({});
+      }, 3000);
     } catch (error) {
-      console.error('Investment submission failed:', error);
-      setErrors({ submit: error.message || 'Investment submission failed. Please try again.' });
+      console.error('Investment submission error:', error);
+      setErrors({ submit: error.message || 'Failed to submit investment. Please try again.' });
     }
   };
 

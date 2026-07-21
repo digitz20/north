@@ -62,6 +62,11 @@ const LiveSupportChat = () => {
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const fileInputRef = useRef(null);
+  const isInitializingRef = useRef(false);
+  const prevIsConnectedRef = useRef(false);
+  const currentTicketIdRef = useRef(null);
+  const initializedTicketIdsRef = useRef(new Set());
+  const currentTicketRef = useRef(null);
 
   // Scroll to bottom of messages
   const scrollToBottom = useCallback(() => {
@@ -72,13 +77,34 @@ const LiveSupportChat = () => {
     scrollToBottom();
   }, [messages, agentTyping, scrollToBottom]);
 
-  // Re-initialize chat when socket reconnects and chat is open
+  // Keep ref in sync with state
   useEffect(() => {
-    if (!isOpen || !currentTicket || !isConnected) return;
+    currentTicketRef.current = currentTicket;
+  }, [currentTicket]);
+
+  // Re-initialize chat only when socket transitions from disconnected to connected
+  useEffect(() => {
+    if (!isOpen || !currentTicket) return;
+    if (currentTicket._id === currentTicketIdRef.current) return;
+    if (initializedTicketIdsRef.current.has(currentTicket._id)) return;
     
-    const timer = setTimeout(() => {
-      initializeChat();
-    }, 1000);
+    currentTicketIdRef.current = currentTicket._id;
+    
+    if (!isConnected) return;
+    
+    const justConnected = isConnected && !prevIsConnectedRef.current;
+    if (!justConnected) return;
+    
+    prevIsConnectedRef.current = isConnected;
+    
+    if (isInitializingRef.current) return;
+    isInitializingRef.current = true;
+    
+    const timer = setTimeout(async () => {
+      await initializeChat();
+      initializedTicketIdsRef.current.add(currentTicket._id);
+      isInitializingRef.current = false;
+    }, 500);
     
     return () => clearTimeout(timer);
   }, [isConnected, isOpen, currentTicket]);
@@ -106,8 +132,13 @@ const LiveSupportChat = () => {
       }
 
       if (activeTicket) {
-        setCurrentTicket(activeTicket);
-        setMessages(activeTicket.messages || []);
+        const ticketIdChanged = currentTicket?._id !== activeTicket._id;
+        const messagesChanged = JSON.stringify(activeTicket.messages || []) !== JSON.stringify(currentTicket?.messages || []);
+        
+        if (ticketIdChanged || messagesChanged) {
+          setCurrentTicket(activeTicket);
+          setMessages(activeTicket.messages || []);
+        }
         
         if (socket && isConnected) {
           joinChat(activeTicket._id);
@@ -346,8 +377,8 @@ const LiveSupportChat = () => {
         setUnreadCount(prev => prev + 1);
       }
       
-      if (['admin', 'super-admin', 'support'].includes(message.sender?.role) && currentTicket) {
-        markMessageAsRead(currentTicket._id, message._id);
+      if (['admin', 'super-admin', 'support'].includes(message.sender?.role) && currentTicketRef.current) {
+        markMessageAsRead(currentTicketRef.current._id, message._id);
       }
     };
 
@@ -392,7 +423,7 @@ const LiveSupportChat = () => {
       socket.off('messageDelivered', handleMessageDelivered);
       socket.off('messageRead', handleMessageRead);
     };
-  }, [socket, isOpen, currentTicket, markMessageAsRead]);
+  }, [socket, isOpen, markMessageAsRead]);
 
   // Format timestamp
   const formatTime = (date) => {
