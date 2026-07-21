@@ -33,6 +33,9 @@ const Landing = () => {
     return localStorage.getItem('selectedLanguage') || 'en';
   });
   const [isPageLoading, setIsPageLoading] = useState(true);
+  const [languageAnchor, setLanguageAnchor] = useState(null);
+  const [searchAnchor, setSearchAnchor] = useState(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
   
   const t = (key) => {
     const lang = translations[selectedLanguage] || translations.en;
