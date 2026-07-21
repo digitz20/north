@@ -22,8 +22,8 @@ import {
   DoneAll as DoneAllIcon
 } from '@mui/icons-material';
 import { useSelector } from 'react-redux';
-import axios from 'axios';
 import { useSocket } from '../../contexts/SocketContext';
+import api from '../../services/api';
 
 const LiveSupportChat = () => {
   const theme = useTheme();
@@ -69,7 +69,7 @@ const LiveSupportChat = () => {
     try {
       const headers = { Authorization: `Bearer ${token}` };
       
-      const ticketsResponse = await axios.get('/api/v1/support/tickets?status=open,in-progress,awaiting-user', { headers });
+      const ticketsResponse = await api.get('/support/tickets?status=open,in-progress,awaiting-user');
       
       const tickets = ticketsResponse.data?.data?.tickets || ticketsResponse.data?.tickets || [];
       let activeTicket = tickets[0];
@@ -142,13 +142,11 @@ const LiveSupportChat = () => {
 
     if (!currentTicket) {
       try {
-        const createResponse = await axios.post('/api/v1/support/tickets', {
+        const createResponse = await api.post('/support/tickets', {
           subject: 'Live Chat Inquiry',
           description: 'Customer started a live chat session',
           category: 'technical',
           priority: 'medium'
-        }, {
-          headers: { Authorization: `Bearer ${token}` }
         });
         
         const newTicket = createResponse.data?.data || createResponse.data;
@@ -187,10 +185,8 @@ const LiveSupportChat = () => {
       });
     } else {
       try {
-        const response = await axios.post(`/api/v1/support/tickets/${ticketId}/messages`, {
+        const response = await api.post(`/support/tickets/${ticketId}/messages`, {
           message: messageText
-        }, {
-          headers: { Authorization: `Bearer ${token}` }
         });
         
         const savedMessage = response.data?.data;

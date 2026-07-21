@@ -72,7 +72,16 @@ const Users = () => {
     role: 'user',
     isVerified: true,
     isActive: true,
-    isFrozen: false
+    isFrozen: false,
+    dateOfBirth: '',
+    address: {
+      street: '',
+      city: '',
+      state: '',
+      zipCode: '',
+      country: 'USA'
+    },
+    twoFactorEnabled: false
   });
   const [editBalanceId, setEditBalanceId] = useState(null);
   const [editBalanceValue, setEditBalanceValue] = useState('');
@@ -143,7 +152,16 @@ const Users = () => {
       role: 'user',
       isVerified: true,
       isActive: true,
-      isFrozen: false
+      isFrozen: false,
+      dateOfBirth: '',
+      address: {
+        street: '',
+        city: '',
+        state: '',
+        zipCode: '',
+        country: 'USA'
+      },
+      twoFactorEnabled: false
     });
     setOpenDialog(true);
   };
@@ -158,7 +176,16 @@ const Users = () => {
       role: user.role || 'user',
       isVerified: user.isVerified || false,
       isActive: user.isActive !== false,
-      isFrozen: user.isFrozen || false
+      isFrozen: user.isFrozen || false,
+      dateOfBirth: user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '',
+      address: {
+        street: user.address?.street || '',
+        city: user.address?.city || '',
+        state: user.address?.state || '',
+        zipCode: user.address?.zipCode || '',
+        country: user.address?.country || 'USA'
+      },
+      twoFactorEnabled: user.twoFactorEnabled || false
     });
     setOpenDialog(true);
   };
@@ -1270,6 +1297,70 @@ const Users = () => {
                 />
               </Grid>
               <Grid item xs={12}>
+                <TextField
+                  label="Date of Birth"
+                  type="date"
+                  fullWidth
+                  value={formData.dateOfBirth}
+                  onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                  InputLabelProps={{ shrink: true }}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  label="Street Address"
+                  fullWidth
+                  value={formData.address.street}
+                  onChange={(e) => setFormData({ ...formData, address: { ...formData.address, street: e.target.value } })}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  label="City"
+                  fullWidth
+                  value={formData.address.city}
+                  onChange={(e) => setFormData({ ...formData, address: { ...formData.address, city: e.target.value } })}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                />
+              </Grid>
+              <Grid item xs={3}>
+                <TextField
+                  label="State"
+                  fullWidth
+                  value={formData.address.state}
+                  onChange={(e) => setFormData({ ...formData, address: { ...formData.address, state: e.target.value } })}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                />
+              </Grid>
+              <Grid item xs={3}>
+                <TextField
+                  label="Zip Code"
+                  fullWidth
+                  value={formData.address.zipCode}
+                  onChange={(e) => setFormData({ ...formData, address: { ...formData.address, zipCode: e.target.value } })}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <FormControl fullWidth>
+                  <InputLabel>Country</InputLabel>
+                  <Select
+                    value={formData.address.country}
+                    label="Country"
+                    onChange={(e) => setFormData({ ...formData, address: { ...formData.address, country: e.target.value } })}
+                  >
+                    <MenuItem value="USA">United States</MenuItem>
+                    <MenuItem value="Canada">Canada</MenuItem>
+                    <MenuItem value="UK">United Kingdom</MenuItem>
+                    <MenuItem value="Germany">Germany</MenuItem>
+                    <MenuItem value="France">France</MenuItem>
+                    <MenuItem value="Other">Other</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12}>
                 <FormControl fullWidth>
                   <InputLabel>Role</InputLabel>
                   <Select
@@ -1314,6 +1405,17 @@ const Users = () => {
                     />
                   }
                   label="Frozen"
+                />
+              </Grid>
+              <Grid item xs={4}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={formData.twoFactorEnabled}
+                      onChange={(e) => setFormData({ ...formData, twoFactorEnabled: e.target.checked })}
+                    />
+                  }
+                  label="2FA Enabled"
                 />
               </Grid>
             </Grid>

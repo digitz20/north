@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getUserAccounts, getWallet } from '../store/slices/accountSlice';
 import { getTransactions } from '../store/slices/transactionSlice';
@@ -72,30 +72,72 @@ const Dashboard = () => {
   // Get recent transactions (max 5)
   const recentTransactions = transactions.slice(0, 5);
   
-  // Calculate real monthly income and expenses from transactions
+  // Memoize expensive transaction calculations
   const currentDate = new Date();
   const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
   
-  // Calculate monthly income (all credits this month)
-  const monthlyIncome = transactions
-    .filter(tx => new Date(tx.createdAt) >= firstDayOfMonth && tx.direction === 'credit')
-    .reduce((sum, tx) => sum + tx.amount, 0);
+  const monthlyIncome = useMemo(() => 
+    transactions
+      .filter(tx => new Date(tx.createdAt) >= firstDayOfMonth && tx.direction === 'credit')
+      .reduce((sum, tx) => sum + tx.amount, 0),
+    [transactions, firstDayOfMonth]
+  );
   
-  // Calculate monthly expenses (all debits this month)
-  const monthlyExpenses = transactions
-    .filter(tx => new Date(tx.createdAt) >= firstDayOfMonth && tx.direction === 'debit')
-    .reduce((sum, tx) => sum + tx.amount, 0);
-
-  // Calculate spending by category for this month
-  const categorySpending = {};
-  transactions
-    .filter(tx => new Date(tx.createdAt) >= firstDayOfMonth && tx.direction === 'debit')
-    .forEach(tx => {
-      if (!categorySpending[tx.category]) {
-        categorySpending[tx.category] = 0;
-      }
-      categorySpending[tx.category] += tx.amount;
+  const monthlyExpenses = useMemo(() => 
+    transactions
+      .filter(tx => new Date(tx.createdAt) >= firstDayOfMonth && tx.direction === 'debit')
+      .reduce((sum, tx) => sum + tx.amount, 0),
+    [transactions, firstDayOfMonth]
+  );
+  
+  const categorySpending = useMemo(() => {
+    const spending = {};
+    transactions
+      .filter(tx => new Date(tx.createdAt) >= firstDayOfMonth && tx.direction === 'debit')
+      .forEach(tx => {
+        if (!spending[tx.category]) {
+          spending[tx.category] = 0;
+        }
+        spending[tx.category] += tx.amount;
+      });
+    return spending;
+  }, [transactions, firstDayOfMonth]);
+  
+  // Memoize processed recent transactions
+  const processedRecentTransactions = useMemo(() => {
+    const iconMap = {
+      shopping: <ShoppingCart />,
+      food: <Restaurant />,
+      housing: <Home />,
+      transportation: <Flight />,
+      healthcare: <LocalHospital />,
+      entertainment: <PlayCircle />,
+      deposit: <AttachMoney />,
+      transfer: <SwapHoriz />,
+      other: <MoreHoriz />
+    };
+    
+    return recentTransactions.map((tx) => {
+      const amount = tx.direction === 'debit' ? -tx.amount : tx.amount;
+      const date = new Date(tx.createdAt);
+      const now = new Date();
+      const diffMs = now - date;
+      const diffMins = Math.round(diffMs / 60000);
+      const diffHours = Math.round(diffMs / 3600000);
+      const diffDays = Math.round(diffMs / 86400000);
+      let time = '';
+      if (diffMins < 60) time = `${diffMins} min ago`;
+      else if (diffHours < 24) time = `${diffHours} hours ago`;
+      else time = `${diffDays} days ago`;
+      
+      return {
+        ...tx,
+        amount,
+        time,
+        icon: iconMap[tx.category] || <MoreHoriz />
+      };
     });
+  }, [recentTransactions]);
   
   // Format spending by category for pie chart
   const categoryColors = {
@@ -677,33 +719,8 @@ const Dashboard = () => {
                   </Button>
                 </Box>
                 <List>
-                  {recentTransactions.map((tx, index) => {
-                    // Calculate values inline to avoid variable hoisting issues
-                    const amount = tx.direction === 'debit' ? -tx.amount : tx.amount;
-                    const date = new Date(tx.createdAt);
-                    const now = new Date();
-                    const diffMs = now - date;
-                    const diffMins = Math.round(diffMs / 60000);
-                    const diffHours = Math.round(diffMs / 3600000);
-                    const diffDays = Math.round(diffMs / 86400000);
-                    let time = '';
-                    if (diffMins < 60) time = `${diffMins} min ago`;
-                    else if (diffHours < 24) time = `${diffHours} hours ago`;
-                    else time = `${diffDays} days ago`;
-                    
-                    // Get transaction icon
-                    const iconMap = {
-                      shopping: <ShoppingCart />,
-                      food: <Restaurant />,
-                      housing: <Home />,
-                      transportation: <Flight />,
-                      healthcare: <LocalHospital />,
-                      entertainment: <PlayCircle />,
-                      deposit: <AttachMoney />,
-                      transfer: <SwapHoriz />,
-                      other: <MoreHoriz />
-                    };
-                    const icon = iconMap[tx.category] || <MoreHoriz />;
+                  {processedRecentTransactions.map((tx, index) => {
+                    const icon = tx.icon;
                     
                     return (
                       <motion.div
@@ -716,7 +733,7 @@ const Dashboard = () => {
                           sx={{
                             px: 0,
                             py: 2,
-                            borderBottom: index < recentTransactions.length - 1 ? '1px solid rgba(0,0,0,0.05)' : 'none'
+                            borderBottom: index < processedRecentTransactions.length - 1 ? '1px solid rgba(0,0,0,0.05)' : 'none'
                           }}
                         >
                           <ListItemAvatar>
