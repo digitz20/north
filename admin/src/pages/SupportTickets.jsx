@@ -65,6 +65,23 @@ const SupportTickets = () => {
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, []);
+
+  const updateTicketMessages = useCallback((ticketId, newMessage) => {
+    setTicketMessages(prev => {
+      const existing = prev[ticketId] || [];
+      if (existing.some(msg => msg._id === newMessage._id)) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [ticketId]: [...existing, newMessage]
+      };
+    });
+  }, []);
+
   useEffect(() => {
     setLoading(true);
     fetchTickets();
@@ -83,59 +100,57 @@ const SupportTickets = () => {
   }, [socket, user]);
 
   useEffect(() => {
-    if (socket) {
-      socket.on('receiveMessage', (data) => {
-        updateTicketMessages(data.ticketId, data.message);
+    if (!socket) return;
 
-        if (selectedTicket?._id !== data.ticketId) {
-          setUnreadCounts(prev => ({
-            ...prev,
-            [data.ticketId]: (prev[data.ticketId] || 0) + 1
-          }));
-        } else {
-          markMessageAsRead(data.ticketId, data.message._id);
-        }
+    const handleReceiveMessage = (data) => {
+      updateTicketMessages(data.ticketId, data.message);
 
-        if (selectedTicket?._id === data.ticketId) {
-          scrollToBottom();
-        }
-      });
+      if (selectedTicket?._id !== data.ticketId) {
+        setUnreadCounts(prev => ({
+          ...prev,
+          [data.ticketId]: (prev[data.ticketId] || 0) + 1
+        }));
+      } else {
+        markMessageAsRead(data.ticketId, data.message._id);
+      }
 
-      socket.on('typing', (data) => {
-        if (data.ticketId === selectedTicket?._id) {
-          setTypingUser(data.userId);
-        }
-      });
-
-      socket.on('stopTyping', (data) => {
-        if (data.ticketId === selectedTicket?._id) {
-          setTypingUser(null);
-        }
-      });
-
-      socket.on('ticketUpdated', (updatedTicket) => {
-        setTickets(prev => prev.map(t => t._id === updatedTicket._id ? updatedTicket : t));
-      });
-    }
-
-    return () => {
-      if (socket) {
-        socket.off('receiveMessage');
-        socket.off('typing');
-        socket.off('stopTyping');
-        socket.off('ticketUpdated');
+      if (selectedTicket?._id === data.ticketId) {
+        scrollToBottom();
       }
     };
-  }, [socket, selectedTicket, markMessageAsRead, scrollToBottom]);
 
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, []);
+    const handleTyping = (data) => {
+      if (data.ticketId === selectedTicket?._id) {
+        setTypingUser(data.userId);
+      }
+    };
+
+    const handleStopTyping = (data) => {
+      if (data.ticketId === selectedTicket?._id) {
+        setTypingUser(null);
+      }
+    };
+
+    const handleTicketUpdated = (updatedTicket) => {
+      setTickets(prev => prev.map(t => t._id === updatedTicket._id ? updatedTicket : t));
+    };
+
+    socket.on('receiveMessage', handleReceiveMessage);
+    socket.on('typing', handleTyping);
+    socket.on('stopTyping', handleStopTyping);
+    socket.on('ticketUpdated', handleTicketUpdated);
+
+    return () => {
+      socket.off('receiveMessage', handleReceiveMessage);
+      socket.off('typing', handleTyping);
+      socket.off('stopTyping', handleStopTyping);
+      socket.off('ticketUpdated', handleTicketUpdated);
+    };
+  }, [socket, selectedTicket, updateTicketMessages, markMessageAsRead, scrollToBottom]);
 
   const fetchTickets = async () => {
     try {
       const response = await api.get('/support/admin/tickets');
-      // Correctly extract tickets array - server returns { data: { tickets: [...], pagination: ... } }
       const ticketsData = response.data?.data?.tickets || response.data?.tickets || [];
       setTickets(Array.isArray(ticketsData) ? ticketsData : []);
 
@@ -155,19 +170,6 @@ const SupportTickets = () => {
       setTickets([]);
       setLoading(false);
     }
-  };
-
-  const updateTicketMessages = (ticketId, newMessage) => {
-    setTicketMessages(prev => {
-      const existing = prev[ticketId] || [];
-      if (existing.some(msg => msg._id === newMessage._id)) {
-        return prev;
-      }
-      return {
-        ...prev,
-        [ticketId]: [...existing, newMessage]
-      };
-    });
   };
 
   const handleOpenChat = useCallback(async (ticket) => {
@@ -321,7 +323,8 @@ const SupportTickets = () => {
       if (searchTerm) {
         const searchLower = searchTerm.toLowerCase();
         return (
-          ticket.user?.name?.toLowerCase().includes(searchLower) ||
+          (ticket.user?.firstName?.toLowerCase().includes(searchLower) || false) ||
+          (ticket.user?.lastName?.toLowerCase().includes(searchLower) || false) ||
           ticket._id.toLowerCase().includes(searchLower) ||
           ticket.subject?.toLowerCase().includes(searchLower)
         );
@@ -662,9 +665,11 @@ const SupportTickets = () => {
                       mb: 1
                     }}
                   >
-                    {selectedTicket.user?.name?.charAt(0) || 'U'}
+                    {selectedTicket.user?.firstName?.charAt(0) || selectedTicket.user?.name?.charAt(0) || 'U'}
                   </Avatar>
-                  <Typography variant="h6">{selectedTicket.user?.name}</Typography>
+                  <Typography variant="h6">
+                    {selectedTicket.user?.firstName} {selectedTicket.user?.lastName || ''}
+                  </Typography>
                   <Chip
                     label="Verified"
                     size="small"
@@ -731,7 +736,7 @@ const SupportTickets = () => {
                     const isAgent = msg.senderRole === 'admin' || msg.sender?.role === 'admin';
                     return (
                       <Box
-                        key={index}
+                        key={msg._id || index}
                         sx={{
                           display: 'flex',
                           justifyContent: isAgent ? 'flex-end' : 'flex-start',
