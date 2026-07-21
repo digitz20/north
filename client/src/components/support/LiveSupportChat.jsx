@@ -455,56 +455,23 @@ const LiveSupportChat = () => {
   // Socket event listeners
   useEffect(() => {
     if (!socket || !isOpen) return;
-    
     const markMessageAsReadRef = markMessageAsRead;
-    const currentTicketRef = currentTicket;
 
     const handleReceiveMessage = (data) => {
       const { message } = data;
       if (!message) return;
 
       setMessages(prev => {
-        if (prev.some(msg => msg._id === message._id)) {
-          return prev;
-        }
-
-        const tempIndex = prev.findIndex(msg => 
-          msg._id.startsWith('temp-') &&
-          msg.sender?._id === message.sender?._id &&
-          msg.message === message.message &&
-          Math.abs(new Date(msg.createdAt) - new Date(message.createdAt || msg.createdAt)) < 5000
-        );
-
-        if (tempIndex !== -1) {
-          const updated = [...prev];
-          updated[tempIndex] = message;
-          saveMessagesToStorage(currentTicketRef._id, updated);
-          return updated;
-        }
-
-        const updated = [...prev, message];
-        saveMessagesToStorage(currentTicketRef._id, updated);
-        return updated;
+        if (prev.some(msg => msg._id === message._id)) return prev;
+        return [...prev, message];
       });
-      
+
       if (!isOpen || document.hidden) {
         setUnreadCount(prev => prev + 1);
       }
-      
-      if (['admin', 'super-admin', 'support'].includes(message.sender?.role) && currentTicketRef) {
-        markMessageAsReadRef(currentTicketRef._id, message._id);
-      }
-      
-      if (currentTicketRef) {
-        const key = `chat_${currentTicketRef._id}`;
-        try {
-          const existing = JSON.parse(localStorage.getItem(key) || '[]');
-          const filtered = existing.filter(msg => msg._id !== message._id);
-          const updated = [...filtered, message].slice(-100);
-          localStorage.setItem(key, JSON.stringify(updated));
-        } catch (e) {
-          console.error('Error saving message to localStorage:', e);
-        }
+
+      if (['admin', 'super-admin', 'support'].includes(message.sender?.role) && currentTicket?._id) {
+        markMessageAsReadRef(currentTicket._id, message._id);
       }
     };
 
@@ -520,21 +487,12 @@ const LiveSupportChat = () => {
 
     const handleMessageDelivered = (data) => {
       if (!data?.messageId) return;
-      setMessages(prev => prev.map(msg => 
-        msg._id === data.messageId 
-          ? { ...msg, delivered: true, deliveredAt: data.deliveredAt }
-          : msg
-      ));
+      setMessages(prev => prev.map(msg => msg._id === data.messageId ? { ...msg, delivered: true, deliveredAt: data.deliveredAt } : msg));
     };
 
     const handleMessageRead = (data) => {
       if (!data?.messageId) return;
-      const readerId = data.readBy?.user || data.readBy;
-      setMessages(prev => prev.map(msg =>
-        msg._id === data.messageId
-          ? { ...msg, read: true, readAt: data.readBy?.readAt, readBy: [...(msg.readBy || []), { user: readerId, readAt: data.readBy?.readAt }] }
-          : msg
-      ));
+      setMessages(prev => prev.map(msg => msg._id === data.messageId ? { ...msg, read: true, readAt: data.readBy?.readAt } : msg));
     };
 
     socket.on('receiveMessage', handleReceiveMessage);
@@ -550,7 +508,7 @@ const LiveSupportChat = () => {
       socket.off('messageDelivered', handleMessageDelivered);
       socket.off('messageRead', handleMessageRead);
     };
-  }, [socket, isOpen, markMessageAsRead]);
+  }, [socket, isOpen, markMessageAsRead, currentTicket]);
 
   // Format timestamp
   const formatTime = (date) => {

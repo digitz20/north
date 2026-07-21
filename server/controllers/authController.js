@@ -429,7 +429,7 @@ exports.login = async (req, res, next) => {
           netSavings: user.netSavings || 0
         }
       }
-    }););
+    });
 
   } catch (error) {
     next(error);
