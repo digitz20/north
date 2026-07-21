@@ -151,7 +151,8 @@ supportTicketSchema.methods.addMessage = async function(senderId, message, isInt
     sender: senderId,
     message,
     isInternal,
-    attachments
+    attachments,
+    timestamp: new Date()
   });
   
   // If this is the first agent response, set firstResponseAt

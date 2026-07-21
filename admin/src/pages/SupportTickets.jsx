@@ -42,10 +42,14 @@ import TransferWithinAStationIcon from '@mui/icons-material/TransferWithinAStati
 import MarkEmailUnreadIcon from '@mui/icons-material/MarkEmailUnread';
 import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
 import DeleteIcon from '@mui/icons-material/Delete';
-import CheckIcon from '@mui/icons-material/Check';
-import DoneAllIcon from '@mui/icons-material/DoneAll';
-import api from '../services/api';
-import { useSocket } from '../contexts/SocketContext';
+  import DoneAllIcon from '@mui/icons-material/DoneAll';
+  import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+  import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
+  import CreditCardIcon from '@mui/icons-material/CreditCard';
+  import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+  import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+  import api from '../services/api';
+  import { useSocket } from '../contexts/SocketContext';
 
 const SupportTickets = () => {
   const location = useLocation();
@@ -66,9 +70,34 @@ const SupportTickets = () => {
   const [ticketMessages, setTicketMessages] = useState({});
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [userDetails, setUserDetails] = useState(null);
+  const [loadingUserDetails, setLoadingUserDetails] = useState(false);
+
+  const selectedTicketRef = useRef(null);
+  const updateTicketMessagesRef = useRef(null);
+  const markMessageAsReadRef = useRef(null);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, []);
+
+  const saveMessagesToStorage = useCallback((ticketId, messages) => {
+    try {
+      const allMessages = JSON.parse(localStorage.getItem('admin_chat_messages') || '{}');
+      allMessages[ticketId] = messages.slice(-100);
+      localStorage.setItem('admin_chat_messages', JSON.stringify(allMessages));
+    } catch (e) {
+      console.error('Error saving messages to localStorage:', e);
+    }
+  }, []);
+
+  const loadMessagesFromStorage = useCallback((ticketId) => {
+    try {
+      const allMessages = JSON.parse(localStorage.getItem('admin_chat_messages') || '{}');
+      return allMessages[ticketId] || [];
+    } catch (e) {
+      return [];
+    }
   }, []);
 
   const updateTicketMessages = useCallback((ticketId, newMessage) => {
@@ -77,12 +106,14 @@ const SupportTickets = () => {
       if (existing.some(msg => msg._id === newMessage._id)) {
         return prev;
       }
-      return {
+      const updated = {
         ...prev,
         [ticketId]: [...existing, newMessage]
       };
+      saveMessagesToStorage(ticketId, updated[ticketId]);
+      return updated;
     });
-  }, []);
+  }, [saveMessagesToStorage]);
 
   useEffect(() => {
     setLoading(true);
@@ -102,33 +133,47 @@ const SupportTickets = () => {
   }, [socket, user]);
 
   useEffect(() => {
+    selectedTicketRef.current = selectedTicket;
+    updateTicketMessagesRef.current = updateTicketMessages;
+    markMessageAsReadRef.current = markMessageAsRead;
+  }, [selectedTicket, updateTicketMessages, markMessageAsRead]);
+
+  useEffect(() => {
     if (!socket) return;
+    
+    selectedTicketRef.current = selectedTicket;
+    updateTicketMessagesRef.current = updateTicketMessages;
+    markMessageAsReadRef.current = markMessageAsRead;
 
     const handleReceiveMessage = (data) => {
-      updateTicketMessages(data.ticketId, data.message);
+      if (updateTicketMessagesRef.current) {
+        updateTicketMessagesRef.current(data.ticketId, data.message);
+      }
 
-      if (selectedTicket?._id !== data.ticketId) {
+      if (selectedTicketRef.current?._id !== data.ticketId) {
         setUnreadCounts(prev => ({
           ...prev,
           [data.ticketId]: (prev[data.ticketId] || 0) + 1
         }));
       } else {
-        markMessageAsRead(data.ticketId, data.message._id);
+        if (markMessageAsReadRef.current) {
+          markMessageAsReadRef.current(data.ticketId, data.message._id);
+        }
       }
 
-      if (selectedTicket?._id === data.ticketId) {
+      if (selectedTicketRef.current?._id === data.ticketId) {
         scrollToBottom();
       }
     };
 
     const handleTyping = (data) => {
-      if (data.ticketId === selectedTicket?._id) {
+      if (data.ticketId === selectedTicketRef.current?._id) {
         setTypingUser(data.userId);
       }
     };
 
     const handleStopTyping = (data) => {
-      if (data.ticketId === selectedTicket?._id) {
+      if (data.ticketId === selectedTicketRef.current?._id) {
         setTypingUser(null);
       }
     };
@@ -148,7 +193,7 @@ const SupportTickets = () => {
       socket.off('stopTyping', handleStopTyping);
       socket.off('ticketUpdated', handleTicketUpdated);
     };
-  }, [socket, selectedTicket, updateTicketMessages, markMessageAsRead, scrollToBottom]);
+  }, [socket, scrollToBottom]);
 
   const fetchTickets = async () => {
     try {
@@ -158,8 +203,12 @@ const SupportTickets = () => {
 
       const messages = {};
       (Array.isArray(ticketsData) ? ticketsData : []).forEach(ticket => {
-        if (ticket.messages) {
+        const stored = loadMessagesFromStorage(ticket._id);
+        if (stored.length > 0) {
+          messages[ticket._id] = stored;
+        } else if (ticket.messages) {
           messages[ticket._id] = ticket.messages;
+          saveMessagesToStorage(ticket._id, ticket.messages);
         } else {
           messages[ticket._id] = [];
         }
@@ -178,18 +227,26 @@ const SupportTickets = () => {
     setSelectedTicket(ticket);
     setOpenChat(true);
     setUnreadCounts(prev => ({ ...prev, [ticket._id]: 0 }));
+    setUserDetails(null);
     
-    try {
-      const response = await api.get(`/support/tickets/${ticket._id}`);
-      const ticketData = response.data?.data || response.data;
-      if (ticketData && ticketData.messages) {
-        setTicketMessages(prev => ({
-          ...prev,
-          [ticket._id]: ticketData.messages
-        }));
+    setTicketMessages(prev => ({
+      ...prev,
+      [ticket._id]: prev[ticket._id] || ticket.messages || []
+    }));
+    
+    if (!ticketMessages[ticket._id]) {
+      try {
+        const response = await api.get(`/support/tickets/${ticket._id}`);
+        const ticketData = response.data?.data || response.data;
+        if (ticketData && ticketData.messages) {
+          setTicketMessages(prev => ({
+            ...prev,
+            [ticket._id]: ticketData.messages
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching ticket messages:', error);
       }
-    } catch (error) {
-      console.error('Error fetching ticket messages:', error);
     }
     
     joinChat(ticket._id);
@@ -201,6 +258,17 @@ const SupportTickets = () => {
         }
       });
     }
+    
+    setLoadingUserDetails(true);
+    try {
+      const detailsResponse = await api.get(`/admin/users/${ticket.user?._id}/details`);
+      setUserDetails(detailsResponse.data?.data || null);
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+    } finally {
+      setLoadingUserDetails(false);
+    }
+    
     setTimeout(scrollToBottom, 100);
   }, [joinChat, markMessageAsRead, scrollToBottom, ticketMessages, user._id]);
 
@@ -730,6 +798,129 @@ const SupportTickets = () => {
                     Last updated: {new Date(selectedTicket.updatedAt).toLocaleString()}
                   </Typography>
                 )}
+                
+                <Divider sx={{ my: 2 }} />
+                
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: 'text.secondary' }}>
+                  FINANCIAL OVERVIEW
+                </Typography>
+                
+                {loadingUserDetails ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                    <CircularProgress size={24} />
+                  </Box>
+                ) : userDetails ? (
+                  <Box>
+                    {userDetails.accounts?.length > 0 && (
+                      <Box sx={{ mb: 2 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                          <AccountBalanceWalletIcon fontSize="small" sx={{ color: 'primary.main' }} />
+                          <Typography variant="caption" sx={{ fontWeight: 600 }}>BALANCES</Typography>
+                        </Box>
+                        {userDetails.accounts.slice(0, 3).map((account) => (
+                          <Box key={account._id} sx={{ ml: 3, mb: 0.5 }}>
+                            <Typography variant="caption" color="text.secondary">
+                              {account.accountType?.toUpperCase()} ({account.accountNumber?.slice(-4)})
+                            </Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                              ${account.balance?.toLocaleString() || '0.00'}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Box>
+                    )}
+                    
+                    {userDetails.transfers?.length > 0 && (
+                      <Box sx={{ mb: 2 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                          <SwapHorizIcon fontSize="small" sx={{ color: 'info.main' }} />
+                          <Typography variant="caption" sx={{ fontWeight: 600 }}>RECENT TRANSFERS</Typography>
+                        </Box>
+                        {userDetails.transfers.slice(0, 3).map((transfer) => (
+                          <Box key={transfer._id} sx={{ ml: 3, mb: 0.5 }}>
+                            <Typography variant="caption" color="text.secondary">
+                              {transfer.type} -${transfer.amount?.toLocaleString()}
+                            </Typography>
+                            <Typography variant="caption" display="block" color="text.secondary">
+                              {new Date(transfer.createdAt).toLocaleDateString()}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Box>
+                    )}
+                    
+                    {userDetails.cards?.length > 0 && (
+                      <Box sx={{ mb: 2 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                          <CreditCardIcon fontSize="small" sx={{ color: 'warning.main' }} />
+                          <Typography variant="caption" sx={{ fontWeight: 600 }}>CREDIT CARDS</Typography>
+                        </Box>
+                        {userDetails.cards.slice(0, 3).map((card) => (
+                          <Box key={card._id} sx={{ ml: 3, mb: 0.5 }}>
+                            <Typography variant="caption" color="text.secondary">
+                              {card.cardType?.toUpperCase()} ({card.cardNetwork})
+                            </Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                              ${card.currentBalance?.toLocaleString() || '0.00'}
+                            </Typography>
+                            {card.creditLimit && (
+                              <Typography variant="caption" display="block" color="text.secondary">
+                                Limit: ${card.creditLimit?.toLocaleString()}
+                              </Typography>
+                            )}
+                          </Box>
+                        ))}
+                      </Box>
+                    )}
+                    
+                    {userDetails.investments?.length > 0 && (
+                      <Box sx={{ mb: 2 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                          <TrendingUpIcon fontSize="small" sx={{ color: 'success.main' }} />
+                          <Typography variant="caption" sx={{ fontWeight: 600 }}>INVESTMENTS</Typography>
+                        </Box>
+                        {userDetails.investments.slice(0, 3).map((inv) => (
+                          <Box key={inv._id} sx={{ ml: 3, mb: 0.5 }}>
+                            <Typography variant="caption" color="text.secondary">
+                              {inv.plan?.name || 'Investment'}
+                            </Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                              ${inv.amount?.toLocaleString() || '0.00'}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Box>
+                    )}
+                    
+                    {userDetails.loans?.length > 0 && (
+                      <Box sx={{ mb: 2 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                          <AccountBalanceIcon fontSize="small" sx={{ color: 'error.main' }} />
+                          <Typography variant="caption" sx={{ fontWeight: 600 }}>LOANS</Typography>
+                        </Box>
+                        {userDetails.loans.slice(0, 3).map((loan) => (
+                          <Box key={loan._id} sx={{ ml: 3, mb: 0.5 }}>
+                            <Typography variant="caption" color="text.secondary">
+                              {loan.loanProduct?.name || 'Loan'}
+                            </Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                              ${loan.amount?.toLocaleString() || '0.00'}
+                            </Typography>
+                            <Typography variant="caption" display="block" color="text.secondary">
+                              Status: {loan.status || 'active'}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Box>
+                    )}
+                    
+                    {!userDetails.accounts?.length && !userDetails.transfers?.length && !userDetails.cards?.length && !userDetails.investments?.length && !userDetails.loans?.length && (
+                      <Typography variant="caption" color="text.secondary">
+                        No financial data available
+                      </Typography>
+                    )}
+                  </Box>
+                ) : null}
               </Box>
 
               <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', bgcolor: '#f7fafc' }}>

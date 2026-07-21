@@ -68,6 +68,25 @@ const LiveSupportChat = () => {
   const ticketsCacheRef = useRef({ data: null, timestamp: 0 });
   const MIN_FETCH_INTERVAL = 3000;
 
+  const saveMessagesToStorage = (ticketId, messages) => {
+    try {
+      const allMessages = JSON.parse(localStorage.getItem('client_chat_messages') || '{}');
+      allMessages[ticketId] = messages.slice(-100);
+      localStorage.setItem('client_chat_messages', JSON.stringify(allMessages));
+    } catch (e) {
+      console.error('Error saving messages to localStorage:', e);
+    }
+  };
+
+  const loadMessagesFromStorage = (ticketId) => {
+    try {
+      const allMessages = JSON.parse(localStorage.getItem('client_chat_messages') || '{}');
+      return allMessages[ticketId] || [];
+    } catch (e) {
+      return [];
+    }
+  };
+
   // Keep ref in sync with state
   useEffect(() => {
     currentTicketRef.current = currentTicket;
@@ -101,7 +120,11 @@ const LiveSupportChat = () => {
 
         if (!cancelled && activeTicket) {
           setCurrentTicket(activeTicket);
-          setMessages(activeTicket.messages || []);
+          const storedMessages = loadMessagesFromStorage(activeTicket._id);
+          setMessages(storedMessages.length > 0 ? storedMessages : (activeTicket.messages || []));
+          if (storedMessages.length > 0) {
+            saveMessagesToStorage(activeTicket._id, storedMessages);
+          }
           setUnreadCount(0);
         }
       } catch (error) {
@@ -296,7 +319,11 @@ const LiveSupportChat = () => {
       }))
     };
 
-    setMessages(prev => [...prev, localMessage]);
+    setMessages(prev => {
+      const updated = [...prev, localMessage];
+      saveMessagesToStorage(ticketId, updated);
+      return updated;
+    });
 
     if (socket && isConnected) {
       sendMessage({
@@ -426,6 +453,9 @@ const LiveSupportChat = () => {
   // Socket event listeners
   useEffect(() => {
     if (!socket || !isOpen) return;
+    
+    const markMessageAsReadRef = useRef(markMessageAsRead).current;
+    const currentTicketRef = useRef(currentTicket).current;
 
     const handleReceiveMessage = (data) => {
       const { message } = data;
@@ -441,8 +471,15 @@ const LiveSupportChat = () => {
         setUnreadCount(prev => prev + 1);
       }
       
-      if (['admin', 'super-admin', 'support'].includes(message.sender?.role) && currentTicketRef.current) {
-        markMessageAsRead(currentTicketRef.current._id, message._id);
+      if (['admin', 'super-admin', 'support'].includes(message.sender?.role) && currentTicketRef) {
+        markMessageAsReadRef(currentTicketRef._id, message._id);
+      }
+      
+      if (currentTicketRef) {
+        localStorage.setItem(`chat_${currentTicketRef._id}`, JSON.stringify([
+          ...(JSON.parse(localStorage.getItem(`chat_${currentTicketRef._id}`) || '[]')),
+          message
+        ].slice(-100)));
       }
     };
 
