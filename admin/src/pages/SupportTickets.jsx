@@ -33,6 +33,7 @@ import ChatIcon from '@mui/icons-material/Chat';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 import CloseIcon from '@mui/icons-material/Close';
+import PlayCircleIcon from '@mui/icons-material/PlayCircle';
   import SendIcon from '@mui/icons-material/Send';
   import SearchIcon from '@mui/icons-material/Search';
   import PersonIcon from '@mui/icons-material/Person';
@@ -112,6 +113,34 @@ const SupportTickets = () => {
       return updated;
     });
   }, [saveMessagesToStorage]);
+
+  const fetchTickets = async () => {
+    try {
+      const response = await api.get('/support/admin/tickets');
+      const ticketsData = response.data?.data?.tickets || response.data?.tickets || [];
+      setTickets(Array.isArray(ticketsData) ? ticketsData : []);
+
+      const messages = {};
+      (Array.isArray(ticketsData) ? ticketsData : []).forEach(ticket => {
+        const stored = loadMessagesFromStorage(ticket._id);
+        if (stored.length > 0) {
+          messages[ticket._id] = stored;
+        } else if (ticket.messages) {
+          messages[ticket._id] = ticket.messages;
+          saveMessagesToStorage(ticket._id, ticket.messages);
+        } else {
+          messages[ticket._id] = [];
+        }
+      });
+      setTicketMessages(messages);
+
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching support tickets:', error);
+      setTickets([]);
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -199,34 +228,6 @@ const SupportTickets = () => {
       socket.off('ticketUpdated', handleTicketUpdated);
     };
   }, [socket, scrollToBottom]);
-
-  const fetchTickets = async () => {
-    try {
-      const response = await api.get('/support/admin/tickets');
-      const ticketsData = response.data?.data?.tickets || response.data?.tickets || [];
-      setTickets(Array.isArray(ticketsData) ? ticketsData : []);
-
-      const messages = {};
-      (Array.isArray(ticketsData) ? ticketsData : []).forEach(ticket => {
-        const stored = loadMessagesFromStorage(ticket._id);
-        if (stored.length > 0) {
-          messages[ticket._id] = stored;
-        } else if (ticket.messages) {
-          messages[ticket._id] = ticket.messages;
-          saveMessagesToStorage(ticket._id, ticket.messages);
-        } else {
-          messages[ticket._id] = [];
-        }
-      });
-      setTicketMessages(messages);
-
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching support tickets:', error);
-      setTickets([]);
-      setLoading(false);
-    }
-  };
 
   const handleOpenChat = useCallback(async (ticket) => {
     setSelectedTicket(ticket);
@@ -411,7 +412,7 @@ const SupportTickets = () => {
   const getStatusChip = useCallback((status) => {
     const statusConfig = {
       waiting: { color: 'warning', icon: <HourglassEmptyIcon fontSize="small" />, label: 'Waiting' },
-      active: { color: 'success', icon: <PlayCircleFilledIcon fontSize="small" />, label: 'Active' },
+      active: { color: 'success', icon: <PlayCircleIcon fontSize="small" />, label: 'Active' },
       closed: { color: 'default', icon: <CloseIcon fontSize="small" />, label: 'Closed' }
     };
     const config = statusConfig[status] || statusConfig.waiting;
