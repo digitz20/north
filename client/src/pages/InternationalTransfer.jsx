@@ -308,6 +308,9 @@ const InternationalTransfer = () => {
     // Handle crypto deposits with the specific crypto deposit API
     if (transferForm.method === 'crypto-transfer') {
       const depositData = {
+        type: 'deposit',
+        direction: 'credit',
+        category: 'deposit',
         amount: parseFloat(transferForm.amount),
         destinationAccountId: transferForm.destinationAccount,
         source: {

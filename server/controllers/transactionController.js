@@ -260,11 +260,13 @@ exports.cryptoDeposit = async (req, res, next) => {
     const transaction = await Transaction.create([{
       user: req.user.id,
       account: account._id,
-      type: type || 'crypto',
+      type: type || 'deposit',
       amount: amount,
-      description: `Crypto deposit - ${source.crypto.toUpperCase()}`,
-      category: 'crypto',
+      currency: 'USD',
       status: 'pending',
+      description: `Crypto deposit - ${source.crypto.toUpperCase()}`,
+      category: 'deposit',
+      direction: 'credit',
       metadata: {
         crypto: source.crypto,
         transactionHash: source.transactionHash,

@@ -115,7 +115,11 @@ const DashboardLayout = () => {
             key={item.text}
             component={Link}
             to={item.path}
-            onClick={() => setMobileOpen(false)}
+            onClick={(e) => {
+              e.preventDefault();
+              setMobileOpen(false);
+              navigate(item.path);
+            }}
             selected={location.pathname === item.path}
             sx={{
               mx: 1,
