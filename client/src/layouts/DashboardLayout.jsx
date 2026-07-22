@@ -247,7 +247,13 @@ const DashboardLayout = () => {
           variant="temporary"
           open={mobileOpen}
           onClose={handleDrawerToggle}
-          ModalProps={{ keepMounted: true, disableEnforceFocus: true }}
+           ModalProps={{
+             keepMounted: false,
+             disableEnforceFocus: true,
+             BackdropProps: {
+               style: { display: 'none' }
+             }
+           }}
           sx={{
             display: { xs: 'block', sm: 'none' },
             '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth }

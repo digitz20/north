@@ -309,6 +309,12 @@ const Investments = () => {
         }, 100);
       } else if (activeStep === 1) {
         setActiveStep(2);
+        setTimeout(() => {
+          const confirmBtn = document.getElementById('confirm-investment-btn');
+          if (confirmBtn) {
+            confirmBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 100);
       }
     }
   };
@@ -359,8 +365,10 @@ const Investments = () => {
         proofImages: uploadedImages.map(img => img.data)
       })).unwrap();
       
-      console.log('API calls succeeded');
-      setShowSuccessPopup(true);
+       console.log('API calls succeeded');
+       setShowSuccessPopup(true);
+       setTransferComplete(true);
+       setActiveStep(2);
       
       setTimeout(() => {
         handleCloseDialog();
@@ -370,7 +378,7 @@ const Investments = () => {
           investmentCategory: 'crypto',
           selectedPlan: investmentPlans.crypto[0]?.id || '',
           amount: '',
-          destinationAccount: accounts[0]?.id || '',
+          destinationAccount: accounts[0]?._id || '',
           crypto: 'btc',
           transactionHash: '',
           walletAddress: '',
@@ -1181,12 +1189,13 @@ const Investments = () => {
               <Grid item xs={12}>
                 <DialogActions>
                   <Button onClick={() => setActiveStep(1)}>Back</Button>
-                  <Button 
-                    variant="contained" 
-                    onClick={handleConfirmInvestment}
-                    disabled={transactionLoading}
-                    sx={{ background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)' }}
-                  >
+                   <Button 
+                     id="confirm-investment-btn"
+                     variant="contained" 
+                     onClick={handleConfirmInvestment}
+                     disabled={transactionLoading}
+                     sx={{ background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)' }}
+                   >
                     {transactionLoading ? <CircularProgress size={24} /> : 'Confirm & Submit Investment'}
                   </Button>
                 </DialogActions>

@@ -4,6 +4,7 @@ import { AccountBalance } from '@mui/icons-material';
 
 const NorthCrestLogo = ({ variant = 'full', color = '#C1D72F' }) => {
   const isFull = variant === 'full';
+  const textColor = color === 'primary' || color === '#000000' || color === '#000' ? '#000000' : color;
   
   return (
     <Box
@@ -26,7 +27,7 @@ const NorthCrestLogo = ({ variant = 'full', color = '#C1D72F' }) => {
             variant="h5"
             sx={{
               fontWeight: 700,
-              color: color === 'primary' ? '#000000' : 'white', // Black text for primary color context (dashboard)
+              color: textColor,
               lineHeight: 1.2
             }}
           >
@@ -35,7 +36,7 @@ const NorthCrestLogo = ({ variant = 'full', color = '#C1D72F' }) => {
           <Typography
             variant="caption"
             sx={{
-              color: color === 'primary' ? '#2d2d2d' : '#e2e8f0', // Dark gray subtitle for better readability
+              color: textColor === '#000000' ? '#2d2d2d' : '#e2e8f0',
               display: 'block'
             }}
           >

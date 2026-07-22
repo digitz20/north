@@ -352,7 +352,18 @@ const Deposit = () => {
             boxShadow: '0 30px 90px -20px rgba(0,102,255,0.5), 0 0 0 1px rgba(255,255,255,0.1) inset, 0 60px 120px -30px rgba(0,0,0,0.4)',
             transition: 'all 0.4s ease'
           }}>
-            <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+            <Stepper
+              activeStep={activeStep}
+              sx={{
+                mb: 4,
+                '& .MuiStepLabel-label': {
+                  fontSize: { xs: '0.7rem', sm: '0.875rem' },
+                  whiteSpace: 'normal',
+                  textAlign: 'center',
+                  maxWidth: { xs: 100, sm: 150 }
+                }
+              }}
+            >
               {steps.map((label) => (
                 <Step key={label}>
                   <StepLabel>{label}</StepLabel>

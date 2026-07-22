@@ -486,13 +486,24 @@ const InternationalTransfer = () => {
             </Typography>
           </Box>
 
-          <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-            {steps.map((label) => (
-              <Step key={label}>
-                <StepLabel>{label}</StepLabel>
-              </Step>
-            ))}
-          </Stepper>
+           <Stepper
+             activeStep={activeStep}
+             sx={{
+               mb: 4,
+               '& .MuiStepLabel-label': {
+                 fontSize: { xs: '0.7rem', sm: '0.875rem' },
+                 whiteSpace: 'normal',
+                 textAlign: 'center',
+                 maxWidth: { xs: 100, sm: 150 }
+               }
+             }}
+           >
+             {steps.map((label) => (
+               <Step key={label}>
+                 <StepLabel>{label}</StepLabel>
+               </Step>
+             ))}
+           </Stepper>
 
           {errors.submit && <Alert severity="error" sx={{ mb: 3 }}>{errors.submit}</Alert>}
 
