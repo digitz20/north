@@ -12,7 +12,8 @@ import {
   useTheme,
   useMediaQuery,
   Chip,
-  Divider
+  Divider,
+  Button
 } from '@mui/material';
 import {
   Chat as ChatIcon,
@@ -498,6 +499,10 @@ const LiveSupportChat = () => {
   const handleDeleteMessage = async (messageId) => {
     if (!currentTicket) return;
     try {
+      if (messageId.startsWith?.('temp-')) {
+        setMessages(prev => prev.filter(msg => msg._id !== messageId));
+        return;
+      }
       await api.delete(`/support/tickets/${currentTicket._id}/messages/${messageId}`);
       setMessages(prev => prev.filter(msg => msg._id !== messageId));
     } catch (error) {
