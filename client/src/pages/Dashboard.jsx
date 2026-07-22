@@ -271,7 +271,7 @@ const Dashboard = () => {
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          <CircularProgress size={60} sx={{ cooulor: '#0066FF' }} />
+          <CircularProgress size={60} sx={{ color: '#0066FF' }} />
         </motion.div>
       </Box>
     );
@@ -801,17 +801,17 @@ const Dashboard = () => {
                               <Typography variant="body1" sx={{ fontWeight: 600 }}>{tx.description}</Typography>
                             }
                             secondary={
-                              <Typography variant="body2" color="text.secondary">{tx.category.charAt(0).toUpperCase() + tx.category.slice(1)} • {time}</Typography>
+                              <Typography variant="body2" color="text.secondary">{tx.category.charAt(0).toUpperCase() + tx.category.slice(1)} • {tx.time}</Typography>
                             }
                           />
                           <Typography
                             variant="h6"
                             sx={{
                               fontWeight: 700,
-                              color: amount > 0 ? '#00C896' : '#FF6B6B'
+                              color: tx.amount > 0 ? '#00C896' : '#FF6B6B'
                             }}
                           >
-                            {amount > 0 ? '+' : ''}${amount.toFixed(2)}
+                            {tx.amount > 0 ? '+' : ''}$${tx.amount.toFixed(2)}
                           </Typography>
                         </ListItem>
                       </motion.div>

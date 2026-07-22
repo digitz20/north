@@ -14,9 +14,10 @@ import {
   MenuItem,
   InputAdornment,
   IconButton,
-  Link as MuiLink
+  Link as MuiLink,
+  Paper
 } from '@mui/material';
-import { ArrowForward, Visibility, VisibilityOff, CheckCircle } from '@mui/icons-material';
+import { Visibility, VisibilityOff, CheckCircle } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import NorthCrestLogo from '../components/common/NorthCrestLogo';
 
@@ -87,9 +88,9 @@ const Register = () => {
   const [countryCode, setCountryCode] = useState('+1');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSuccess, setResendSuccess] = useState('');
+  const [resendError, setResendError] = useState('');
   
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -100,11 +101,12 @@ const Register = () => {
     if (!formData.email) return;
     setResendLoading(true);
     setResendSuccess('');
+    setResendError('');
     try {
       await dispatch(resendVerificationEmail(formData.email)).unwrap();
       setResendSuccess('Verification email has been resent! Please check your inbox.');
     } catch (err) {
-      // Error handled by redux
+      setResendError(err.message || 'Failed to resend verification email');
     } finally {
       setResendLoading(false);
     }
@@ -153,391 +155,397 @@ const Register = () => {
   const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(formData.password);
   const passwordIsValid = formData.password.length >= 8 && hasUppercase && hasNumber && hasSpecialChar;
 
-  const steps = ['Personal Info', 'Security', 'Complete'];
-
   return (
-    <Box sx={{ minHeight: '100vh', background: '#F8FAFC' }}>
-      {/* Right side - Registration form */}
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          p: { xs: 3, sm: 6, md: 8 },
-          background: '#F8FAFC',
-          overflowY: 'auto',
-        }}
+    <Box sx={{ 
+      minHeight: '100vh', 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center',
+      background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)',
+      p: 2
+    }}>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
       >
-        <Box sx={{ width: '100%', maxWidth: 560 }}>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
-          >
-            <Box sx={{ mb: 6, textAlign: 'center' }}>
-              <Box sx={{ mb: 3, display: { xs: 'block', md: 'none' } }}>
-                <NorthCrestLogo />
-              </Box>
-              <Typography variant="h4" sx={{ fontWeight: 800, color: '#0F172A', mb: 1 }}>
-                Create your account
-              </Typography>
-              <Typography variant="body1" sx={{ color: '#64748B' }}>
-                Get started with NorthCrest Bank in minutes
-              </Typography>
+        <Paper sx={{
+          p: { xs: 4, md: 6 },
+          maxWidth: 600,
+          width: '100%',
+          borderRadius: 3,
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(15, 39, 68, 0.08)',
+          boxShadow: '0 30px 80px rgba(0, 0, 0, 0.4)'
+        }}>
+          <Box sx={{ textAlign: 'center', mb: 5 }}>
+            <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
+              <NorthCrestLogo />
             </Box>
+            <Typography variant="h4" sx={{ fontWeight: 800, color: '#0F172A', mb: 1 }}>
+              Create Your Account
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#64748B' }}>
+              Get started with NorthCrest Bank in minutes
+            </Typography>
+          </Box>
 
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
-                  {error}
-                </Alert>
-              </motion.div>
-            )}
-            
-            <Box component="form" onSubmit={handleSubmit}>
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    required
-                    fullWidth
-                    name="firstName"
-                    label="First Name"
-                    id="firstName"
-                    autoComplete="given-name"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    required
-                    fullWidth
-                    name="lastName"
-                    label="Last Name"
-                    id="lastName"
-                    autoComplete="family-name"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    required
-                    fullWidth
-                    name="email"
-                    label="Email Address"
-                    id="email"
-                    type="email"
-                    autoComplete="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    required
-                    fullWidth
-                    name="phone"
-                    label="Phone Number"
-                    id="phone"
-                    type="tel"
-                    autoComplete="tel"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <TextField
-                            select
-                            value={countryCode}
-                            onChange={(e) => setCountryCode(e.target.value)}
-                            sx={{ minWidth: 130, '& .MuiInputBase-input': { py: 1, fontSize: '0.9rem' } }}
-                            variant="standard"
-                            size="small"
-                          >
-                            {countryCodes.map((country, index) => (
-                              <MenuItem key={`${country.code}-${index}`} value={country.code}>
-                                {country.code} ({country.country})
-                              </MenuItem>
-                            ))}
-                          </TextField>
-                        </InputAdornment>
-                      ),
-                    }}
-                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    required
-                    fullWidth
-                    name="dateOfBirth"
-                    label="Date of Birth"
-                    type="date"
-                    id="dateOfBirth"
-                    InputLabelProps={{ shrink: true }}
-                    value={formData.dateOfBirth}
-                    onChange={handleChange}
-                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    required
-                    fullWidth
-                    name="street"
-                    label="Street Address"
-                    id="street"
-                    autoComplete="street-address"
-                    value={formData.street}
-                    onChange={handleChange}
-                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    required
-                    fullWidth
-                    name="city"
-                    label="City"
-                    id="city"
-                    autoComplete="address-level2"
-                    value={formData.city}
-                    onChange={handleChange}
-                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    required
-                    fullWidth
-                    name="state"
-                    label="State/Province"
-                    id="state"
-                    autoComplete="address-level1"
-                    value={formData.state}
-                    onChange={handleChange}
-                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    required
-                    fullWidth
-                    name="zipCode"
-                    label="Zip/Postal Code"
-                    id="zipCode"
-                    autoComplete="postal-code"
-                    value={formData.zipCode}
-                    onChange={handleChange}
-                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    required
-                    fullWidth
-                    name="country"
-                    label="Country"
-                    id="country"
-                    autoComplete="country"
-                    value={formData.country}
-                    onChange={handleChange}
-                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    required
-                    fullWidth
-                    name="password"
-                    label="Password"
-                    type={showPassword ? 'text' : 'password'}
-                    id="password"
-                    autoComplete="new-password"
-                    error={!passwordIsValid && formData.password.length > 0}
-                    value={formData.password}
-                    onChange={handleChange}
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton
-                            aria-label="toggle password visibility"
-                            onClick={() => setShowPassword(!showPassword)}
-                            edge="end"
-                            sx={{ color: '#64748B' }}
-                          >
-                            {showPassword ? <VisibilityOff /> : <Visibility />}
-                          </IconButton>
-                        </InputAdornment>
-                      ),
-                    }}
-                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                  />
-                  {formData.password.length > 0 && (
-                    <Box mt={1.5} display="flex" gap={2} flexWrap="wrap">
-                      {[
-                        { valid: formData.password.length >= 8, text: '8+ characters' },
-                        { valid: hasUppercase, text: 'Uppercase' },
-                        { valid: hasNumber, text: 'Number' },
-                        { valid: hasSpecialChar, text: 'Special char' },
-                      ].map((req, i) => (
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+                {error}
+              </Alert>
+            </motion.div>
+          )}
+
+          <Box component="form" onSubmit={handleSubmit} autoComplete="on">
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  required
+                  fullWidth
+                  name="firstName"
+                  label="First Name"
+                  id="register-firstName"
+                  autoComplete="given-name"
+                  placeholder="John"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  required
+                  fullWidth
+                  name="lastName"
+                  label="Last Name"
+                  id="register-lastName"
+                  autoComplete="family-name"
+                  placeholder="Doe"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  required
+                  fullWidth
+                  name="email"
+                  label="Email Address"
+                  id="register-email"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="you@example.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  required
+                  fullWidth
+                  name="phone"
+                  label="Phone Number"
+                  id="register-phone"
+                  type="tel"
+                  autoComplete="tel"
+                  placeholder="555-123-4567"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <TextField
+                          select
+                          value={countryCode}
+                          onChange={(e) => setCountryCode(e.target.value)}
+                          sx={{ minWidth: 130, '& .MuiInputBase-input': { py: 1, fontSize: '0.9rem' } }}
+                          variant="standard"
+                          size="small"
+                          displayEmpty
+                          inputProps={{ 'aria-label': 'country code' }}
+                        >
+                          {countryCodes.map((country, index) => (
+                            <MenuItem key={`${country.code}-${index}`} value={country.code}>
+                              {country.code} ({country.country})
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  required
+                  fullWidth
+                  name="dateOfBirth"
+                  label="Date of Birth"
+                  type="date"
+                  id="register-dateOfBirth"
+                  InputLabelProps={{ shrink: true }}
+                  value={formData.dateOfBirth}
+                  onChange={handleChange}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  required
+                  fullWidth
+                  name="street"
+                  label="Street Address"
+                  id="register-street"
+                  autoComplete="street-address"
+                  placeholder="123 Main Street"
+                  value={formData.street}
+                  onChange={handleChange}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  required
+                  fullWidth
+                  name="city"
+                  label="City"
+                  id="register-city"
+                  autoComplete="address-level2"
+                  placeholder="New York"
+                  value={formData.city}
+                  onChange={handleChange}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  required
+                  fullWidth
+                  name="state"
+                  label="State/Province"
+                  id="register-state"
+                  autoComplete="address-level1"
+                  placeholder="NY"
+                  value={formData.state}
+                  onChange={handleChange}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  required
+                  fullWidth
+                  name="zipCode"
+                  label="Zip/Postal Code"
+                  id="register-zipCode"
+                  autoComplete="postal-code"
+                  placeholder="10001"
+                  value={formData.zipCode}
+                  onChange={handleChange}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  required
+                  fullWidth
+                  name="country"
+                  label="Country"
+                  id="register-country"
+                  autoComplete="country"
+                  placeholder="United States"
+                  value={formData.country}
+                  onChange={handleChange}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  required
+                  fullWidth
+                  name="password"
+                  label="Password"
+                  type={showPassword ? 'text' : 'password'}
+                  id="register-password"
+                  autoComplete="new-password"
+                  placeholder="Enter a strong password"
+                  error={!passwordIsValid && formData.password.length > 0}
+                  value={formData.password}
+                  onChange={handleChange}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                          sx={{ color: '#64748B' }}
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+                {formData.password.length > 0 && (
+                  <Box mt={1.5} display="flex" gap={2} flexWrap="wrap">
+                    {[
+                      { valid: formData.password.length >= 8, text: '8+ characters' },
+                      { valid: hasUppercase, text: 'Uppercase' },
+                      { valid: hasNumber, text: 'Number' },
+                      { valid: hasSpecialChar, text: 'Special char' },
+                    ].map((req, i) => (
+                      <Box
+                        key={i}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 0.5,
+                          px: 1.5,
+                          py: 0.5,
+                          borderRadius: 1,
+                          background: req.valid ? 'rgba(0, 200, 150, 0.08)' : 'rgba(255, 107, 107, 0.08)',
+                        }}
+                      >
                         <Box
-                          key={i}
                           sx={{
+                            width: 14,
+                            height: 14,
+                            borderRadius: '50%',
+                            background: req.valid ? '#00C896' : '#FF6B6B',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: 0.5,
-                            px: 1.5,
-                            py: 0.5,
-                            borderRadius: 1,
-                            background: req.valid ? 'rgba(0, 200, 150, 0.08)' : 'rgba(255, 107, 107, 0.08)',
+                            justifyContent: 'center',
                           }}
                         >
-                          <Box
-                            sx={{
-                              width: 14,
-                              height: 14,
-                              borderRadius: '50%',
-                              background: req.valid ? '#00C896' : '#FF6B6B',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}
-                          >
-                            <CheckCircle sx={{ fontSize: 12, color: 'white' }} />
-                          </Box>
-                          <Typography variant="caption" sx={{ color: req.valid ? '#009B70' : '#E55A5A', fontWeight: 500 }}>
-                            {req.text}
-                          </Typography>
+                          <CheckCircle sx={{ fontSize: 12, color: 'white' }} />
                         </Box>
-                      ))}
-                    </Box>
-                  )}
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    required
-                    fullWidth
-                    name="confirmPassword"
-                    label="Confirm Password"
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    id="confirmPassword"
-                    error={!passwordsMatch && formData.confirmPassword.length > 0}
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton
-                            aria-label="toggle confirm password visibility"
-                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                            edge="end"
-                            sx={{ color: '#64748B' }}
-                          >
-                            {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                          </IconButton>
-                        </InputAdornment>
-                      ),
-                    }}
-                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                  />
-                  {!passwordsMatch && formData.confirmPassword.length > 0 && (
-                    <Typography variant="caption" sx={{ color: '#E55A5A', mt: 0.5, ml: 1 }}>
-                      Passwords do not match
-                    </Typography>
-                  )}
-                </Grid>
-              </Grid>
-              
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                disabled={loading || !passwordsMatch || !passwordIsValid}
-                sx={{
-                  mt: 4,
-                  mb: 2,
-                  py: 1.5,
-                  fontSize: '1rem',
-                  borderRadius: 2,
-                  background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
-                  boxShadow: '0 8px 24px rgba(0, 102, 255, 0.35)',
-                  '&:hover': {
-                    background: 'linear-gradient(135deg, #0052CC 0%, #0099CC 100%)',
-                    boxShadow: '0 12px 32px rgba(0, 102, 255, 0.45)',
-                    transform: 'translateY(-2px)',
-                  },
-                }}
-              >
-                {loading ? <CircularProgress size={24} color="inherit" /> : 'Create Account'}
-              </Button>
-
-              {/* RESEND VERIFICATION EMAIL BUTTON */}
-              <Box sx={{ mt: 2, p: 2.5, borderRadius: 2, background: 'rgba(0, 102, 255, 0.04)', border: '1px solid rgba(0, 102, 255, 0.08)' }}>
-                <Typography variant="body2" sx={{ color: '#475569', textAlign: 'center' }}>
-                  Haven't received your verification email?{' '}
-                  <Button
-                    size="small"
-                    onClick={handleResendVerification}
-                    disabled={resendLoading || !formData.email}
-                    sx={{
-                      textTransform: 'none',
-                      p: 0,
-                      minWidth: 'auto',
-                      fontWeight: 600,
-                      color: '#0066FF',
-                      '&:hover': { background: 'transparent' },
-                    }}
-                  >
-                    {resendLoading ? <CircularProgress size={16} color="inherit" /> : 'Resend it'}
-                  </Button>
-                </Typography>
-                {resendSuccess && (
-                  <Alert severity="success" sx={{ mt: 2, borderRadius: 2 }}>
-                    {resendSuccess}
-                  </Alert>
+                        <Typography variant="caption" sx={{ color: req.valid ? '#009B70' : '#E55A5A', fontWeight: 500 }}>
+                          {req.text}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
                 )}
-              </Box>
-              
-              <Box sx={{ mt: 3, textAlign: 'center' }}>
-                <Typography variant="body2" sx={{ color: '#64748B' }}>
-                  Already have an account?{' '}
-                  <MuiLink
-                    href="/login"
-                    sx={{
-                      color: '#0066FF',
-                      textDecoration: 'none',
-                      fontWeight: 600,
-                      '&:hover': { textDecoration: 'underline' },
-                    }}
-                  >
-                    Sign in
-                  </MuiLink>
-                </Typography>
-              </Box>
-              
-              <Divider sx={{ my: 4 }}>
-                <Typography variant="caption" sx={{ color: '#94A3B8', fontWeight: 500, px: 2 }}>
-                  FDIC INSURED
-                </Typography>
-              </Divider>
-              
-              <Typography variant="caption" display="block" sx={{ textAlign: 'center', color: '#94A3B8' }}>
-                By creating an account, you agree to our Terms of Service and Privacy Policy.
-                Your information is secure and protected.
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  required
+                  fullWidth
+                  name="confirmPassword"
+                  label="Confirm Password"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  id="register-confirmPassword"
+                  placeholder="Re-enter your password"
+                  error={!passwordsMatch && formData.confirmPassword.length > 0}
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle confirm password visibility"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          edge="end"
+                          sx={{ color: '#64748B' }}
+                        >
+                          {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+                {!passwordsMatch && formData.confirmPassword.length > 0 && (
+                  <Typography variant="caption" sx={{ color: '#E55A5A', mt: 0.5, ml: 1 }}>
+                    Passwords do not match
+                  </Typography>
+                )}
+              </Grid>
+            </Grid>
+
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              disabled={loading || !passwordsMatch || !passwordIsValid}
+              sx={{
+                mt: 4,
+                mb: 2,
+                py: 1.5,
+                fontSize: '1rem',
+                borderRadius: 2,
+                background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
+                boxShadow: '0 8px 24px rgba(0, 102, 255, 0.35)',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #0052CC 0%, #0099CC 100%)',
+                  boxShadow: '0 12px 32px rgba(0, 102, 255, 0.45)',
+                  transform: 'translateY(-2px)',
+                },
+              }}
+            >
+              {loading ? <CircularProgress size={24} color="inherit" /> : 'Create Account'}
+            </Button>
+
+            <Box sx={{ mt: 2, p: 2.5, borderRadius: 2, background: 'rgba(0, 102, 255, 0.04)', border: '1px solid rgba(0, 102, 255, 0.08)' }}>
+              <Typography variant="body2" sx={{ color: '#475569', textAlign: 'center' }}>
+                Haven't received your verification email?{' '}
+                <Button
+                  size="small"
+                  onClick={handleResendVerification}
+                  disabled={resendLoading || !formData.email}
+                  sx={{
+                    textTransform: 'none',
+                    p: 0,
+                    minWidth: 'auto',
+                    fontWeight: 600,
+                    color: '#0066FF',
+                    '&:hover': { background: 'transparent' },
+                  }}
+                >
+                  {resendLoading ? <CircularProgress size={16} color="inherit" /> : 'Resend it'}
+                </Button>
+              </Typography>
+              {resendSuccess && (
+                <Alert severity="success" sx={{ mt: 2, borderRadius: 2 }}>
+                  {resendSuccess}
+                </Alert>
+              )}
+              {resendError && (
+                <Alert severity="error" sx={{ mt: 2, borderRadius: 2 }}>
+                  {resendError}
+                </Alert>
+              )}
+            </Box>
+
+            <Box sx={{ mt: 3, textAlign: 'center' }}>
+              <Typography variant="body2" sx={{ color: '#64748B' }}>
+                Already have an account?{' '}
+                <MuiLink
+                  href="/login"
+                  sx={{
+                    color: '#0066FF',
+                    textDecoration: 'none',
+                    fontWeight: 600,
+                    '&:hover': { textDecoration: 'underline' },
+                  }}
+                >
+                  Sign in
+                </MuiLink>
               </Typography>
             </Box>
-          </motion.div>
-        </Box>
-      </Box>
+
+            <Divider sx={{ my: 4 }}>
+              <Typography variant="caption" sx={{ color: '#94A3B8', fontWeight: 500, px: 2 }}>
+                FDIC INSURED
+              </Typography>
+            </Divider>
+
+            <Typography variant="caption" display="block" sx={{ textAlign: 'center', color: '#94A3B8' }}>
+              By creating an account, you agree to our Terms of Service and Privacy Policy.
+              Your information is secure and protected.
+            </Typography>
+          </Box>
+        </Paper>
+      </motion.div>
     </Box>
   );
 };
