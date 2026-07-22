@@ -145,7 +145,7 @@ const initializeSocket = (server) => {
         const sanitizedMessage = sanitizeInput(message);
         const sanitizedTicketId = sanitizeInput(ticketId);
 
-        if (!sanitizedMessage || sanitizedMessage.length === 0) {
+        if ((!sanitizedMessage || sanitizedMessage.length === 0) && (!attachments || attachments.length === 0)) {
           socket.emit('error', { message: 'Message cannot be empty' });
           return;
         }
@@ -233,6 +233,59 @@ const initializeSocket = (server) => {
         }
       } catch (error) {
         logger.error(`Error marking message as read: ${error.message}`);
+      }
+    });
+
+    // Delete message
+    socket.on('deleteMessage', async (data) => {
+      try {
+        const { ticketId, messageId } = data;
+        const ticket = await SupportTicket.findById(ticketId);
+        
+        if (ticket) {
+          const message = ticket.messages.id(messageId);
+          if (message) {
+            ticket.messages.id(messageId).remove();
+            await ticket.save();
+            
+            // Broadcast deletion to everyone in the ticket room
+            sendToTicket(ticketId, 'messageDeleted', {
+              ticketId,
+              messageId
+            });
+          }
+        }
+      } catch (error) {
+        logger.error(`Error deleting message: ${error.message}`);
+      }
+    });
+
+    // Update message
+    socket.on('updateMessage', async (data) => {
+      try {
+        const { ticketId, messageId, message: newMessageText } = data;
+        const ticket = await SupportTicket.findById(ticketId);
+        
+        if (ticket) {
+          const message = ticket.messages.id(messageId);
+          if (message) {
+            message.message = newMessageText;
+            message.edited = true;
+            message.editedAt = new Date();
+            await ticket.save();
+            
+            // Broadcast update to everyone in the ticket room
+            sendToTicket(ticketId, 'messageUpdated', {
+              ticketId,
+              messageId,
+              message: newMessageText,
+              edited: true,
+              editedAt: new Date()
+            });
+          }
+        }
+      } catch (error) {
+        logger.error(`Error updating message: ${error.message}`);
       }
     });
 

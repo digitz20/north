@@ -503,6 +503,12 @@ const LiveSupportChat = () => {
         setMessages(prev => prev.filter(msg => msg._id !== messageId));
         return;
       }
+      if (socket && isConnected) {
+        socket.emit('deleteMessage', {
+          ticketId: currentTicket._id,
+          messageId
+        });
+      }
       await api.delete(`/support/tickets/${currentTicket._id}/messages/${messageId}`);
       setMessages(prev => prev.filter(msg => msg._id !== messageId));
     } catch (error) {
@@ -513,6 +519,13 @@ const LiveSupportChat = () => {
   const handleEditMessage = async (messageId, messageText) => {
     if (!messageText.trim() || !currentTicket) return;
     try {
+      if (socket && isConnected) {
+        socket.emit('updateMessage', {
+          ticketId: currentTicket._id,
+          messageId,
+          message: messageText.trim()
+        });
+      }
       await api.put(`/support/tickets/${currentTicket._id}/messages/${messageId}`, {
         message: messageText.trim()
       });
@@ -609,6 +622,27 @@ const LiveSupportChat = () => {
       setMessages(prev => prev.map(msg => msg._id === data.messageId ? { ...msg, read: true, readAt: data.readBy?.readAt } : msg));
     };
 
+    const handleMessageDeleted = (data) => {
+      if (!data?.ticketId || !data?.messageId) return;
+      if (data.ticketId !== currentTicketRef.current?._id) return;
+      setMessages(prev => {
+        const updated = prev.filter(msg => msg._id !== data.messageId);
+        saveMessagesToStorage(data.ticketId, updated);
+        return updated;
+      });
+    };
+
+    const handleMessageUpdated = (data) => {
+      if (!data?.ticketId || !data?.messageId) return;
+      if (data.ticketId !== currentTicketRef.current?._id) return;
+      setMessages(prev => prev.map(msg => msg._id === data.messageId ? {
+        ...msg,
+        message: data.message,
+        edited: data.edited,
+        editedAt: data.editedAt
+      } : msg));
+    };
+
     const handleTicketDeleted = (data) => {
       const deletedTicketId = data?.ticketId;
       if (!deletedTicketId) return;
@@ -632,6 +666,8 @@ const LiveSupportChat = () => {
     socket.on('stopTyping', handleStopTyping);
     socket.on('messageDelivered', handleMessageDelivered);
     socket.on('messageRead', handleMessageRead);
+    socket.on('messageDeleted', handleMessageDeleted);
+    socket.on('messageUpdated', handleMessageUpdated);
     socket.on('ticketDeleted', handleTicketDeleted);
 
     return () => {
@@ -640,6 +676,8 @@ const LiveSupportChat = () => {
       socket.off('stopTyping', handleStopTyping);
       socket.off('messageDelivered', handleMessageDelivered);
       socket.off('messageRead', handleMessageRead);
+      socket.off('messageDeleted', handleMessageDeleted);
+      socket.off('messageUpdated', handleMessageUpdated);
       socket.off('ticketDeleted', handleTicketDeleted);
     };
   }, [socket, isOpen, markMessageAsRead, currentTicket]);

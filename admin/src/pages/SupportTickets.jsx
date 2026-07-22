@@ -223,6 +223,38 @@ const SupportTickets = () => {
       }
     };
 
+    const handleMessageDeleted = (data) => {
+      const deletedTicketId = data?.ticketId;
+      const deletedMessageId = data?.messageId;
+      if (!deletedTicketId || !deletedMessageId) return;
+
+      setTicketMessages(prev => ({
+        ...prev,
+        [deletedTicketId]: (prev[deletedTicketId] || []).filter(m => m._id !== deletedMessageId)
+      }));
+
+      if (selectedTicketRef.current?._id === deletedTicketId) {
+        scrollToBottom();
+      }
+    };
+
+    const handleMessageUpdated = (data) => {
+      const updatedTicketId = data?.ticketId;
+      const updatedMessageId = data?.messageId;
+      if (!updatedTicketId || !updatedMessageId) return;
+
+      setTicketMessages(prev => ({
+        ...prev,
+        [updatedTicketId]: (prev[updatedTicketId] || []).map(m =>
+          m._id === updatedMessageId ? { ...m, message: data.message, edited: data.edited, editedAt: data.editedAt } : m
+        )
+      }));
+
+      if (selectedTicketRef.current?._id === updatedTicketId) {
+        scrollToBottom();
+      }
+    };
+
     const handleTyping = (data) => {
       if (data.ticketId === selectedTicketRef.current?._id) {
         setTypingUser(data.userId);
@@ -271,6 +303,8 @@ const SupportTickets = () => {
     socket.on('stopTyping', handleStopTyping);
     socket.on('ticketUpdated', handleTicketUpdated);
     socket.on('ticketDeleted', handleTicketDeleted);
+    socket.on('messageDeleted', handleMessageDeleted);
+    socket.on('messageUpdated', handleMessageUpdated);
 
     return () => {
       socket.off('receiveMessage', handleReceiveMessage);
@@ -278,6 +312,8 @@ const SupportTickets = () => {
       socket.off('stopTyping', handleStopTyping);
       socket.off('ticketUpdated', handleTicketUpdated);
       socket.off('ticketDeleted', handleTicketDeleted);
+      socket.off('messageDeleted', handleMessageDeleted);
+      socket.off('messageUpdated', handleMessageUpdated);
     };
   }, [socket, scrollToBottom]);
 
@@ -289,6 +325,12 @@ const SupportTickets = () => {
 
   const handleDeleteMessage = useCallback(async (ticketId, messageId) => {
     try {
+      if (socket && isConnected) {
+        socket.emit('deleteMessage', {
+          ticketId,
+          messageId
+        });
+      }
       await api.delete(`/support/tickets/${ticketId}/messages/${messageId}`);
       setTicketMessages(prev => ({
         ...prev,
@@ -297,11 +339,18 @@ const SupportTickets = () => {
     } catch (error) {
       console.error('Error deleting message:', error);
     }
-  }, []);
+  }, [socket, isConnected]);
 
   const handleEditMessage = useCallback(async (ticketId, messageId, messageText) => {
     if (!messageText.trim()) return;
     try {
+      if (socket && isConnected) {
+        socket.emit('updateMessage', {
+          ticketId,
+          messageId,
+          message: messageText.trim()
+        });
+      }
       const response = await api.put(`/support/tickets/${ticketId}/messages/${messageId}`, {
         message: messageText.trim()
       });
@@ -315,7 +364,7 @@ const SupportTickets = () => {
     } catch (error) {
       console.error('Error editing message:', error);
     }
-  }, []);
+  }, [socket, isConnected]);
 
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];
@@ -1230,11 +1279,10 @@ const SupportTickets = () => {
                                     {msg.message}
                                     {msg.edited && <Typography component="span" variant="caption" sx={{ opacity: 0.7, ml: 0.5 }}>(edited)</Typography>}
                                   </Typography>
-                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, justifyContent: isOwn ? 'flex-end' : 'flex-start', mt: 0.5 }}>
-                                    <Typography variant="caption" sx={{ opacity: 0.7 }}>{messageTime}</Typography>
-                                     {isOwn ? getMessageStatus(msg) : (
-                                      <Box sx={{ display: 'flex', gap: 0.5 }}>
-                                        {canEdit && (
+                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, justifyContent: isOwn ? 'flex-end' : 'flex-start', mt: 0.5 }}>
+                                      <Typography variant="caption" sx={{ opacity: 0.7 }}>{messageTime}</Typography>
+                                      {isOwn ? (
+                                        <Box sx={{ display: 'flex', gap: 0.5 }}>
                                           <IconButton size="small" sx={{ padding: 0, minWidth: 24, height: 24 }} onClick={() => {
                                             setEditingMessageId(msg._id);
                                             setEditText(msg.message);
@@ -1242,15 +1290,15 @@ const SupportTickets = () => {
                                           }}>
                                             <EditIcon fontSize="small" sx={{ fontSize: 14, opacity: 0.7 }} />
                                           </IconButton>
-                                        )}
-                                        {canEdit && (
                                           <IconButton size="small" sx={{ padding: 0, minWidth: 24, height: 24 }} onClick={() => handleDeleteMessage(selectedTicket._id, msg._id)}>
                                             <DeleteIcon fontSize="small" sx={{ fontSize: 14, opacity: 0.7 }} />
                                           </IconButton>
-                                        )}
-                                      </Box>
-                                    )}
-                                  </Box>
+                                          {getMessageStatus(msg)}
+                                        </Box>
+                                      ) : (
+                                        <Box />
+                                      )}
+                                    </Box>
                                 </Box>
                               </>
                             )}
