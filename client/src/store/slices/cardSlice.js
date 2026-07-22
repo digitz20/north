@@ -7,6 +7,7 @@ const initialState = {
   error: null
 };
 
+
 // Helper to format card data for UI
 const formatCardForUI = (card) => ({
   ...card,
