@@ -1099,9 +1099,9 @@ const SupportTickets = () => {
               <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', bgcolor: '#f7fafc' }}>
                 <Box ref={messagesContainerRef} sx={{ flex: 1, overflow: 'auto', p: 3 }}>
                   {(ticketMessages[selectedTicket._id] || []).map((msg, index) => {
-                    const isAgent = msg.senderRole === 'admin' || msg.sender?.role === 'admin';
-                    const isOwn = isAgent;
-                    const canEdit = msg.sender?._id?.toString?.() === user._id?.toString?.();
+                    const senderId = msg.sender?._id || msg.sender;
+                    const isOwn = senderId?.toString?.() === user._id?.toString?.();
+                    const canEdit = isOwn;
                     
                     const messageTime = getMessageTime(msg.createdAt || msg.timestamp);
                     
@@ -1203,7 +1203,7 @@ const SupportTickets = () => {
                                   </Typography>
                                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, justifyContent: isOwn ? 'flex-end' : 'flex-start', mt: 0.5 }}>
                                     <Typography variant="caption" sx={{ opacity: 0.7 }}>{messageTime}</Typography>
-                                    {isAgent ? getMessageStatus(msg) : (
+                                     {isOwn ? getMessageStatus(msg) : (
                                       <Box sx={{ display: 'flex', gap: 0.5 }}>
                                         {canEdit && (
                                           <IconButton size="small" sx={{ padding: 0, minWidth: 24, height: 24 }} onClick={() => {

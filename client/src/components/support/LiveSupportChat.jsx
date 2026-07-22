@@ -640,7 +640,8 @@ const LiveSupportChat = () => {
   // Check if message is from current user
   const isOwnMessage = (message) => {
     const senderId = message.sender?._id || message.sender;
-    return senderId?.toString?.() === user?.id?.toString?.();
+    const currentUserId = user?.id || user?._id;
+    return senderId?.toString?.() === currentUserId?.toString?.();
   };
 
   // Get message status icon and label
