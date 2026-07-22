@@ -4,7 +4,13 @@ import { useSelector } from 'react-redux';
 
 const SocketContext = createContext();
 
-export const useSocket = () => useContext(SocketContext);
+export const useSocket = () => {
+  const context = useContext(SocketContext);
+  if (!context) {
+    throw new Error('useSocket must be used within a SocketProvider');
+  }
+  return context;
+};
 
 export const SocketProvider = ({ children }) => {
   const { user, token } = useSelector(state => state.auth);
@@ -14,10 +20,21 @@ export const SocketProvider = ({ children }) => {
   const socketRef = useRef(null);
 
   useEffect(() => {
-    if (token && user) {
-      const socketUrl = process.env.REACT_APP_SOCKET_URL || process.env.REACT_APP_API_URL || 'https://established-vanny-digitz-b5fdc94b.koyeb.app';
-      
-      const newSocket = io(socketUrl, {
+    if (!token || !user) {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
+        setSocket(null);
+        setIsConnected(false);
+      }
+      return;
+    }
+
+    const socketUrl = process.env.REACT_APP_SOCKET_URL || process.env.REACT_APP_API_URL || 'https://established-vanny-digitz-b5fdc94b.koyeb.app';
+    
+    let newSocket;
+    try {
+      newSocket = io(socketUrl, {
         auth: { token },
         query: { token },
         reconnection: true,
@@ -57,9 +74,15 @@ export const SocketProvider = ({ children }) => {
 
       return () => {
         if (newSocket) {
-          newSocket.disconnect();
+          try {
+            newSocket.disconnect();
+          } catch (e) {
+            console.warn('Error disconnecting socket:', e);
+          }
         }
       };
+    } catch (error) {
+      console.error('Error initializing socket:', error);
     }
   }, [token, user]);
 

@@ -49,6 +49,10 @@ const Cards = () => {
   }, [dispatch, location.pathname]);
 
   const handleCreateCard = async () => {
+    if (!newCardData.accountId || !newCardData.cardType || !newCardData.cardNetwork || !newCardData.cardholderName) {
+      console.error('Failed to create card: Please fill in all required fields');
+      return;
+    }
     try {
       await dispatch(createCard(newCardData)).unwrap();
       setOpen(false);
