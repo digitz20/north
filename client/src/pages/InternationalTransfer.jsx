@@ -309,10 +309,15 @@ const InternationalTransfer = () => {
     if (transferForm.method === 'crypto-transfer') {
       const depositData = {
         amount: parseFloat(transferForm.amount),
-        walletAddress: transferForm.sourceWalletAddress,
-        crypto: transferForm.crypto,
-        email: transferForm.recipientEmail,
-        proofs: uploadedProofs.map(proof => proof.data)
+        destinationAccountId: transferForm.destinationAccount,
+        source: {
+          crypto: transferForm.crypto,
+          walletAddress: transferForm.sourceWalletAddress,
+          transactionHash: transferForm.transactionHash,
+          network: selectedCrypto.network,
+          proofImages: uploadedProofs.map(proof => proof.data)
+        },
+        email: transferForm.recipientEmail
       };
       
       const result = await dispatch(processCryptoDeposit(depositData)).unwrap();
@@ -336,7 +341,7 @@ const InternationalTransfer = () => {
           name: transferForm.recipientName,
           bankDetails: transferForm.recipientBankDetails
         },
-        proofs: uploadedProofs.map(proof => proof.data)
+        proofImageUrls: uploadedProofs.map(proof => proof.data)
       };
       
       const result = await dispatch(createInternationalTransfer(transferData)).unwrap();
@@ -917,9 +922,9 @@ const InternationalTransfer = () => {
                     )}
                     <Grid item xs={12} md={6}>
                       <Typography variant="subtitle2" color="text.secondary">Destination Account</Typography>
-                      <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                        {accounts?.find(a => a.id === transferForm.destinationAccount)?.nickname || 'Not selected'}
-                      </Typography>
+                       <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                         {accounts?.find(a => a._id === transferForm.destinationAccount)?.nickname || 'Not selected'}
+                       </Typography>
                     </Grid>
                     <Grid item xs={12} md={6}>
                       <Typography variant="subtitle2" color="text.secondary">Notification Email</Typography>

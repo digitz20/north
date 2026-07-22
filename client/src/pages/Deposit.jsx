@@ -211,7 +211,7 @@ const Deposit = () => {
     
     const isValidTransactionHash = validateCryptoAddress(cryptoForm.crypto, cryptoForm.transactionHash);
     if (cryptoForm.transactionHash && !isValidTransactionHash) {
-      newErrors.transactionHash = `Invalid ${cryptoForm.crypto.toUpperCase()} transaction hash/wallet address format. Please check and enter a valid address.`;
+      newErrors.transactionHash = `Invalid ${cryptoForm.crypto.toUpperCase()} wallet address format. Please check and enter a valid address.`;
     }
     
     const destAccount = accounts.find(a => a.id === cryptoForm.destinationAccount);

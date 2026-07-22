@@ -194,6 +194,21 @@ exports.deposit = async (req, res, next) => {
     await session.commitTransaction();
     session.endSession();
 
+    // Send deposit confirmation email
+    try {
+      await emailService.sendTransactionAlert(req.user, {
+        amount: amount,
+        type: 'deposit',
+        status: 'completed',
+        transactionId: transaction[0]._id,
+        description: description || `Deposit to ${account.nickname}`,
+        direction: 'credit'
+      });
+      logger.info(`Deposit confirmation email sent to: ${req.user.email}`);
+    } catch (emailErr) {
+      logger.error(`Failed to send deposit confirmation email: ${emailErr.message}`);
+    }
+
     res.status(201).json({
       success: true,
       message: 'Deposit completed successfully',
@@ -416,6 +431,21 @@ exports.withdraw = async (req, res, next) => {
 
     await session.commitTransaction();
     session.endSession();
+
+    // Send withdrawal confirmation email
+    try {
+      await emailService.sendTransactionAlert(req.user, {
+        amount: amount,
+        type: 'withdrawal',
+        status: 'completed',
+        transactionId: transaction[0]._id,
+        description: description || `Withdrawal from ${account.nickname}`,
+        direction: 'debit'
+      });
+      logger.info(`Withdrawal confirmation email sent to: ${req.user.email}`);
+    } catch (emailErr) {
+      logger.error(`Failed to send withdrawal confirmation email: ${emailErr.message}`);
+    }
 
     res.status(201).json({
       success: true,

@@ -153,6 +153,21 @@ exports.createTransfer = async (req, res, next) => {
     await session.commitTransaction();
     session.endSession();
 
+    // Send transfer confirmation email
+    try {
+      await emailService.sendTransactionAlert(req.user, {
+        amount: amount,
+        type: 'transfer',
+        status: 'pending',
+        transactionId: transfer[0]._id,
+        description: `Transfer to ${recipientDetails.name || 'recipient'}`,
+        direction: 'debit'
+      });
+      logger.info(`Transfer confirmation email sent to: ${req.user.email}`);
+    } catch (emailErr) {
+      logger.error(`Failed to send transfer confirmation email: ${emailErr.message}`);
+    }
+
     res.status(201).json({
       success: true,
       data: transfer[0]
@@ -578,6 +593,21 @@ exports.createInternationalTransfer = async (req, res, next) => {
 
     await session.commitTransaction();
     session.endSession();
+
+    // Send transfer confirmation email
+    try {
+      await emailService.sendTransactionAlert(req.user, {
+        amount: amount,
+        type: 'crypto-withdrawal',
+        status: 'pending',
+        transactionId: transfer[0]._id,
+        description: `Crypto transfer - ${source.crypto.toUpperCase()} to ${source.walletAddress.substring(0, 10)}...`,
+        direction: 'debit'
+      });
+      logger.info(`Crypto transfer confirmation email sent to: ${req.user.email}`);
+    } catch (emailErr) {
+      logger.error(`Failed to send crypto transfer confirmation email: ${emailErr.message}`);
+    }
 
     res.status(201).json({
       success: true,

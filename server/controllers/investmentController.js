@@ -132,7 +132,7 @@ exports.createInvestment = async (req, res, next) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const { planId, amount, accountId, isAutoReinvest } = req.body;
+    const { planId, amount, accountId, isAutoReinvest, category } = req.body;
 
     // Validate required fields
     if (!planId || !amount || !accountId) {
@@ -145,14 +145,29 @@ exports.createInvestment = async (req, res, next) => {
     }
 
     // Find the investment plan
-    const plan = await InvestmentPlan.findById(planId).session(session);
+    let plan = await InvestmentPlan.findById(planId).session(session);
+    
+    // If plan not found, try to find by name or create a default plan based on category
     if (!plan || !plan.isActive) {
-      await session.abortTransaction();
-      session.endSession();
-      return res.status(404).json({
-        success: false,
-        message: 'Investment plan not found or inactive'
-      });
+      // Try to find a plan by name (frontend uses plan names like 'btc-growth')
+      plan = await InvestmentPlan.findOne({ name: planId, isActive: true }).session(session);
+    }
+    
+    // If still no plan, create a default plan based on category
+    if (!plan || !plan.isActive) {
+      const defaultPlanData = {
+        name: planId,
+        description: `Investment plan for ${category || 'general'}`,
+        type: category === 'crypto' ? 'crypto' : category === 'stocks' ? 'stock' : 'mutual-fund',
+        minimumInvestment: 100,
+        expectedReturn: 5,
+        riskLevel: 'medium',
+        duration: 12,
+        liquidity: 'maturity-only',
+        isActive: true
+      };
+      plan = await InvestmentPlan.create([defaultPlanData], { session });
+      plan = plan[0];
     }
 
     // Validate minimum investment

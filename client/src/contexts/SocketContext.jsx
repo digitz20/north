@@ -38,10 +38,11 @@ export const SocketProvider = ({ children }) => {
         auth: { token },
         query: { token },
         reconnection: true,
-        reconnectionAttempts: Infinity,
+        reconnectionAttempts: 5,
         reconnectionDelay: 1000,
         reconnectionDelayMax: 5000,
-        timeout: 20000
+        timeout: 10000,
+        transports: ['websocket', 'polling']
       });
 
       newSocket.on('connect', () => {
@@ -49,19 +50,24 @@ export const SocketProvider = ({ children }) => {
         setIsConnected(true);
       });
 
-      newSocket.on('disconnect', () => {
-        console.log('Socket disconnected');
+      newSocket.on('disconnect', (reason) => {
+        console.log('Socket disconnected:', reason);
         setIsConnected(false);
       });
 
       newSocket.on('connect_error', (error) => {
-        console.error('Socket connection error:', error);
+        console.error('Socket connection error:', error.message);
         setIsConnected(false);
       });
 
       newSocket.on('reconnect', (attemptNumber) => {
         console.log(`Reconnected after ${attemptNumber} attempts`);
         setIsConnected(true);
+      });
+
+      newSocket.on('reconnect_failed', () => {
+        console.error('Socket reconnection failed after max attempts');
+        setIsConnected(false);
       });
 
       // Listen for support status updates
@@ -83,6 +89,7 @@ export const SocketProvider = ({ children }) => {
       };
     } catch (error) {
       console.error('Error initializing socket:', error);
+      setIsConnected(false);
     }
   }, [token, user]);
 

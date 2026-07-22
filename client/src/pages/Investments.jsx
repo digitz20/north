@@ -360,8 +360,10 @@ const Investments = () => {
       
       await dispatch(processCryptoDeposit(depositData)).unwrap();
       await dispatch(createInvestment({
-        ...investmentForm,
+        planId: investmentForm.selectedPlan,
         amount: parseFloat(investmentForm.amount),
+        accountId: investmentForm.destinationAccount,
+        category: investmentForm.investmentCategory,
         proofImages: uploadedImages.map(img => img.data)
       })).unwrap();
       
@@ -406,10 +408,10 @@ const Investments = () => {
       investmentCategory: 'crypto',
       selectedPlan: '',
       amount: '',
-      destinationAccount: accounts[0]?.id || '',
+      destinationAccount: accounts[0]?._id || '',
       crypto: 'btc',
       transactionHash: '',
-      walletAddress: '', // New wallet selection field
+      walletAddress: '',
       savedWalletAddress: '',
       email: user?.email || ''
     });
@@ -593,7 +595,7 @@ const Investments = () => {
                     <Typography variant="body1" sx={{ mb: 1, opacity: 0.9 }}>Current Value</Typography>
                     <Typography variant="h3" sx={{ fontWeight: 700 }}>${totalCurrent.toLocaleString()}</Typography>
                     <Typography variant="body2" sx={{ mt: 1, opacity: 0.9 }}>
-                      {totalCurrent >= totalInvested ? '↑' : '↓'} {Math.abs(((totalCurrent - totalInvested)/totalInvested)*100).toFixed(2)}%
+                      {totalInvested > 0 ? (totalCurrent >= totalInvested ? '↑' : '↓') : ''} {totalInvested > 0 ? Math.abs(((totalCurrent - totalInvested)/totalInvested)*100).toFixed(2) : '0.00'}%
                     </Typography>
                   </Box>
                 </Paper>

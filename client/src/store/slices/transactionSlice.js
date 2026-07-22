@@ -63,12 +63,6 @@ export const processWithdrawal = createAsyncThunk(
   async (withdrawalData, { rejectWithValue }) => {
     try {
       const response = await api.post('/transactions/withdraw', withdrawalData);
-      // Send email notification
-      await api.post('/notifications/send-email', {
-        email: withdrawalData.recipientEmail,
-        type: 'withdrawal_confirmation',
-        transactionDetails: response.data.data
-      });
       return response.data.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Withdrawal failed');
@@ -82,15 +76,6 @@ export const processCryptoDeposit = createAsyncThunk(
   async (depositData, { rejectWithValue }) => {
     try {
       const response = await api.post('/transactions/crypto-deposit', depositData);
-      try {
-        await api.post('/notifications/send-email', {
-          email: depositData.email,
-          type: 'deposit_confirmation',
-          transactionDetails: response.data.data
-        });
-      } catch (emailError) {
-        console.warn('Deposit email notification failed:', emailError);
-      }
       return response.data.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Deposit failed');
@@ -104,12 +89,6 @@ export const createInternationalTransfer = createAsyncThunk(
   async (transferData, { rejectWithValue }) => {
     try {
       const response = await api.post('/transfers/international', transferData);
-      // Send email notification for international transfer
-      await api.post('/notifications/send-email', {
-        email: transferData.recipient.email,
-        type: 'international_transfer_confirmation',
-        transactionDetails: response.data.data
-      });
       return response.data.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'International transfer failed');
