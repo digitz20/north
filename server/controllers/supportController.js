@@ -3,6 +3,7 @@ const AuditLog = require('../models/AuditLog');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
 const mongoose = require('mongoose');
+const { sendToTicket } = require('../sockets/socketServer');
 
 // @desc    Get all user support tickets
 // @route   GET /api/v1/support/tickets
@@ -670,9 +671,13 @@ exports.deleteTicket = async (req, res, next) => {
     await session.commitTransaction();
     session.endSession();
 
+    const deletedTicketId = ticket._id.toString();
+    sendToTicket(deletedTicketId, 'ticketDeleted', { ticketId: deletedTicketId });
+
     res.status(200).json({
       success: true,
-      message: 'Support ticket deleted successfully'
+      message: 'Support ticket deleted successfully',
+      ticketId: ticket.ticketId
     });
   } catch (error) {
     await session.abortTransaction();
@@ -720,7 +725,9 @@ exports.editMessage = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Message not found' });
     }
 
-    if (targetMessage.sender.toString() !== req.user.id) {
+    const isAdmin = ['admin', 'super-admin', 'support'].includes(req.user.role);
+    const isSender = targetMessage.sender.toString() === req.user.id;
+    if (!isAdmin && !isSender) {
       await session.abortTransaction();
       session.endSession();
       return res.status(403).json({ success: false, message: 'Not authorized to edit this message' });
@@ -774,7 +781,9 @@ exports.deleteMessage = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Message not found' });
     }
 
-    if (targetMessage.sender.toString() !== req.user.id) {
+    const isAdmin = ['admin', 'super-admin', 'support'].includes(req.user.role);
+    const isSender = targetMessage.sender.toString() === req.user.id;
+    if (!isAdmin && !isSender) {
       await session.abortTransaction();
       session.endSession();
       return res.status(403).json({ success: false, message: 'Not authorized to delete this message' });
