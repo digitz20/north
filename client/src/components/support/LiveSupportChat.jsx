@@ -254,7 +254,7 @@ const LiveSupportChat = () => {
   };
 
   const markMessagesAsReadIfNeeded = useCallback((ticket) => {
-    if (!ticket?._id || !user?.id) return;
+    if (!ticket?._id || !(user?.id || user?._id)) return;
     messages.forEach(msg => {
       const isFromAdmin = ['admin', 'super-admin', 'support'].includes(msg.sender?.role);
       const alreadyRead = Array.isArray(msg.readBy) && msg.readBy.some(r => (r.user?._id || r.user)?.toString?.() === user.id.toString?.());
@@ -341,7 +341,7 @@ const LiveSupportChat = () => {
     const localMessage = {
       _id: `temp-${Date.now()}`,
       message: messageText,
-      sender: { _id: user?.id, name: user?.fullName || 'You' },
+      sender: { _id: user?._id || user?.id, name: user?.fullName || 'You' },
       createdAt: new Date().toISOString(),
       delivered: false,
       read: false,
@@ -655,7 +655,7 @@ const LiveSupportChat = () => {
     
     const isRead = message.readBy?.some(read => {
       const readUserId = read.user?._id || read.user;
-      return readUserId?.toString?.() === user?.id?.toString?.();
+      return readUserId?.toString?.() === (user?._id || user?.id)?.toString?.();
     }) || message.read;
     
     if (isRead) {

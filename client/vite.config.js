@@ -17,7 +17,8 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          'mui-vendor': ['@mui/material', '@mui/icons-material'],
+          'mui-vendor': ['@mui/material'],
+          'mui-icons': ['@mui/icons-material'],
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           'animation-vendor': ['framer-motion', 'gsap'],
           'charts-vendor': ['recharts', 'chart.js', 'react-chartjs-2'],
