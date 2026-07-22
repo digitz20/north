@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
-import { io } from 'socket.io-client';
 import { useSelector } from 'react-redux';
 
 const SocketContext = createContext();
@@ -18,6 +17,20 @@ export const SocketProvider = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [supportOnline, setSupportOnline] = useState(false);
   const socketRef = useRef(null);
+  const ioRef = useRef(null);
+
+  // Dynamically import socket.io-client to avoid circular dependency issues
+  useEffect(() => {
+    let cancelled = false;
+    import('socket.io-client').then(ioModule => {
+      if (!cancelled) {
+        ioRef.current = ioModule.io;
+      }
+    }).catch(err => {
+      console.error('Failed to load socket.io-client:', err);
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     if (!token || !user) {
@@ -34,7 +47,16 @@ export const SocketProvider = ({ children }) => {
     
     let newSocket;
     try {
-      newSocket = io(socketUrl, {
+      if (!ioRef.current) {
+        console.warn('Socket.io not yet loaded, retrying...');
+        setTimeout(() => {
+          // Trigger re-render by updating state
+          setIsConnected(false);
+        }, 1000);
+        return;
+      }
+      
+      newSocket = ioRef.current(socketUrl, {
         auth: { token },
         query: { token },
         reconnection: true,

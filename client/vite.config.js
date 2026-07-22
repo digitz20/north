@@ -12,6 +12,9 @@ export default defineConfig({
       }
     }
   },
+  optimizeDeps: {
+    exclude: ['socket.io-client']
+  },
   build: {
     rollupOptions: {
       output: {
@@ -21,7 +24,8 @@ export default defineConfig({
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           'animation-vendor': ['framer-motion', 'gsap'],
           'charts-vendor': ['recharts', 'chart.js', 'react-chartjs-2'],
-          'utils-vendor': ['axios', 'dayjs', 'date-fns']
+          'utils-vendor': ['axios', 'dayjs', 'date-fns'],
+          'socket-vendor': ['socket.io-client']
         }
       }
     },
