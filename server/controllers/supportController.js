@@ -704,7 +704,16 @@ exports.editMessage = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Support ticket not found' });
     }
 
-    const targetMessage = ticket.messages.id(messageId);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Edit message:', {
+        messageId,
+        ticketMessageIds: ticket.messages.map(m => m._id.toString()),
+        messageCount: ticket.messages.length
+      });
+    }
+    const targetMessage = ticket.messages.find(
+      m => m._id.toString() === messageId.toString()
+    );
     if (!targetMessage) {
       await session.abortTransaction();
       session.endSession();
@@ -749,7 +758,16 @@ exports.deleteMessage = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Support ticket not found' });
     }
 
-    const targetMessage = ticket.messages.id(messageId);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Delete message:', {
+        messageId,
+        ticketMessageIds: ticket.messages.map(m => m._id.toString()),
+        messageCount: ticket.messages.length
+      });
+    }
+    const targetMessage = ticket.messages.find(
+      m => m._id.toString() === messageId.toString()
+    );
     if (!targetMessage) {
       await session.abortTransaction();
       session.endSession();
