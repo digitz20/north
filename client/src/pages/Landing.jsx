@@ -46,6 +46,9 @@ const Landing = () => {
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [currentHeroImage, setCurrentHeroImage] = useState(0);
   const heroRef = useRef(null);
+  const handleImageError = (e) => {
+    if (e?.target) e.target.style.display = 'none';
+  };
   const { scrollYProgress } = useScroll();
   
   // Hero section image slideshow - slow, smooth transitions
