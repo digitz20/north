@@ -9,7 +9,7 @@ import {
   Box, Typography, Grid, Avatar, Chip, Divider, IconButton, Tooltip
 } from '@mui/material';
 import {
-  CreditCard, AttachMoney, ArrowForward, Visibility, SwapHoriz,
+  CreditCard, AttachMoney, ArrowForward, Visibility, VisibilityOff, SwapHoriz,
   TrendingUp, Security, MonitorHeart, Person, Settings
 } from '@mui/icons-material';
 import PremiumCard from '../components/PremiumCard';
@@ -23,6 +23,7 @@ const Accounts = () => {
   const { accounts, loading } = useSelector((state) => state.accounts);
   const [ref, inView] = useIntersectionInView({ threshold: 0.1 });
   const containerRef = useRef(null);
+  const [hideBalance, setHideBalance] = useState(false);
   
   const totalBalance = accounts.reduce((sum, account) => sum + account.balance, 0);
   
@@ -97,17 +98,31 @@ const Accounts = () => {
                 <Typography variant="subtitle2" sx={{ opacity: 0.8 }}>Total Balance Across All Accounts</Typography>
                 <Typography variant="h4" sx={{ fontWeight: 700 }}>
                   {inView && (
-                    <CountUp
-                      start={0}
-                      end={totalBalance}
-                      duration={2.5}
-                      prefix="$"
-                      separator=","
-                      decimals={2}
-                    />
+                    hideBalance ? '••••••••' : (
+                      <CountUp
+                        start={0}
+                        end={totalBalance}
+                        duration={2.5}
+                        prefix="$"
+                        separator=","
+                        decimals={2}
+                      />
+                    )
                   )}
                 </Typography>
               </Box>
+              <Tooltip title={hideBalance ? 'Show balance' : 'Hide balance'}>
+                <IconButton 
+                  onClick={() => setHideBalance(!hideBalance)}
+                  sx={{ 
+                    bgcolor: 'rgba(255,255,255,0.15)', 
+                    color: 'white',
+                    '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' }
+                  }}
+                >
+                  {hideBalance ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              </Tooltip>
               <Chip 
                 label="All Accounts Secure" 
                 icon={<Security sx={{ color: 'inherit' }} />}
@@ -194,33 +209,50 @@ const Accounts = () => {
                   
                   <Divider sx={{ my: 2, bgcolor: 'rgba(255,255,255,0.2)' }} />
                   
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', position: 'relative', zIndex: 2 }}>
-                    <Box>
-                      <Typography variant="body2" sx={{ opacity: 0.8, mb: 1, color: 'white' }}>Current Balance</Typography>
-                      <Typography variant="h3" sx={{ fontWeight: 800, color: 'white' }}>
-                        {inView && (
-                          <CountUp
-                            start={0}
-                            end={account.balance}
-                            duration={2.5}
-                            prefix="$"
-                            separator=","
-                            decimals={2}
-                            delay={index * 0.2}
-                          />
-                        )}
-                      </Typography>
-                    </Box>
-                    <Chip 
-                      label="Active" 
-                      size="small"
-                      sx={{ 
-                        bgcolor: 'rgba(0,200,150,0.9)', 
-                        color: 'white',
-                        fontWeight: 600
-                      }} 
-                    />
-                  </Box>
+                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', position: 'relative', zIndex: 2 }}>
+                     <Box>
+                       <Typography variant="body2" sx={{ opacity: 0.8, mb: 1, color: 'white' }}>Current Balance</Typography>
+                       <Typography variant="h3" sx={{ fontWeight: 800, color: 'white' }}>
+                         {inView && (
+                           hideBalance ? '••••••••' : (
+                             <CountUp
+                               start={0}
+                               end={account.balance}
+                               duration={2.5}
+                               prefix="$"
+                               separator=","
+                               decimals={2}
+                               delay={index * 0.2}
+                             />
+                           )
+                         )}
+                       </Typography>
+                     </Box>
+                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                       <Tooltip title={hideBalance ? 'Show balance' : 'Hide balance'}>
+                         <IconButton 
+                           size="small"
+                           onClick={() => setHideBalance(!hideBalance)}
+                           sx={{ 
+                             color: 'white',
+                             bgcolor: 'rgba(255,255,255,0.15)',
+                             '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' }
+                           }}
+                         >
+                           {hideBalance ? <VisibilityOff sx={{ fontSize: 16 }} /> : <Visibility sx={{ fontSize: 16 }} />}
+                         </IconButton>
+                       </Tooltip>
+                       <Chip 
+                         label="Active" 
+                         size="small"
+                         sx={{ 
+                           bgcolor: 'rgba(0,200,150,0.9)', 
+                           color: 'white',
+                           fontWeight: 600
+                         }} 
+                       />
+                     </Box>
+                   </Box>
                 </Box>
                 <Box sx={{ p: 3, bgcolor: 'white' }}>
                   <Box sx={{ display: 'flex', gap: 2 }}>

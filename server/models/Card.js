@@ -149,7 +149,7 @@ cardSchema.pre('save', async function(next) {
     // Generate a valid test card number (for development only)
     // In production, integrate with a payment processor
     const bin = '411111'; // Visa BIN
-    const accountNumber = Math.floor(Math000000000 + Math.random() * 999999999).toString().padStart(9, '0');
+    const accountNumber = Math.floor(Math.random() * 999999999).toString().padStart(9, '0');
     this.cardNumber = bin + accountNumber;
     
     // Hash card number for storage
