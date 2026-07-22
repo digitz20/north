@@ -12,14 +12,10 @@ export default defineConfig({
       }
     }
   },
-  optimizeDeps: {
-    exclude: ['socket.io-client']
-  },
   build: {
     rollupOptions: {
       output: {
         manualChunks: {
-          // Split large vendor libraries into separate chunks
           'mui-vendor': ['@mui/material', '@mui/icons-material'],
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           'animation-vendor': ['framer-motion', 'gsap'],

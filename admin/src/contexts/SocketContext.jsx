@@ -13,15 +13,15 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
-    // Only connect if we have a valid token (not null/undefined)
-    if (token && token !== 'undefined' && token !== 'null') {
+    // Only connect if we have a valid token AND no existing socket connection
+    if (token && token !== 'undefined' && token !== 'null' && !socketRef.current) {
       // Initialize socket connection - use production URL to avoid localhost connection errors
       const socketUrl = 'https://established-vanny-digitz-b5fdc94b.koyeb.app';
       const newSocket = io(socketUrl, {
         auth: { token },
         query: { token },
         reconnection: true,
-        reconnectionAttempts: Infinity,
+        reconnectionAttempts: 5,
         reconnectionDelay: 1000,
         reconnectionDelayMax: 5000,
         timeout: 20000
@@ -32,9 +32,14 @@ export const SocketProvider = ({ children }) => {
         setIsConnected(true);
       });
 
-      newSocket.on('disconnect', () => {
-        console.log('Admin socket disconnected');
+      newSocket.on('disconnect', (reason) => {
+        console.log('Admin socket disconnected:', reason);
         setIsConnected(false);
+        // If server disconnected us intentionally, clear socket ref to allow reconnection later
+        if (reason === 'io server disconnect') {
+          socketRef.current = null;
+          setSocket(null);
+        }
       });
 
       newSocket.on('connect_error', (error) => {
@@ -58,6 +63,7 @@ export const SocketProvider = ({ children }) => {
       return () => {
         if (newSocket) {
           newSocket.disconnect();
+          socketRef.current = null;
         }
       };
     }
@@ -70,7 +76,7 @@ export const SocketProvider = ({ children }) => {
     }
   }, [socket]);
 
-  // Leave a chat room
+  // Leave chat room
   const leaveChat = useCallback((ticketId) => {
     if (socket) {
       socket.emit('leaveChat', ticketId);

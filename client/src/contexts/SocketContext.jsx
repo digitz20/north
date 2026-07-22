@@ -1,15 +1,10 @@
 import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
+import { io } from 'socket.io-client';
 import { useSelector } from 'react-redux';
 
 const SocketContext = createContext();
 
-export const useSocket = () => {
-  const context = useContext(SocketContext);
-  if (!context) {
-    throw new Error('useSocket must be used within a SocketProvider');
-  }
-  return context;
-};
+export const useSocket = () => useContext(SocketContext);
 
 export const SocketProvider = ({ children }) => {
   const { user, token } = useSelector(state => state.auth);
@@ -17,54 +12,20 @@ export const SocketProvider = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [supportOnline, setSupportOnline] = useState(false);
   const socketRef = useRef(null);
-  const ioRef = useRef(null);
-
-  // Dynamically import socket.io-client to avoid circular dependency issues
-  useEffect(() => {
-    let cancelled = false;
-    import('socket.io-client').then(ioModule => {
-      if (!cancelled) {
-        ioRef.current = ioModule.io;
-      }
-    }).catch(err => {
-      console.error('Failed to load socket.io-client:', err);
-    });
-    return () => { cancelled = true; };
-  }, []);
 
   useEffect(() => {
-    if (!token || !user) {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-        socketRef.current = null;
-        setSocket(null);
-        setIsConnected(false);
-      }
-      return;
-    }
-
-    const socketUrl = process.env.REACT_APP_SOCKET_URL || process.env.REACT_APP_API_URL || 'https://established-vanny-digitz-b5fdc94b.koyeb.app';
-    
-    let newSocket;
-    try {
-      if (!ioRef.current) {
-        console.warn('Socket.io not yet loaded, retrying...');
-        setTimeout(() => {
-          // Trigger re-render by updating state
-          setIsConnected(false);
-        }, 1000);
-        return;
-      }
+    // Prevent duplicate socket connections - only create if no existing socket and we have valid credentials
+    if (token && user && !socketRef.current) {
+      const socketUrl = process.env.REACT_APP_SOCKET_URL || process.env.REACT_APP_API_URL || 'https://established-vanny-digitz-b5fdc94b.koyeb.app';
       
-      newSocket = ioRef.current(socketUrl, {
+      const newSocket = io(socketUrl, {
         auth: { token },
         query: { token },
         reconnection: true,
-        reconnectionAttempts: 5,
+        reconnectionAttempts: 5, // Limit reconnection attempts to prevent infinite loops
         reconnectionDelay: 1000,
         reconnectionDelayMax: 5000,
-        timeout: 10000,
-        transports: ['websocket', 'polling']
+        timeout: 20000
       });
 
       newSocket.on('connect', () => {
@@ -75,21 +36,21 @@ export const SocketProvider = ({ children }) => {
       newSocket.on('disconnect', (reason) => {
         console.log('Socket disconnected:', reason);
         setIsConnected(false);
+        // If server disconnected us intentionally, clear the socket ref to allow reconnection later
+        if (reason === 'io server disconnect') {
+          socketRef.current = null;
+          setSocket(null);
+        }
       });
 
       newSocket.on('connect_error', (error) => {
-        console.error('Socket connection error:', error.message);
+        console.error('Socket connection error:', error);
         setIsConnected(false);
       });
 
       newSocket.on('reconnect', (attemptNumber) => {
         console.log(`Reconnected after ${attemptNumber} attempts`);
         setIsConnected(true);
-      });
-
-      newSocket.on('reconnect_failed', () => {
-        console.error('Socket reconnection failed after max attempts');
-        setIsConnected(false);
       });
 
       // Listen for support status updates
@@ -102,16 +63,10 @@ export const SocketProvider = ({ children }) => {
 
       return () => {
         if (newSocket) {
-          try {
-            newSocket.disconnect();
-          } catch (e) {
-            console.warn('Error disconnecting socket:', e);
-          }
+          newSocket.disconnect();
+          socketRef.current = null;
         }
       };
-    } catch (error) {
-      console.error('Error initializing socket:', error);
-      setIsConnected(false);
     }
   }, [token, user]);
 

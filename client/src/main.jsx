@@ -10,17 +10,15 @@ import { DynamicThemeProvider } from './hooks/useDarkMode';
 import { SocketProvider } from './contexts/SocketContext';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <Provider store={store}>
-      <BrowserRouter>
-        <DynamicThemeProvider>
-          <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
-            <SocketProvider>
-              <App />
-            </SocketProvider>
-          </SnackbarProvider>
-        </DynamicThemeProvider>
-      </BrowserRouter>
-    </Provider>
-  </React.StrictMode>
+  <Provider store={store}>
+    <BrowserRouter>
+      <DynamicThemeProvider>
+        <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+          <SocketProvider>
+            <App />
+          </SocketProvider>
+        </SnackbarProvider>
+      </DynamicThemeProvider>
+    </BrowserRouter>
+  </Provider>
 );

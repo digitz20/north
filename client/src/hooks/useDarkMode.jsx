@@ -29,9 +29,8 @@ const useDarkMode = () => {
   };
 
   const theme = useMemo(() => {
-    if (isAuthenticated) return lightTheme;
     return darkMode ? darkTheme : lightTheme;
-  }, [darkMode, isAuthenticated]);
+  }, [darkMode]);
 
   return { darkMode, theme, toggleDarkMode };
 };

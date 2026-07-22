@@ -11,16 +11,14 @@ import adminTheme from './styles/theme';
 import './styles/global.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <Provider store={store}>
-      <BrowserRouter>
-        <ThemeProvider theme={adminTheme}>
-          <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
-            <CssBaseline />
-            <App />
-          </SnackbarProvider>
-        </ThemeProvider>
-      </BrowserRouter>
-    </Provider>
-  </React.StrictMode>
+  <Provider store={store}>
+    <BrowserRouter>
+      <ThemeProvider theme={adminTheme}>
+        <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+          <CssBaseline />
+          <App />
+        </SnackbarProvider>
+      </ThemeProvider>
+    </BrowserRouter>
+  </Provider>
 );

@@ -74,6 +74,11 @@ const DashboardLayout = () => {
   const { user } = useSelector(state => state.auth);
   const { unreadCount } = useSelector(state => state.notifications);
 
+  // Close mobile drawer when navigating to a new page
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
+
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
