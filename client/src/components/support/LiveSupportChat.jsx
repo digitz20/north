@@ -351,7 +351,8 @@ const LiveSupportChat = () => {
       sendMessage({
         ticketId,
         message: messageText,
-        attachments: localMessage.attachments
+        attachments: localMessage.attachments,
+        tempId: localMessage._id
       });
     } else {
       try {
@@ -481,9 +482,35 @@ const LiveSupportChat = () => {
       const { message } = data;
       if (!message) return;
 
+      const ticketId = currentTicketRef.current?._id;
+      
       setMessages(prev => {
+        // Check if this message replaces a temporary message (sent by this user)
+        if (message.tempId) {
+          const tempIndex = prev.findIndex(msg => msg._id === message.tempId);
+          if (tempIndex !== -1) {
+            // Replace the temporary message with the server-confirmed message
+            const updated = [...prev];
+            updated[tempIndex] = { ...message, _id: message._id || message.tempId };
+            if (ticketId) saveMessagesToStorage(ticketId, updated);
+            return updated;
+          }
+        }
+        
+        // Check if message already exists by _id
         if (prev.some(msg => msg._id === message._id)) return prev;
-        return [...prev, message];
+        
+        // Check for duplicate by message content and sender (prevent duplicates from socket + API)
+        const isDuplicate = prev.some(msg => 
+          msg.message === message.message && 
+          (msg.sender?._id || msg.sender) === (message.sender?._id || message.sender) &&
+          Math.abs(new Date(msg.createdAt).getTime() - new Date(message.createdAt).getTime()) < 5000
+        );
+        if (isDuplicate) return prev;
+        
+        const updated = [...prev, message];
+        if (ticketId) saveMessagesToStorage(ticketId, updated);
+        return updated;
       });
 
       if (!isOpen || document.hidden) {

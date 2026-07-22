@@ -7,6 +7,7 @@ import App from './App';
 import store from './store/store';
 import './styles/global.css';
 import { DynamicThemeProvider } from './hooks/useDarkMode';
+import { SocketProvider } from './contexts/SocketContext';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -14,7 +15,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <BrowserRouter>
         <DynamicThemeProvider>
           <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
-            <App />
+            <SocketProvider>
+              <App />
+            </SocketProvider>
           </SnackbarProvider>
         </DynamicThemeProvider>
       </BrowserRouter>

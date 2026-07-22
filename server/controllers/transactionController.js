@@ -136,8 +136,7 @@ exports.deposit = async (req, res, next) => {
     const account = await Account.findOne({
       _id: accountId,
       user: req.user.id,
-      isActive: true,
-      isFrozen: false
+      isActive: true
     });
 
     if (!account) {
@@ -245,8 +244,7 @@ exports.cryptoDeposit = async (req, res, next) => {
     const account = await Account.findOne({
       _id: destinationAccountId,
       user: req.user.id,
-      isActive: true,
-      isFrozen: false
+      isActive: true
     });
 
     if (!account) {
@@ -365,8 +363,7 @@ exports.withdraw = async (req, res, next) => {
     const account = await Account.findOne({
       _id: accountId,
       user: req.user.id,
-      isActive: true,
-      isFrozen: false
+      isActive: true
     });
 
     if (!account) {
