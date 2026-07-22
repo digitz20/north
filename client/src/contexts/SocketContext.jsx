@@ -16,7 +16,7 @@ export const SocketProvider = ({ children }) => {
   useEffect(() => {
     // Prevent duplicate socket connections - only create if no existing socket and we have valid credentials
     if (token && user && !socketRef.current) {
-      const socketUrl = process.env.REACT_APP_SOCKET_URL || process.env.REACT_APP_API_URL || 'https://established-vanny-digitz-b5fdc94b.koyeb.app';
+      const socketUrl = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL || 'https://established-vanny-digitz-b5fdc94b.koyeb.app';
       
       const newSocket = io(socketUrl, {
         auth: { token },
