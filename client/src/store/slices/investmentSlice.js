@@ -12,6 +12,7 @@ const formatInvestmentForUI = (investment) => ({
   currentValue: investment.currentValue || 0
 });
 
+
 const initialState = {
   investments: [],
   loading: false,
