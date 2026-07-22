@@ -207,6 +207,7 @@ const Cards = () => {
             height: 200,
             borderRadius: '50%',
             background: 'rgba(255,255,255,0.1)',
+            display: { xs: 'none', md: 'block' }
           }} />
           <Box sx={{
             position: 'absolute',
@@ -216,6 +217,7 @@ const Cards = () => {
             height: 150,
             borderRadius: '50%',
             background: 'rgba(255,255,255,0.1)',
+            display: { xs: 'none', md: 'block' }
           }} />
         </Box>
       </motion.div>

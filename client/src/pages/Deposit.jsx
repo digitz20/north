@@ -299,7 +299,8 @@ const Deposit = () => {
         filter: 'blur(80px)',
         pointerEvents: 'none',
         zIndex: 0,
-        animation: 'float 15s ease-in-out infinite'
+        animation: 'float 15s ease-in-out infinite',
+        display: { xs: 'none', md: 'block' }
       }} />
       <Box sx={{
         position: 'fixed',
@@ -312,7 +313,8 @@ const Deposit = () => {
         filter: 'blur(90px)',
         pointerEvents: 'none',
         zIndex: 0,
-        animation: 'float 20s ease-in-out infinite reverse'
+        animation: 'float 20s ease-in-out infinite reverse',
+        display: { xs: 'none', md: 'block' }
       }} />
 
       <style>{`

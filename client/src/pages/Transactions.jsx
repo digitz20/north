@@ -231,23 +231,25 @@ const Transactions = () => {
             </Grid>
           </Box>
           <Box sx={{
-            position: 'absolute',
-            top: -50,
-            right: -50,
-            width: 200,
-            height: 200,
-            borderRadius: '50%',
-            background: 'rgba(255,255,255,0.1)',
-          }} />
-          <Box sx={{
-            position: 'absolute',
-            bottom: -80,
-            right: 100,
-            width: 150,
-            height: 150,
-            borderRadius: '50%',
-            background: 'rgba(255,255,255,0.1)',
-          }} />
+          position: 'absolute',
+          top: -50,
+          right: -50,
+          width: 200,
+          height: 200,
+          borderRadius: '50%',
+          background: 'rgba(255,255,255,0.1)',
+          display: { xs: 'none', md: 'block' }
+        }} />
+        <Box sx={{
+          position: 'absolute',
+          bottom: -80,
+          right: 100,
+          width: 150,
+          height: 150,
+          borderRadius: '50%',
+          background: 'rgba(255,255,255,0.1)',
+          display: { xs: 'none', md: 'block' }
+        }} />
         </Box>
       </motion.div>
 

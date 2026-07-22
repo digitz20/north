@@ -16,7 +16,7 @@ const Transfer = () => {
       minHeight: '100vh', 
       p: { xs: 2, md: 0 } 
     }}>
-      <Box sx={{ 
+<Box sx={{ 
         position: 'fixed', 
         top: '-10%', 
         right: '-15%', 
@@ -27,21 +27,23 @@ const Transfer = () => {
         filter: 'blur(80px)', 
         pointerEvents: 'none', 
         zIndex: 0,
-        animation: 'float 15s ease-in-out infinite'
+        animation: 'float 15s ease-in-out infinite',
+        display: { xs: 'none', md: 'block' }
       }} />
        <Box sx={{ 
-         position: 'fixed', 
-         bottom: '-15%', 
-         left: '-10%', 
-         width: '800px', 
-         height: '800px', 
-         borderRadius: '50%', 
-         background: 'radial-gradient(circle, rgba(0,102,255,0.2) 0%, rgba(0,102,255,0) 70%)', 
-         filter: 'blur(90px)', 
-         pointerEvents: 'none', 
-         zIndex: 0,
-         animation: 'float 20s ease-in-out infinite reverse'
-       }} />
+          position: 'fixed', 
+          bottom: '-15%', 
+          left: '-10%', 
+          width: '800px', 
+          height: '800px', 
+          borderRadius: '50%', 
+          background: 'radial-gradient(circle, rgba(0,102,255,0.2) 0%, rgba(0,102,255,0) 70%)', 
+          filter: 'blur(90px)', 
+          pointerEvents: 'none', 
+          zIndex: 0,
+          animation: 'float 20s ease-in-out infinite reverse',
+          display: { xs: 'none', md: 'block' }
+        }} />
        
        <Box sx={{ position: 'relative', zIndex: 1, pt: 4, px: { xs: 2, md: 4 } }}>
         <motion.div

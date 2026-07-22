@@ -1025,7 +1025,8 @@ const InternationalTransfer = () => {
         filter: 'blur(80px)',
         pointerEvents: 'none',
         zIndex: 0,
-        animation: 'none'
+        animation: 'none',
+        display: { xs: 'none', md: 'block' }
       }} />
       <Box sx={{
         position: 'fixed',
@@ -1038,7 +1039,8 @@ const InternationalTransfer = () => {
         filter: 'blur(90px)',
         pointerEvents: 'none',
         zIndex: 0,
-        animation: 'none'
+        animation: 'none',
+        display: { xs: 'none', md: 'block' }
       }} />
 
       <Box sx={{ position: 'relative', zIndex: 1, pt: 4, px: { xs: 2, md: 4 } }}>

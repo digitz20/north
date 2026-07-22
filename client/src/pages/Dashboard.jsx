@@ -315,7 +315,8 @@ const Dashboard = () => {
         background: 'radial-gradient(circle, rgba(0,102,255,0.12) 0%, rgba(0,102,255,0) 70%)',
         filter: 'blur(60px)',
         pointerEvents: 'none',
-        zIndex: 0
+        zIndex: 0,
+        display: { xs: 'none', md: 'block' }
       }} />
       <Box sx={{
         position: 'fixed',
@@ -327,7 +328,8 @@ const Dashboard = () => {
         background: 'radial-gradient(circle, rgba(0,200,150,0.1) 0%, rgba(0,200,150,0) 70%)',
         filter: 'blur(80px)',
         pointerEvents: 'none',
-        zIndex: 0
+        zIndex: 0,
+        display: { xs: 'none', md: 'block' }
       }} />
       {/* Scroll Progress Bar removed to reduce GPU usage */}
 
