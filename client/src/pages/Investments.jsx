@@ -307,6 +307,8 @@ const Investments = () => {
             behavior: 'smooth'
           });
         }, 100);
+      } else if (activeStep === 1) {
+        setActiveStep(2);
       }
     }
   };
@@ -1129,7 +1131,7 @@ const Investments = () => {
           )}
 
           {/* Step 2: Confirmation */}
-          {activeStep === 1 && !transferComplete && (
+          {activeStep === 2 && !transferComplete && (
             <Grid container spacing={3}>
               <Grid item xs={12}>
                 <Card variant="outlined">
@@ -1178,7 +1180,7 @@ const Investments = () => {
               </Grid>
               <Grid item xs={12}>
                 <DialogActions>
-                  <Button onClick={() => setActiveStep(0)}>Back</Button>
+                  <Button onClick={() => setActiveStep(1)}>Back</Button>
                   <Button 
                     variant="contained" 
                     onClick={handleConfirmInvestment}
