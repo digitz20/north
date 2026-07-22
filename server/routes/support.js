@@ -6,7 +6,9 @@ const {
   createTicket,
   updateTicket,
   addMessage,
-  closeTicket
+  closeTicket,
+  editMessage,
+  deleteMessage
 } = require('../controllers/supportController');
 const { protect, authorize } = require('../middlewares/auth');
 const multer = require('multer');
@@ -85,8 +87,8 @@ router.route('/tickets/:id/messages')
   .post(protect, addMessage);
 
 router.route('/tickets/:id/messages/:messageId')
-  .put(protect, addMessage.editMessage)
-  .delete(protect, addMessage.deleteMessage);
+  .put(protect, editMessage)
+  .delete(protect, deleteMessage);
 
 router.route('/tickets/:id/close')
   .put(protect, closeTicket);
