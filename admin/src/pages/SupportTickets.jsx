@@ -239,16 +239,45 @@ const SupportTickets = () => {
       setTickets(prev => prev.map(t => t._id === updatedTicket._id ? updatedTicket : t));
     };
 
+    const handleTicketDeleted = (data) => {
+      const deletedTicketId = data?.ticketId;
+      if (!deletedTicketId) return;
+      
+      setTickets(prev => prev.filter(t => t._id !== deletedTicketId));
+      
+      if (selectedTicketRef.current?._id === deletedTicketId) {
+        setOpenChat(false);
+        setSelectedTicket(null);
+        setReplyMessage('');
+        setTypingUser(null);
+        setEditingMessageId(null);
+        setEditText('');
+        setIsRecording(false);
+        setPendingImage(null);
+        if (socket && isConnected) {
+          leaveChat(deletedTicketId);
+        }
+      }
+      
+      setTicketMessages(prev => {
+        const updated = { ...prev };
+        delete updated[deletedTicketId];
+        return updated;
+      });
+    };
+
     socket.on('receiveMessage', handleReceiveMessage);
     socket.on('typing', handleTyping);
     socket.on('stopTyping', handleStopTyping);
     socket.on('ticketUpdated', handleTicketUpdated);
+    socket.on('ticketDeleted', handleTicketDeleted);
 
     return () => {
       socket.off('receiveMessage', handleReceiveMessage);
       socket.off('typing', handleTyping);
       socket.off('stopTyping', handleStopTyping);
       socket.off('ticketUpdated', handleTicketUpdated);
+      socket.off('ticketDeleted', handleTicketDeleted);
     };
   }, [socket, scrollToBottom]);
 

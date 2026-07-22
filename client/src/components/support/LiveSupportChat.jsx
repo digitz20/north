@@ -609,11 +609,30 @@ const LiveSupportChat = () => {
       setMessages(prev => prev.map(msg => msg._id === data.messageId ? { ...msg, read: true, readAt: data.readBy?.readAt } : msg));
     };
 
+    const handleTicketDeleted = (data) => {
+      const deletedTicketId = data?.ticketId;
+      if (!deletedTicketId) return;
+      
+      if (currentTicketRef.current?._id === deletedTicketId) {
+        setCurrentTicket(null);
+        setMessages([]);
+        setUnreadCount(0);
+        setNewMessage('');
+        setIsMinimized(false);
+        if (socket && isConnected) {
+          leaveChat(deletedTicketId);
+        }
+      }
+      
+      localStorage.removeItem(`client_chat_messages`);
+    };
+
     socket.on('receiveMessage', handleReceiveMessage);
     socket.on('typing', handleTyping);
     socket.on('stopTyping', handleStopTyping);
     socket.on('messageDelivered', handleMessageDelivered);
     socket.on('messageRead', handleMessageRead);
+    socket.on('ticketDeleted', handleTicketDeleted);
 
     return () => {
       socket.off('receiveMessage', handleReceiveMessage);
@@ -621,6 +640,7 @@ const LiveSupportChat = () => {
       socket.off('stopTyping', handleStopTyping);
       socket.off('messageDelivered', handleMessageDelivered);
       socket.off('messageRead', handleMessageRead);
+      socket.off('ticketDeleted', handleTicketDeleted);
     };
   }, [socket, isOpen, markMessageAsRead, currentTicket]);
 
