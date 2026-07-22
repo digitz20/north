@@ -248,8 +248,8 @@ const DashboardLayout = () => {
           open={mobileOpen}
           onClose={() => setMobileOpen(false)}
           ModalProps={{
-            keepMounted: true,
-            disableEnforceFocus: false
+            keepMounted: false,
+            closeAfterTransition: true
           }}
           sx={{
             display: { xs: 'block', sm: 'none' },
@@ -281,6 +281,7 @@ const DashboardLayout = () => {
           minHeight: '100vh',
           overflowX: 'hidden'
         }}
+        onClick={() => setMobileOpen(false)}
       >
         <Toolbar />
         <Box sx={{ width: '100%', maxWidth: '100%', overflowX: 'hidden' }}>

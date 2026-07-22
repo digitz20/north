@@ -852,3 +852,47 @@ exports.getMe = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Update user settings
+// @route   POST /api/v1/auth/settings
+// @access  Private
+exports.updateSettings = async (req, res, next) => {
+  try {
+    const { email, phone, settings } = req.body;
+
+    const updateData = {};
+    if (email) updateData.email = email;
+    if (phone) updateData.phone = phone;
+    if (settings) updateData.settings = settings;
+
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      updateData,
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Create audit log
+    await AuditLog.log({
+      actor: { user: req.user.id, role: req.user.role, ip: req.ip, userAgent: req.get('User-Agent') },
+      action: 'user_settings_updated',
+      category: 'user-management',
+      description: `User updated their settings`,
+      entity: { type: 'user', id: req.user.id, name: user.fullName }
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Settings updated successfully',
+      data: user
+    });
+  } catch (error) {
+    next(error);
+  }
+};

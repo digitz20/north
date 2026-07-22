@@ -19,6 +19,14 @@ export const useNavigationWithSplash = () => {
   const NavigationSplash = () => {
     if (!isNavigating) return null;
     
+    // Auto-hide splash after 5 seconds to prevent stuck overlay
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        setIsNavigating(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }, []);
+    
     return (
       <Box 
         sx={{ 

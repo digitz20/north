@@ -121,6 +121,28 @@ const userSchema = new mongoose.Schema({
   netSavings: {
     type: Number,
     default: 0
+  },
+  settings: {
+    emailNotifications: {
+      type: Boolean,
+      default: true
+    },
+    smsAlerts: {
+      type: Boolean,
+      default: true
+    },
+    twoFactorAuth: {
+      type: Boolean,
+      default: false
+    },
+    monthlyStatements: {
+      type: Boolean,
+      default: true
+    },
+    darkMode: {
+      type: Boolean,
+      default: false
+    }
   }
 }, {
   timestamps: true,
