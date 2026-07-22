@@ -260,7 +260,7 @@ exports.cryptoDeposit = async (req, res, next) => {
     const transaction = await Transaction.create([{
       user: req.user.id,
       account: account._id,
-      type: type || 'deposit',
+      type: 'deposit',
       amount: amount,
       currency: 'USD',
       status: 'pending',
@@ -300,12 +300,12 @@ exports.cryptoDeposit = async (req, res, next) => {
     // Create notification
     await Notification.create([{
       user: req.user.id,
-      type: 'crypto-deposit',
+      type: 'deposit',
       title: 'Crypto Deposit Initiated',
       message: `Your ${source.crypto.toUpperCase()} deposit of $${amount} is being processed. Transaction ID: ${transaction[0]._id}`,
       priority: 'medium',
       relatedEntity: {
-        type: 'Transaction',
+        type: 'transaction',
         id: transaction[0]._id
       }
     }], { session });

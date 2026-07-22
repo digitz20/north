@@ -243,7 +243,7 @@ const Deposit = () => {
     if (Object.keys(newErrors).length > 0) return;
 
     const depositData = {
-      type: 'crypto',
+
       destinationAccountId: cryptoForm.destinationAccount,
       source: {
         crypto: cryptoForm.crypto,
