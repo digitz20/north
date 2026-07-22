@@ -22,9 +22,11 @@ import {
   SupportAgent as SupportAgentIcon,
   Check as CheckIcon,
   DoneAll as DoneAllIcon,
+  Delete as DeleteIcon,
   Image as ImageIcon,
   Mic as MicIcon,
   Stop as StopIcon,
+  Edit as EditIcon,
   InsertDriveFile as FileIcon
 } from '@mui/icons-material';
 import { useSelector } from 'react-redux';
@@ -57,11 +59,14 @@ const LiveSupportChat = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
   const [pendingImage, setPendingImage] = useState(null);
+  const [editingMessageId, setEditingMessageId] = useState(null);
+  const [editText, setEditText] = useState('');
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const fileInputRef = useRef(null);
+  const editInputRef = useRef(null);
   const initializedRef = useRef(false);
   const currentTicketRef = useRef(null);
   const lastFetchRef = useRef(0);
@@ -275,8 +280,15 @@ const LiveSupportChat = () => {
     markMessagesAsReadIfNeeded(ticket);
   };
   const handleClose = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop();
+      mediaRecorderRef.current.stream?.getTracks()?.forEach(t => t.stop());
+    }
     setIsOpen(false);
     setIsMinimized(false);
+    setIsRecording(false);
+    setEditingMessageId(null);
+    setEditText('');
     if (currentTicket && socket) {
       leaveChat(currentTicket._id);
     }
@@ -380,7 +392,7 @@ const LiveSupportChat = () => {
       const formData = new FormData();
       formData.append('file', file);
 
-      const uploadResponse = await api.post('/support/tickets/upload', formData, {
+      const uploadResponse = await api.post(`/support/tickets/${currentTicket?._id}/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -400,6 +412,13 @@ const LiveSupportChat = () => {
   };
 
   // Handle audio recording
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -421,7 +440,7 @@ const LiveSupportChat = () => {
           const formData = new FormData();
           formData.append('file', audioFile);
 
-          const uploadResponse = await api.post('/support/tickets/upload', formData, {
+          const uploadResponse = await api.post(`/support/tickets/${currentTicket?._id}/upload`, formData, {
             headers: {
               'Content-Type': 'multipart/form-data'
             }
@@ -446,10 +465,57 @@ const LiveSupportChat = () => {
     }
   };
 
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
+  const handleStartRecording = async () => {
+    if (!currentTicket?._id) return;
+    await startRecording();
+  };
+
+  const handleSendAttachment = async (file) => {
+    if (!file || !currentTicket?._id) return;
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const uploadResponse = await api.post(`/support/tickets/${currentTicket._id}/upload`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      if (uploadResponse.data?.success) {
+        const attachment = uploadResponse.data.data;
+        handleSendMessage([attachment]);
+      }
+    } catch (error) {
+      console.error('Error uploading attachment:', error);
+    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleAttachmentChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      handleSendAttachment(file);
+    }
+  };
+
+  const handleDeleteMessage = async (messageId) => {
+    if (!currentTicket) return;
+    try {
+      await api.delete(`/support/tickets/${currentTicket._id}/messages/${messageId}`);
+      setMessages(prev => prev.filter(msg => msg._id !== messageId));
+    } catch (error) {
+      console.error('Error deleting message:', error);
+    }
+  };
+
+  const handleEditMessage = async (messageId, messageText) => {
+    if (!messageText.trim() || !currentTicket) return;
+    try {
+      await api.put(`/support/tickets/${currentTicket._id}/messages/${messageId}`, {
+        message: messageText.trim()
+      });
+      setMessages(prev => prev.map(msg => msg._id === messageId ? { ...msg, message: messageText.trim(), edited: true, editedAt: new Date() } : msg));
+      setEditingMessageId(null);
+      setEditText('');
+    } catch (error) {
+      console.error('Error editing message:', error);
     }
   };
 
@@ -553,10 +619,16 @@ const LiveSupportChat = () => {
     };
   }, [socket, isOpen, markMessageAsRead, currentTicket]);
 
-  // Format timestamp
-  const formatTime = (date) => {
-    return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const getMessageTime = (dateStr) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   // Get header title and status
   const headerTitle = 'northcrestbankofusa';
@@ -816,23 +888,58 @@ const LiveSupportChat = () => {
                             ))}
                           </Box>
                         )}
-                        <Typography variant="body2">{message.message}</Typography>
+                        {editingMessageId === message._id ? (
+                          <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column' }}>
+                            <TextField
+                              inputRef={editInputRef}
+                              fullWidth
+                              size="small"
+                              defaultValue={message.message}
+                              onKeyPress={(e) => e.key === 'Enter' && handleEditMessage(message._id, editInputRef.current?.value || message.message)}
+                              onChange={(e) => setEditText(e.target.value)}
+                              sx={{ bgcolor: 'white', borderRadius: 1 }}
+                            />
+                            <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+                              <Button size="small" onClick={() => {
+                                handleEditMessage(message._id, editInputRef.current?.value || message.message);
+                                setEditingMessageId(null);
+                                setEditText('');
+                              }}>Save</Button>
+                              <Button size="small" onClick={() => {
+                                setEditingMessageId(null);
+                                setEditText('');
+                              }}>Cancel</Button>
+                            </Box>
+                          </Box>
+                        ) : (
+                          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                            <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
+                              {message.message}
+                              {message.edited && <Typography component="span" variant="caption" sx={{ opacity: 0.7, ml: 0.5 }}>(edited)</Typography>}
+                            </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, justifyContent: isOwnMessage(message) ? 'flex-end' : 'flex-start', mt: 0.5 }}>
+                              <Typography variant="caption" sx={{ opacity: 0.7 }}>
+                                {getMessageTime(message.createdAt || message.timestamp)}
+                              </Typography>
+                              {isOwnMessage(message) && (
+                                <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                  <IconButton size="small" sx={{ padding: 0, minWidth: 24, height: 24 }} onClick={() => {
+                                    setEditingMessageId(message._id);
+                                    setEditText(message.message);
+                                    setTimeout(() => editInputRef.current?.focus(), 50);
+                                  }}>
+                                    <EditIcon fontSize="small" sx={{ fontSize: 14, opacity: 0.7 }} />
+                                  </IconButton>
+                                  <IconButton size="small" sx={{ padding: 0, minWidth: 24, height: 24 }} onClick={() => handleDeleteMessage(message._id)}>
+                                    <DeleteIcon fontSize="small" sx={{ fontSize: 14, opacity: 0.7 }} />
+                                  </IconButton>
+                                </Box>
+                              )}
+                              {!isOwnMessage(message) && getMessageStatus(message)}
+                            </Box>
+                          </Box>
+                        )}
                       </Paper>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: isOwnMessage(message) ? 'flex-end' : 'flex-start',
-                          gap: 0.5,
-                          mt: 0.5,
-                          px: 0.5
-                        }}
-                      >
-                        <Typography variant="caption" color="text.secondary">
-                          {formatTime(message.createdAt)}
-                        </Typography>
-                        {isOwnMessage(message) && getMessageStatus(message)}
-                      </Box>
                     </Box>
                   ))
                 )}

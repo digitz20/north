@@ -680,3 +680,97 @@ exports.deleteTicket = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Edit a support ticket message
+// @route   PUT /api/v1/support/tickets/:id/messages/:messageId
+// @access  Private
+exports.editMessage = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const { message } = req.body;
+    const { id: ticketId, messageId } = req.params;
+
+    if (!message || message.trim().length === 0) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({ success: false, message: 'Message cannot be empty' });
+    }
+
+    const ticket = await SupportTicket.findById(ticketId).session(session);
+    if (!ticket) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({ success: false, message: 'Support ticket not found' });
+    }
+
+    const targetMessage = ticket.messages.id(messageId);
+    if (!targetMessage) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({ success: false, message: 'Message not found' });
+    }
+
+    if (targetMessage.sender.toString() !== req.user.id) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(403).json({ success: false, message: 'Not authorized to edit this message' });
+    }
+
+    targetMessage.message = message.trim();
+    targetMessage.edited = true;
+    targetMessage.editedAt = new Date();
+
+    await ticket.save({ session });
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(200).json({ success: true, data: targetMessage });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    next(error);
+  }
+};
+
+// @desc    Delete a support ticket message
+// @route   DELETE /api/v1/support/tickets/:id/messages/:messageId
+// @access  Private
+exports.deleteMessage = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const { id: ticketId, messageId } = req.params;
+
+    const ticket = await SupportTicket.findById(ticketId).session(session);
+    if (!ticket) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({ success: false, message: 'Support ticket not found' });
+    }
+
+    const targetMessage = ticket.messages.id(messageId);
+    if (!targetMessage) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({ success: false, message: 'Message not found' });
+    }
+
+    if (targetMessage.sender.toString() !== req.user.id) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(403).json({ success: false, message: 'Not authorized to delete this message' });
+    }
+
+    ticket.messages = ticket.messages.filter(m => m._id.toString() !== messageId);
+    await ticket.save({ session });
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(200).json({ success: true, message: 'Message deleted successfully' });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    next(error);
+  }
+};

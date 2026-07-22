@@ -71,6 +71,11 @@ const supportTicketSchema = new mongoose.Schema({
       type: Boolean,
       default: false
     },
+    edited: {
+      type: Boolean,
+      default: false
+    },
+    editedAt: Date,
     createdAt: {
       type: Date,
       default: Date.now
@@ -152,7 +157,7 @@ supportTicketSchema.methods.addMessage = async function(senderId, message, isInt
     message,
     isInternal,
     attachments,
-    timestamp: new Date()
+    createdAt: new Date()
   });
   
   // If this is the first agent response, set firstResponseAt

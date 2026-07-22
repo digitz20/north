@@ -84,6 +84,10 @@ router.route('/tickets/:id')
 router.route('/tickets/:id/messages')
   .post(protect, addMessage);
 
+router.route('/tickets/:id/messages/:messageId')
+  .put(protect, addMessage.editMessage)
+  .delete(protect, addMessage.deleteMessage);
+
 router.route('/tickets/:id/close')
   .put(protect, closeTicket);
 
