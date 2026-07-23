@@ -679,8 +679,8 @@ const Investments = () => {
                 <TableBody>
                   {investments.map((inv) => (
                     <TableRow key={inv._id || inv.investmentId}>
-                      <TableCell>{inv.plan?.type || 'N/A'}</TableCell>
-                      <TableCell>{inv.plan?.name || 'N/A'}</TableCell>
+                      <TableCell>{inv.investmentType || 'N/A'}</TableCell>
+                      <TableCell>{inv.investmentName || 'N/A'}</TableCell>
                       <TableCell>${(inv.amountInvested || 0).toLocaleString()}</TableCell>
                       <TableCell>${(inv.currentValue || 0).toLocaleString()}</TableCell>
                       <TableCell>

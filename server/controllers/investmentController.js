@@ -11,11 +11,10 @@ const logger = require('../utils/logger');
 // Helper function to calculate current investment value based on returns
 const calculateCurrentValue = (investment, plan) => {
   if (investment.status !== 'active') return investment.currentValue;
-  
-  const monthsInvested = (Date.now() - investment.purchaseDate) / (1000 * 60 * 60 * 24 * 30);
-  const annualReturn = plan.expectedReturn / 100;
-  const monthlyReturn = annualReturn / 12;
-  const projectedValue = investment.amountInvested * Math.pow(1 + monthlyReturn, monthsInvested);
+
+  const daysInvested = Math.max(1, (Date.now() - investment.purchaseDate) / (1000 * 60 * 60 * 24));
+  const dailyRate = (plan.expectedReturn || 0) / 100;
+  const projectedValue = investment.amountInvested * Math.pow(1 + dailyRate, daysInvested);
   return Math.round(projectedValue * 100) / 100;
 };
 
@@ -40,10 +39,19 @@ exports.getInvestments = async (req, res, next) => {
       .populate('plan', 'name type expectedReturn riskLevel')
       .populate('transaction', 'amount status');
 
-    // Update current values for active investments
+    // Update current values for active investments and ensure plan fields are present
     for (let investment of investments) {
       if (investment.status === 'active') {
-        const plan = await InvestmentPlan.findById(investment.plan._id);
+        let plan = null;
+        if (investment.plan && typeof investment.plan === 'object' && investment.plan._id) {
+          plan = await InvestmentPlan.findById(investment.plan._id);
+        }
+
+        if (!plan && investment.plan) {
+          const planIdentifier = typeof investment.plan === 'string' ? investment.plan : String(investment.plan);
+          plan = await InvestmentPlan.findOne({ name: planIdentifier });
+        }
+
         if (plan) {
           const newValue = calculateCurrentValue(investment, plan);
           const returnsEarned = newValue - investment.amountInvested;
@@ -54,6 +62,8 @@ exports.getInvestments = async (req, res, next) => {
           });
           investment.currentValue = newValue;
           investment.returnsEarned = Math.round(returnsEarned * 100) / 100;
+          investment.planName = plan.name;
+          investment.planType = plan.type;
         }
       }
     }
@@ -94,7 +104,16 @@ exports.getInvestment = async (req, res, next) => {
 
     // Update current value if active
     if (investment.status === 'active') {
-      const plan = await InvestmentPlan.findById(investment.plan._id);
+      let plan = null;
+      if (investment.plan && typeof investment.plan === 'object' && investment.plan._id) {
+        plan = await InvestmentPlan.findById(investment.plan._id);
+      }
+
+      if (!plan && investment.plan) {
+        const planIdentifier = typeof investment.plan === 'string' ? investment.plan : String(investment.plan);
+        plan = await InvestmentPlan.findOne({ name: planIdentifier });
+      }
+
       if (plan) {
         const newValue = calculateCurrentValue(investment, plan);
         const returnsEarned = newValue - investment.amountInvested;
@@ -105,6 +124,8 @@ exports.getInvestment = async (req, res, next) => {
         });
         investment.currentValue = newValue;
         investment.returnsEarned = Math.round(returnsEarned * 100) / 100;
+        investment.planName = plan.name;
+        investment.planType = plan.type;
       }
     }
 
@@ -164,7 +185,7 @@ exports.createInvestment = async (req, res, next) => {
         description: `Investment plan for ${category || 'general'}`,
         type: category === 'crypto' ? 'crypto' : category === 'stocks' ? 'stock' : 'mutual-fund',
         minimumInvestment: 100,
-        expectedReturn: 5,
+        expectedReturn: category === 'crypto' ? 3.5 : category === 'stocks' ? 0.5 : 0.25,
         riskLevel: 'medium',
         duration: 12,
         liquidity: 'maturity-only',

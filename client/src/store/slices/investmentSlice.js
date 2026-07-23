@@ -5,11 +5,14 @@ import api from '../../services/api';
 const formatInvestmentForUI = (investment) => ({
   ...investment,
   id: investment._id,
+  investmentType: investment.plan?.type || investment.planType || 'N/A',
+  investmentName: investment.plan?.name || investment.planName || 'N/A',
   returns: investment.currentValue && investment.amountInvested 
     ? `${(((investment.currentValue - investment.amountInvested) / investment.amountInvested) * 100).toFixed(1)}%` 
     : '0%',
   invested: investment.amountInvested || 0,
-  currentValue: investment.currentValue || 0
+  currentValue: investment.currentValue || 0,
+  returnsEarned: investment.returnsEarned || 0
 });
 
 
