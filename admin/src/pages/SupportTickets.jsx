@@ -420,7 +420,7 @@ const SupportTickets = () => {
         if (isConnected && socket) {
           sendMessage({
             ticketId: selectedTicket._id,
-            message: '',
+            message: '📎 Attachment',
             attachments: [attachment]
           });
         } else {
@@ -463,11 +463,11 @@ const SupportTickets = () => {
               const attachment = uploadResponse.data.data;
               attachment.name = '🎤 Voice Message';
               if (isConnected && socket) {
-                sendMessage({
-                  ticketId: selectedTicket._id,
-                  message: '',
-                  attachments: [attachment]
-                });
+                  sendMessage({
+                    ticketId: selectedTicket._id,
+                    message: attachment.name || '🎤 Voice Message',
+                    attachments: [attachment]
+                  });
               } else {
                 const response = await api.post(`/support/tickets/${selectedTicket._id}/messages`, {
                   message: '🎤 Voice Message',

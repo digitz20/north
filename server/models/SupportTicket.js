@@ -151,14 +151,14 @@ const supportTicketSchema = new mongoose.Schema({
 });
 
 // Add message to ticket
-supportTicketSchema.methods.addMessage = async function(senderId, message, isInternal = false, attachments = []) {
-  this.messages.push({
-    sender: senderId,
-    message,
-    isInternal,
-    attachments,
-    createdAt: new Date()
-  });
+  supportTicketSchema.methods.addMessage = async function(senderId, message, isInternal = false, attachments = []) {
+    this.messages.push({
+      sender: senderId,
+      message: message || (attachments.length > 0 ? '📎 Attachment' : ''),
+      isInternal,
+      attachments,
+      createdAt: new Date()
+    });
   
   // If this is the first agent response, set firstResponseAt
   if (!this.firstResponseAt && isInternal) {

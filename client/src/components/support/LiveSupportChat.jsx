@@ -379,7 +379,7 @@ const LiveSupportChat = () => {
     if (socket && isConnected) {
       sendMessage({
         ticketId,
-        message: messageText,
+        message: messageText || (localMessage.attachments[0]?.name || '📎 Attachment'),
         attachments: localMessage.attachments,
         tempId: localMessage._id
       });
