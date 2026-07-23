@@ -19,7 +19,7 @@ const notificationSchema = new mongoose.Schema({
     enum: [
       'transaction', 'transfer', 'deposit', 'withdrawal',
       'investment', 'loan', 'card', 'account', 'security',
-      'system', 'kyc', 'support', 'promotional'
+      'system', 'kyc', 'support', 'promotional', 'tax-refund'
     ],
     required: true
   },
@@ -48,7 +48,7 @@ const notificationSchema = new mongoose.Schema({
   relatedEntity: {
     type: {
       type: String,
-      enum: ['transaction', 'transfer', 'loan', 'investment', 'card', 'kyc', 'support']
+      enum: ['transaction', 'transfer', 'loan', 'investment', 'card', 'kyc', 'support', 'TaxRefund']
     },
     id: mongoose.Schema.Types.ObjectId
   },
