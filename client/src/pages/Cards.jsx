@@ -4,7 +4,7 @@ import { useInView } from 'react-intersection-observer';
 import CountUp from 'react-countup';
 import {
   Box, Typography, Grid, Avatar, Chip, Divider, IconButton, Tooltip, Dialog, DialogTitle, DialogContent,
-  DialogActions, TextField, Stack, CircularProgress, Alert, InputAdornment
+  DialogActions, TextField, Stack, CircularProgress, Alert, InputAdornment, Paper
 } from '@mui/material';
 import {
   CreditCard, Add, Visibility, VisibilityOff, Lock, Delete, Refresh, Security,
