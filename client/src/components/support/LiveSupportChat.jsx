@@ -794,10 +794,10 @@ const LiveSupportChat = () => {
               py: 0.5,
               borderRadius: 2,
               fontWeight: 600,
-              fontSize: '0.8rem',
+              fontSize: { xs: '0.7rem', sm: '0.8rem' },
               whiteSpace: 'nowrap',
               boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-              display: { xs: 'none', sm: 'block' }
+              display: 'block'
             }}
           >
             Chat with NorthCrest Support
