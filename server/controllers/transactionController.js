@@ -26,9 +26,11 @@ exports.getTransactions = async (req, res, next) => {
     const userAccountIds = userAccounts.map(account => account._id);
     filters.$or = [
       { sourceAccount: { $in: userAccountIds } },
-      { destinationAccount: { $in: userAccountIds } },
-      { wallet: req.user.wallet?._id }
+      { destinationAccount: { $in: userAccountIds } }
     ];
+    if (req.user.wallet?._id) {
+      filters.$or.push({ wallet: req.user.wallet._id });
+    }
 
     const total = await Transaction.countDocuments(filters);
     const transactions = await Transaction.find(filters)
@@ -38,18 +40,22 @@ exports.getTransactions = async (req, res, next) => {
       .populate('sourceAccount', 'accountType nickname')
       .populate('destinationAccount', 'accountType nickname');
 
-    await AuditLog.log({
-      actor: {
-        user: req.user.id,
-        role: req.user.role,
-        ip: req.ip,
-        userAgent: req.get('User-Agent')
-      },
-      action: 'transactions_viewed',
-      category: 'transaction-management',
-      description: `User viewed their transaction history`,
-      entity: { type: 'user', id: req.user.id }
-    });
+    try {
+      await AuditLog.log({
+        actor: {
+          user: req.user.id,
+          role: req.user.role,
+          ip: req.ip,
+          userAgent: req.get('User-Agent')
+        },
+        action: 'transactions_viewed',
+        category: 'transaction-management',
+        description: `User viewed their transaction history`,
+        entity: { type: 'user', id: req.user.id }
+      });
+    } catch (auditErr) {
+      logger.warn(`Audit log failed for transactions view: ${auditErr.message}`);
+    }
 
     res.status(200).json({
       success: true,

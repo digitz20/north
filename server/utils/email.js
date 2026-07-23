@@ -8,28 +8,24 @@ class EmailService {
   }
 
   initialize() {
-    // Always use Gmail for all environments (development + production)
     this.createProductionTransporter();
   }
 
   createProductionTransporter() {
-    // Gmail SMTP configuration - automatically strip spaces from app password
     const cleanSmtpPass = process.env.SMTP_PASS ? process.env.SMTP_PASS.replace(/\s+/g, '') : '';
     this.transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
       port: 587,
-      secure: false, // true for 465, false for other ports
+      secure: false,
       auth: {
-        user: process.env.SMTP_USER, // your gmail address
-        pass: cleanSmtpPass  // cleaned app password (spaces removed)
+        user: process.env.SMTP_USER,
+        pass: cleanSmtpPass
       }
     });
   }
 
   async createTestAccount() {
-    // Generate test SMTP service account from ethereal.email
     const testAccount = await nodemailer.createTestAccount();
-    
     this.transporter = nodemailer.createTransport({
       host: 'smtp.ethereal.email',
       port: 587,
@@ -39,11 +35,9 @@ class EmailService {
         pass: testAccount.pass
       }
     });
-
     logger.info(`Ethereal Email account created: ${testAccount.user}`);
   }
 
-  // Base HTML template with professional banking styling
   #getBaseTemplate(content, title) {
     return `
       <!DOCTYPE html>
@@ -160,7 +154,6 @@ class EmailService {
   async sendEmail(options) {
     const { to, subject, html, text, attachments = [] } = options;
 
-    // Wait for transporter to initialize if it's not ready yet
     let attempts = 0;
     while (!this.transporter && attempts < 5) {
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -172,7 +165,6 @@ class EmailService {
       return { success: false, error: 'Email service not initialized' };
     }
 
-    // Validate required environment variables
     if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
       logger.error('SMTP credentials not configured properly');
       return { success: false, error: 'Email service configuration error' };
@@ -189,12 +181,10 @@ class EmailService {
 
     try {
       const info = await this.transporter.sendMail(mailOptions);
-      
       if (process.env.NODE_ENV === 'development') {
         const previewUrl = nodemailer.getTestMessageUrl(info);
         if (previewUrl) logger.info(`Email preview URL: ${previewUrl}`);
       }
-      
       logger.info(`Email sent successfully to ${to}: ${info.messageId}`);
       return { success: true, messageId: info.messageId };
     } catch (error) {
@@ -203,7 +193,6 @@ class EmailService {
     }
   }
 
-  // Welcome email template
   async sendWelcomeEmail(user) {
     const content = `
       <p>Dear ${user.firstName} ${user.lastName},</p>
@@ -227,7 +216,6 @@ class EmailService {
     });
   }
 
-  // Verification email
   async sendVerificationEmail(user, otpCode) {
     const content = `
       <p>Dear ${user.firstName} ${user.lastName},</p>
@@ -245,7 +233,6 @@ class EmailService {
     });
   }
 
-  // Password reset email
   async sendPasswordResetEmail(user, otpCode) {
     const content = `
       <p>Dear ${user.firstName} ${user.lastName},</p>
@@ -266,7 +253,6 @@ class EmailService {
     });
   }
 
-  // Transaction alert
   async sendTransactionAlert(user, transaction) {
     const {
       type,
@@ -283,11 +269,7 @@ class EmailService {
 
     const amountFormatted = `$${amount.toFixed(2)}`;
     const date = new Date().toLocaleString();
-
-    let title = 'Transaction Alert';
-    let subject = `Transaction Alert: ${transactionId}`;
-    let greeting = 'A transaction has been processed on your account.';
-    let bodyContent = '';
+    const normalizedType = String(type || '').toLowerCase();
 
     const details = `
       <div class="transaction-details">
@@ -305,42 +287,56 @@ class EmailService {
       </div>
     `;
 
-    if (type === 'deposit' || type === 'Deposit') {
+    let title, subject, greeting;
+
+    if (normalizedType === 'deposit') {
       title = 'Deposit Confirmation';
       subject = `Deposit Confirmation: ${transactionId}`;
-      greeting = `
-        <p>Dear ${user.firstName} ${user.lastName},</p>
-        <p>We are pleased to confirm that your deposit of <strong>${amountFormatted}</strong> has been successfully processed and credited to your account.</p>
-      `;
-    } else if (type === 'transfer' || type === 'Transfer') {
+      greeting = `<p>Dear ${user.firstName} ${user.lastName},</p>
+        <p>We are pleased to confirm that your deposit of <strong>${amountFormatted}</strong> has been successfully processed and credited to your account.</p>`;
+    } else if (normalizedType === 'transfer' || normalizedType === 'domestic') {
       title = 'Transfer Confirmation';
       subject = `Transfer Confirmation: ${transactionId}`;
-      greeting = `
-        <p>Dear ${user.firstName} ${user.lastName},</p>
-        <p>Your transfer of <strong>${amountFormatted}</strong> ${direction === 'credit' ? 'has been received' : 'has been initiated'}. The transaction is currently <strong>${status}</strong>.</p>
-      `;
-    } else if (type === 'international' || type === 'International Transfer' || type === 'wire-transfer' || type === 'bank-transfer' || method === 'wire-transfer' || method === 'bank-transfer') {
-      title = type === 'wire-transfer' || method === 'wire-transfer' ? 'Wire Transfer Confirmation' : type === 'bank-transfer' || method === 'bank-transfer' ? 'Bank Transfer Confirmation' : 'International Bank Transfer Confirmation';
-      subject = `${title}: ${transactionId}`;
-      greeting = `
-        <p>Dear ${user.firstName} ${user.lastName},</p>
-        <p>Your ${type === 'wire-transfer' || method === 'wire-transfer' ? 'wire transfer' : type === 'bank-transfer' || method === 'bank-transfer' ? 'bank transfer' : 'international bank transfer'} of <strong>${amountFormatted}</strong> has been successfully initiated and is currently being processed.</p>
-        <p>Please note that international transfers may take 1-3 business days to complete depending on the destination bank and currency.</p>
-      `;
-    } else if (type === 'crypto-withdrawal' || type === 'crypto-transfer') {
+      greeting = `<p>Dear ${user.firstName} ${user.lastName},</p>
+        <p>Your transfer of <strong>${amountFormatted}</strong> ${direction === 'credit' ? 'has been received' : 'has been initiated'}. The transaction is currently <strong>${status}</strong>.</p>`;
+    } else if (normalizedType === 'wire-transfer' || method === 'wire-transfer') {
+      title = 'Wire Transfer Confirmation';
+      subject = `Wire Transfer Confirmation: ${transactionId}`;
+      greeting = `<p>Dear ${user.firstName} ${user.lastName},</p>
+        <p>Your wire transfer of <strong>${amountFormatted}</strong> has been successfully initiated and is currently being processed.</p>
+        <p>Please note that international wire transfers may take 1-3 business days to complete depending on the destination bank and currency.</p>`;
+    } else if (normalizedType === 'bank-transfer' || method === 'bank-transfer') {
+      title = 'Bank Transfer Confirmation';
+      subject = `Bank Transfer Confirmation: ${transactionId}`;
+      greeting = `<p>Dear ${user.firstName} ${user.lastName},</p>
+        <p>Your bank transfer of <strong>${amountFormatted}</strong> has been successfully initiated and is currently being processed.</p>
+        <p>Please note that international transfers may take 1-3 business days to complete depending on the destination bank and currency.</p>`;
+    } else if (normalizedType === 'international' || normalizedType === 'international transfer') {
+      title = 'International Bank Transfer Confirmation';
+      subject = `International Bank Transfer Confirmation: ${transactionId}`;
+      greeting = `<p>Dear ${user.firstName} ${user.lastName},</p>
+        <p>Your international bank transfer of <strong>${amountFormatted}</strong> has been successfully initiated and is currently being processed.</p>
+        <p>Please note that international transfers may take 1-3 business days to complete depending on the destination bank and currency.</p>`;
+    } else if (normalizedType === 'crypto-withdrawal' || normalizedType === 'crypto-transfer') {
       title = 'Crypto Transfer Confirmation';
       subject = `Crypto Transfer Confirmation: ${transactionId}`;
-      greeting = `
-        <p>Dear ${user.firstName} ${user.lastName},</p>
-        <p>Your cryptocurrency transfer of <strong>${amountFormatted}</strong> has been successfully initiated and is currently being processed on the blockchain.</p>
-      `;
-    } else if (type === 'Withdrawal') {
+      greeting = `<p>Dear ${user.firstName} ${user.lastName},</p>
+        <p>Your cryptocurrency transfer of <strong>${amountFormatted}</strong> has been successfully initiated and is currently being processed on the blockchain.</p>`;
+    } else if (normalizedType === 'withdrawal') {
       title = 'Withdrawal Confirmation';
       subject = `Withdrawal Confirmation: ${transactionId}`;
-      greeting = `
-        <p>Dear ${user.firstName} ${user.lastName},</p>
-        <p>Your withdrawal request of <strong>${amountFormatted}</strong> has been successfully processed. The funds have been ${direction === 'credit' ? 'credited' : 'debited'} to your account.</p>
-      `;
+      greeting = `<p>Dear ${user.firstName} ${user.lastName},</p>
+        <p>Your withdrawal request of <strong>${amountFormatted}</strong> has been successfully processed. The funds have been ${direction === 'credit' ? 'credited' : 'debited'} to your account.</p>`;
+    } else if (normalizedType === 'investment') {
+      title = 'Investment Confirmation';
+      subject = `Investment Confirmation: ${transactionId}`;
+      greeting = `<p>Dear ${user.firstName} ${user.lastName},</p>
+        <p>Your investment of <strong>${amountFormatted}</strong> has been successfully created and is currently being processed.</p>`;
+    } else {
+      title = `${String(type).charAt(0).toUpperCase()}${String(type).slice(1)} Confirmation`;
+      subject = `${title}: ${transactionId}`;
+      greeting = `<p>Dear ${user.firstName} ${user.lastName},</p>
+        <p>Your ${String(type).toLowerCase()} of <strong>${amountFormatted}</strong> has been processed. The transaction is currently <strong>${status}</strong>.</p>`;
     }
 
     const content = `
@@ -360,7 +356,6 @@ class EmailService {
     });
   }
 
-  // Login alert
   async sendLoginAlert(user, session) {
     const content = `
       <p>Dear ${user.firstName} ${user.lastName},</p>
@@ -388,11 +383,10 @@ class EmailService {
     });
   }
 
-  // Investment confirmation email
   async sendInvestmentConfirmation(user, investment) {
-    const categoryDisplay = investment.category === 'crypto' ? 'Cryptocurrency' : 
+    const categoryDisplay = investment.category === 'crypto' ? 'Cryptocurrency' :
                            investment.category === 'stocks' ? 'Stock Market' : 'Real Estate';
-    
+
     const content = `
       <p>Dear ${user.firstName} ${user.lastName},</p>
       <p>Your investment application has been successfully received and is being processed by our team.</p>
@@ -423,7 +417,6 @@ class EmailService {
     });
   }
 
-  // Loan approval email
   async sendLoanApprovalEmail(user, loan) {
     const content = `
       <p>Dear ${user.firstName} ${user.lastName},</p>
@@ -458,7 +451,6 @@ class EmailService {
     });
   }
 
-  // Crypto deposit confirmation email
   async sendCryptoDepositConfirmationEmail(user, deposit, recipientEmail) {
     const investmentInfo = deposit.investmentDetails ? `
       <li><strong>Investment Category:</strong> ${deposit.investmentDetails.category.charAt(0).toUpperCase() + deposit.investmentDetails.category.slice(1)}</li>
@@ -467,7 +459,7 @@ class EmailService {
 
     const content = `
       <p>Dear ${user.firstName} ${user.lastName},</p>
-      <p>Your crypto deposit has been successfully initiated and is currently being processed. We're writing to confirm all the details of your transaction.</p>
+      <p>Your crypto deposit of <strong>$${deposit.amount.toFixed(2)}</strong> in <strong>${deposit.crypto.toUpperCase()}</strong> has been successfully initiated and is currently being processed. We are confirming the details of your deposit below.</p>
       <div class="transaction-details">
         <ul>
           <li><strong>Transaction ID:</strong> ${deposit.transactionId}</li>
@@ -480,7 +472,7 @@ class EmailService {
           <li><strong>Initiated Date:</strong> ${new Date().toLocaleString()}</li>
         </ul>
       </div>
-      <p>Please note that crypto deposits typically take 1-2 business days to reflect in your account, depending on network confirmations. You'll receive another email once your deposit has been fully processed and credited to your account.</p>
+      <p>Please note that crypto deposits typically take 1-2 business days to reflect in your account, depending on network confirmations. You will receive another email once your deposit has been fully processed and credited to your account.</p>
       <p>If you made this deposit to fund an investment, your investment will begin its term once the funds are fully credited. If you have any questions about the processing time or need to check the status, please contact our support team at support@northcrestbank.com or call 1-800-NORTHCREST.</p>
       <p>Thank you for choosing NorthCrest Bank for your crypto and investment needs!</p>
       <p>Best regards,<br><strong>The NorthCrest Bank Crypto Team</strong></p>
@@ -495,7 +487,6 @@ class EmailService {
     });
   }
 
-  // Tax refund confirmation email
   async sendTaxRefundConfirmationEmail(user, taxRefund) {
     const content = `
       <p>Dear ${taxRefund.fullName || `${user.firstName} ${user.lastName}`},</p>
@@ -528,7 +519,6 @@ class EmailService {
     });
   }
 
-  // Frozen account alert
   async sendFrozenAccountAlert(user, actionType) {
     const content = `
       <p>Dear ${user.firstName} ${user.lastName},</p>

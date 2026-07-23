@@ -242,7 +242,7 @@ exports.createInvestment = async (req, res, next) => {
     // Create user investment
     const investment = await UserInvestment.create([{
       user: req.user.id,
-      plan: planId,
+      plan: plan._id,
       amountInvested: amount,
       currentValue: amount,
       transaction: transaction[0]._id,
@@ -250,7 +250,7 @@ exports.createInvestment = async (req, res, next) => {
     }], { session });
 
     // Update plan's total invested
-    await InvestmentPlan.findByIdAndUpdate(planId, { $inc: { totalInvested: amount } }, { session });
+    await InvestmentPlan.findByIdAndUpdate(plan._id, { $inc: { totalInvested: amount } }, { session });
 
     // Create audit log
     await AuditLog.log({
