@@ -386,7 +386,7 @@ const LiveSupportChat = () => {
       } else {
         try {
           const response = await api.post(`/support/tickets/${ticketId}/messages`, {
-            message: messageText,
+            message: messageText || '📎 Attachment',
             attachments: localMessage.attachments
           });
 

@@ -288,12 +288,12 @@ exports.addMessage = async (req, res, next) => {
   try {
     const { message, attachments, isInternal = false } = req.body;
 
-    if (!message) {
+    if (!message && (!attachments || attachments.length === 0)) {
       await session.abortTransaction();
       session.endSession();
       return res.status(400).json({
         success: false,
-        message: 'Please provide a message'
+        message: 'Please provide a message or attachment'
       });
     }
 

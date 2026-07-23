@@ -425,7 +425,7 @@ const SupportTickets = () => {
           });
         } else {
           const response = await api.post(`/support/tickets/${selectedTicket._id}/messages`, {
-            message: '',
+            message: '📎 Attachment',
             attachments: [attachment],
             sender: user._id,
             senderName: user?.firstName || user?.name || 'Admin'
@@ -470,7 +470,7 @@ const SupportTickets = () => {
                 });
               } else {
                 const response = await api.post(`/support/tickets/${selectedTicket._id}/messages`, {
-                  message: '',
+                  message: '🎤 Voice Message',
                   attachments: [attachment],
                   sender: user._id,
                   senderName: user?.firstName || user?.name || 'Admin'
