@@ -1008,38 +1008,58 @@ const LiveSupportChat = () => {
                               <Box key={attIndex}>
                                 {attachment.url && (
                                   <>
-                                    {attachment.url.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? (
-                                      <Box
-                                        component="img"
-                                        src={attachment.url}
-                                        alt={attachment.name}
-                                        sx={{
-                                          maxWidth: '100%',
-                                          maxHeight: 200,
-                                          borderRadius: 1,
-                                          mt: 1
-                                        }}
-                                      />
-                                    ) : attachment.url.match(/\.(mp3|wav|ogg|webm)$/i) ? (
-                                      <Box sx={{ mt: 1 }}>
-                                        <audio controls src={attachment.url} style={{ maxWidth: '100%', height: 40 }} />
-                                      </Box>
-                                    ) : (
-                                      <Box
-                                        sx={{
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          gap: 1,
-                                          mt: 1,
-                                          p: 1,
-                                          borderRadius: 1,
-                                          bgcolor: 'rgba(255,255,255,0.1)'
-                                        }}
-                                      >
-                                        <FileIcon fontSize="small" />
-                                        <Typography variant="caption">{attachment.name}</Typography>
-                                      </Box>
-                                    )}
+                                                                        
+                                    {(() => {
+                                      const url = attachment.url;
+                                      const lower = url.toLowerCase();
+                                      if (lower.startsWith('data:image/') || lower.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
+                                        return (
+                                          <Box component="img" src={url} alt={attachment.name}
+                                            sx={{ maxWidth: '100%', maxHeight: 200, borderRadius: 1, mt: 1 }} />
+                                        );
+                                      }
+                                      if (lower.startsWith('data:audio/') || lower.match(/\.(mp3|wav|ogg|webm)$/i)) {
+                                        return (
+                                          <Box sx={{ mt: 1 }}>
+                                            <audio controls src={url} style={{ maxWidth: '100%', height: 40 }} />
+                                          </Box>
+                                        );
+                                      }
+                                      if (lower.startsWith('data:') || lower.startsWith('blob:')) {
+                                        const mime = lower.match(/^data:([^;]+)/)?.[1] || lower.match(/^blob:([^;]+)/)?.[1];
+                                        const ext = (mime || '').split('/').pop();
+                                        if (mime?.startsWith('image/')) {
+                                          return (
+                                            <Box component="img" src={url} alt={attachment.name}
+                                              sx={{ maxWidth: '100%', maxHeight: 200, borderRadius: 1, mt: 1 }} />
+                                          );
+                                        }
+                                        if (mime?.startsWith('audio/')) {
+                                          return (
+                                            <Box sx={{ mt: 1 }}>
+                                              <audio controls src={url} style={{ maxWidth: '100%', height: 40 }} />
+                                            </Box>
+                                          );
+                                        }
+                                        if (mime?.startsWith('video/')) {
+                                          return (
+                                            <Box sx={{ mt: 1 }}>
+                                              <video controls src={url} style={{ maxWidth: '100%', height: 200, borderRadius: 1 }} />
+                                            </Box>
+                                          );
+                                        }
+                                        return (
+                                          <Box sx={{ mt: 1 }}>
+                                            <a href={url} download={attachment.name} style={{ color: 'inherit' }}>📎 {attachment.name || 'Download file'}</a>
+                                          </Box>
+                                        );
+                                      }
+                                      return (
+                                        <Box sx={{ mt: 1 }}>
+                                          <a href={url} target="_blank" rel="noopener noreferrer">📎 {attachment.name || 'Open file'}</a>
+                                        </Box>
+                                      );
+                                    })()}
                                   </>
                                 )}
                               </Box>
