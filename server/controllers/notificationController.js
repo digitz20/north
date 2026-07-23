@@ -158,13 +158,29 @@ exports.sendEmail = async (req, res, next) => {
       });
     }
 
+    const validTypes = [
+      'withdrawal_confirmation',
+      'deposit_confirmation',
+      'international_transfer_confirmation'
+    ];
+
+    if (!validTypes.includes(type)) {
+      return res.status(400).json({
+        success: false,
+        message: `Unsupported email type: ${type}`,
+        validTypes
+      });
+    }
+
     const safeTransactionDetails = transactionDetails || {};
 
     // Send the appropriate email based on type
     switch (type) {
       case 'withdrawal_confirmation':
         await emailService.sendTransactionAlert(user, {
-          ...safeTransactionDetails,
+          transactionId: safeTransactionDetails.transactionId,
+          amount: safeTransactionDetails.amount,
+          status: safeTransactionDetails.status || 'completed',
           direction: 'sent',
           type: 'Withdrawal',
           description: 'Your withdrawal has been processed'
@@ -173,24 +189,30 @@ exports.sendEmail = async (req, res, next) => {
         break;
 
       case 'deposit_confirmation':
-        await emailService.sendCryptoDepositConfirmationEmail(user, safeTransactionDetails, email);
+        await emailService.sendCryptoDepositConfirmationEmail(user, {
+          amount: safeTransactionDetails.amount,
+          crypto: safeTransactionDetails.crypto,
+          network: safeTransactionDetails.network,
+          destinationAccount: safeTransactionDetails.destinationAccount,
+          transactionId: safeTransactionDetails.transactionId,
+          transactionHash: safeTransactionDetails.transactionHash,
+          investmentDetails: safeTransactionDetails.investmentDetails
+        }, email);
         logger.info(`Deposit confirmation email sent to: ${email}`);
         break;
 
       case 'international_transfer_confirmation':
         await emailService.sendTransactionAlert(user, {
-          ...safeTransactionDetails,
+          transactionId: safeTransactionDetails.transactionId,
+          amount: safeTransactionDetails.amount,
+          status: safeTransactionDetails.status || 'completed',
           direction: 'sent',
           type: safeTransactionDetails.method === 'wire-transfer' ? 'wire-transfer' : safeTransactionDetails.method === 'bank-transfer' ? 'bank-transfer' : 'international',
-          description: safeTransactionDetails.description || 'Your international transfer has been initiated'
+          description: safeTransactionDetails.description || 'Your international transfer has been initiated',
+          method: safeTransactionDetails.method
         });
         logger.info(`International transfer confirmation email sent to: ${email}`);
         break;
-
-      default:
-        // Default to transaction alert for unknown types
-        await emailService.sendTransactionAlert(user, safeTransactionDetails);
-        logger.info(`Generic transaction email sent to: ${email} for type: ${type}`);
     }
 
     res.status(200).json({
