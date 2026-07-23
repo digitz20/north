@@ -1249,7 +1249,11 @@ const SupportTickets = () => {
 
               <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', bgcolor: '#f7fafc', overflow: 'hidden' }}>
                 <Box ref={messagesContainerRef} sx={{ flex: 1, overflow: 'auto', p: { xs: 1.5, sm: 3 } }}>
-                  {(ticketMessages[selectedTicket._id] || []).map((msg, index) => {
+                  {!user?._id ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
+                      <CircularProgress size={28} sx={{ color: '#0066FF' }} />
+                    </Box>
+                  ) : (ticketMessages[selectedTicket._id] || []).map((msg, index) => {
                     const senderId = msg.sender?._id || msg.sender;
                     const isOwn = senderId?.toString?.() === user._id?.toString?.();
                     const canEdit = isOwn;
