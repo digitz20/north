@@ -414,9 +414,7 @@ const SupportTickets = () => {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const uploadResponse = await api.post(`/support/tickets/${selectedTicket._id}/upload`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const uploadResponse = await api.post(`/support/tickets/${selectedTicket._id}/upload`, formData);
       if (uploadResponse.data?.success) {
         const attachment = uploadResponse.data.data;
         if (isConnected && socket) {
@@ -460,9 +458,7 @@ const SupportTickets = () => {
           try {
             const formData = new FormData();
             formData.append('file', audioFile);
-            const uploadResponse = await api.post(`/support/tickets/${selectedTicket._id}/upload`, formData, {
-              headers: { 'Content-Type': 'multipart/form-data' }
-            });
+            const uploadResponse = await api.post(`/support/tickets/${selectedTicket._id}/upload`, formData);
             if (uploadResponse.data?.success) {
               const attachment = uploadResponse.data.data;
               attachment.name = '🎤 Voice Message';

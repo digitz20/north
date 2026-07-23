@@ -421,11 +421,7 @@ const LiveSupportChat = () => {
       const formData = new FormData();
       formData.append('file', file);
 
-      const uploadResponse = await api.post(`/support/tickets/${currentTicket?._id}/upload`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+      const uploadResponse = await api.post(`/support/tickets/${currentTicket?._id}/upload`, formData);
 
       if (uploadResponse.data?.success) {
         const attachment = uploadResponse.data.data;
@@ -469,11 +465,7 @@ const LiveSupportChat = () => {
           const formData = new FormData();
           formData.append('file', audioFile);
 
-          const uploadResponse = await api.post(`/support/tickets/${currentTicket?._id}/upload`, formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-          });
+          const uploadResponse = await api.post(`/support/tickets/${currentTicket?._id}/upload`, formData);
 
           if (uploadResponse.data?.success) {
             const attachment = uploadResponse.data.data;
@@ -504,9 +496,7 @@ const LiveSupportChat = () => {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const uploadResponse = await api.post(`/support/tickets/${currentTicket._id}/upload`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const uploadResponse = await api.post(`/support/tickets/${currentTicket._id}/upload`, formData);
       if (uploadResponse.data?.success) {
         const attachment = uploadResponse.data.data;
         handleSendMessage([attachment]);
