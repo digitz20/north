@@ -251,9 +251,18 @@ const taxRefundSchema = new mongoose.Schema({
     ref: 'User'
   },
   documents: [{
-    type: String,
-    name: String,
-    url: String,
+    documentType: {
+      type: String,
+      required: true
+    },
+    name: {
+      type: String,
+      required: true
+    },
+    url: {
+      type: String,
+      required: true
+    },
     documentCategory: {
       type: String,
       enum: ['irs-form', 'passport', 'id-front', 'id-back', 'other', 'tax-document'],

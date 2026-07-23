@@ -829,7 +829,7 @@ exports.submitTaxRefund = async (req, res, next) => {
         }
         
         documents.push({
-          type: file.mimetype,
+          documentType: file.mimetype,
           name: file.originalname,
           url: `/uploads/tax-refunds/${file.filename}`,
           documentCategory,
