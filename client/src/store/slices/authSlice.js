@@ -43,7 +43,7 @@ export const login = createAsyncThunk(
   'auth/login',
   async (credentials, { rejectWithValue }) => {
     try {
-      const response = await axios.post('/auth/login', credentials);
+      const response = await axios.post('/auth/login', credentials, { timeout: 15000 });
       const { token, refreshToken, user } = response.data.data;
       
       // Store tokens in localStorage
@@ -53,6 +53,9 @@ export const login = createAsyncThunk(
       
       return { token, refreshToken, user };
     } catch (error) {
+      if (!error.response) {
+        return rejectWithValue('Network error: Unable to reach the server. Please check your connection and try again.');
+      }
       return rejectWithValue(error.response?.data?.message || 'Login failed');
     }
   }
