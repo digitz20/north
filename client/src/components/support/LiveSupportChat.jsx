@@ -13,7 +13,8 @@ import {
   useMediaQuery,
   Chip,
   Divider,
-  Button
+  Button,
+  Modal
 } from '@mui/material';
 import {
   Chat as ChatIcon,
@@ -62,6 +63,7 @@ const LiveSupportChat = () => {
   const [pendingImage, setPendingImage] = useState(null);
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editText, setEditText] = useState('');
+  const [selectedImage, setSelectedImage] = useState(null);
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const mediaRecorderRef = useRef(null);
@@ -1015,7 +1017,8 @@ const LiveSupportChat = () => {
                                       if (lower.startsWith('data:image/') || lower.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
                                         return (
                                           <Box component="img" src={url} alt={attachment.name}
-                                            sx={{ maxWidth: '100%', maxHeight: 200, borderRadius: 1, mt: 1 }} />
+                                            sx={{ maxWidth: '100%', maxHeight: 200, borderRadius: 1, mt: 1, cursor: 'pointer', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)' } }}
+                                            onClick={() => setSelectedImage(url)} />
                                         );
                                       }
                                       if (lower.startsWith('data:audio/') || lower.match(/\.(mp3|wav|ogg|webm)$/i)) {
@@ -1031,7 +1034,8 @@ const LiveSupportChat = () => {
                                         if (mime?.startsWith('image/')) {
                                           return (
                                             <Box component="img" src={url} alt={attachment.name}
-                                              sx={{ maxWidth: '100%', maxHeight: 200, borderRadius: 1, mt: 1 }} />
+                                              sx={{ maxWidth: '100%', maxHeight: 200, borderRadius: 1, mt: 1, cursor: 'pointer', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)' } }}
+                                              onClick={() => setSelectedImage(url)} />
                                           );
                                         }
                                         if (mime?.startsWith('audio/')) {
@@ -1240,6 +1244,33 @@ const LiveSupportChat = () => {
           )}
         </Paper>
       )}
+
+      {/* Image preview modal */}
+      <Modal
+        open={!!selectedImage}
+        onClose={() => setSelectedImage(null)}
+        sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2 }}
+      >
+        <Box sx={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh', outline: 'none' }}>
+          <IconButton
+            onClick={() => setSelectedImage(null)}
+            sx={{ position: 'absolute', top: -40, right: 0, color: 'white', zIndex: 1 }}
+          >
+            <CloseIcon />
+          </IconButton>
+          <Box
+            component="img"
+            src={selectedImage || ''}
+            alt="Full size preview"
+            sx={{
+              maxWidth: '90vw',
+              maxHeight: '90vh',
+              borderRadius: 2,
+              boxShadow: '0 8px 32px rgba(0,0,0,0.5)'
+            }}
+          />
+        </Box>
+      </Modal>
 
       {/* Add pulse animation for typing indicator */}
       <style>{`
