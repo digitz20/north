@@ -4,9 +4,7 @@ import axios from 'axios';
 const api = axios.create({
   baseURL: 'https://established-vanny-digitz-b5fdc94b.koyeb.app/api/v1',
   headers: {
-    'Content-Type': 'application/json',
-    'Cache-Control': 'no-cache, no-store, must-revalidate',
-    'Pragma': 'no-cache'
+    'Content-Type': 'application/json'
   }
 });
 
