@@ -129,94 +129,91 @@ const Login = () => {
 
           <Box component="form" onSubmit={handleSubmit} autoComplete="on">
             <Box sx={{ bgcolor: '#ffffff', borderRadius: 3, overflow: 'hidden', border: '1px solid #e5e5ea', display: 'flex', flexDirection: 'column', py: 3 }}>
-              <TextField
-                required
-                fullWidth
-                id="login-email"
-                name="email"
-                autoComplete="email"
-                autoFocus
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Box
-                        sx={{
-                          bgcolor: 'rgba(0, 102, 255, 0.08)',
-                          color: '#0066FF',
-                          px: 1.2,
-                          py: 0.4,
-                          borderRadius: '6px',
-                          fontSize: '0.75rem',
-                          fontWeight: 600,
-                          letterSpacing: '0.02em',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        Email
-                      </Box>
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{
-                  '& .MuiInputBase-root': { bgcolor: 'transparent' },
-                  '& .MuiOutlinedInput-root': { borderRadius: '6px' },
-                  '& .MuiInputBase-input': { px: 1.5 },
-                }}
-              />
-              <Divider sx={{ borderColor: '#e5e5ea', margin: 0 }} />
-              <TextField
-                required
-                fullWidth
-                name="password"
-                type={showPassword ? 'text' : 'password'}
-                id="login-password"
-                autoComplete="current-password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Box
-                        sx={{
-                          bgcolor: 'rgba(0, 102, 255, 0.08)',
-                          color: '#0066FF',
-                          px: 1.2,
-                          py: 0.4,
-                          borderRadius: '6px',
-                          fontSize: '0.75rem',
-                          fontWeight: 600,
-                          letterSpacing: '0.02em',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        Password
-                      </Box>
-                    </InputAdornment>
-                  ),
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        aria-label="toggle password visibility"
-                        onClick={() => setShowPassword(!showPassword)}
-                        edge="end"
-                        sx={{ color: '#8e8e93' }}
-                      >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{
-                  '& .MuiInputBase-root': { bgcolor: 'transparent' },
-                  '& .MuiOutlinedInput-root': { borderRadius: '6px' },
-                  '& .MuiInputBase-input': { px: 1.5 },
-                  mt: 3,
-                }}
-              />
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', px: 2, mb: 1 }}>
+                <Box
+                  sx={{
+                    bgcolor: 'rgba(0, 102, 255, 0.08)',
+                    color: '#0066FF',
+                    px: 1,
+                    py: 0.3,
+                    borderRadius: '6px',
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.04em',
+                    textTransform: 'uppercase',
+                    whiteSpace: 'nowrap',
+                    lineHeight: 1.4,
+                  }}
+                >
+                  Email
+                </Box>
+                <TextField
+                  required
+                  fullWidth
+                  id="login-email"
+                  name="email"
+                  autoComplete="email"
+                  autoFocus
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  sx={{
+                    '& .MuiInputBase-root': { bgcolor: 'transparent' },
+                    '& .MuiOutlinedInput-root': { borderRadius: '10px' },
+                    '& .MuiInputBase-input': { px: 1.5, pt: 0.8, pb: 0.8 },
+                  }}
+                />
+              </Box>
+              <Divider sx={{ borderColor: '#e5e5ea', margin: '0 16px' }} />
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', px: 2, mt: 2.5, mb: 1 }}>
+                <Box
+                  sx={{
+                    bgcolor: 'rgba(0, 102, 255, 0.08)',
+                    color: '#0066FF',
+                    px: 1,
+                    py: 0.3,
+                    borderRadius: '6px',
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.04em',
+                    textTransform: 'uppercase',
+                    whiteSpace: 'nowrap',
+                    lineHeight: 1.4,
+                  }}
+                >
+                  Password
+                </Box>
+                <TextField
+                  required
+                  fullWidth
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  id="login-password"
+                  autoComplete="current-password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                          sx={{ color: '#8e8e93' }}
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{
+                    '& .MuiInputBase-root': { bgcolor: 'transparent' },
+                    '& .MuiOutlinedInput-root': { borderRadius: '10px' },
+                    '& .MuiInputBase-input': { px: 1.5, pt: 0.8, pb: 0.8 },
+                  }}
+                />
+              </Box>
             </Box>
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, px: 0.5 }}>

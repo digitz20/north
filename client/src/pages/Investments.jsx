@@ -1084,7 +1084,8 @@ const Investments = () => {
                   startIcon={<UploadFile />}
                   sx={{ height: '56px', borderStyle: 'dashed' }}
                 >
-                  Upload Multiple Transaction Proofs (Screenshots)
+                  <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Upload Multiple Transaction Proofs (Screenshots)</Box>
+                  <Box sx={{ display: { xs: 'block', sm: 'none' } }}>Upload Proofs</Box>
                   <input
                     type="file"
                     hidden

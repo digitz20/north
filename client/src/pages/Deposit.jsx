@@ -278,7 +278,11 @@ const Deposit = () => {
     );
   }
 
-  const steps = ['Enter Deposit Details', 'Confirm Deposit', 'Deposit Complete'];
+  const steps = [
+    { short: 'Enter Details', full: 'Enter Deposit Details' },
+    { short: 'Confirm', full: 'Confirm Deposit' },
+    { short: 'Complete', full: 'Deposit Complete' }
+  ];
 
   return (
     <Box sx={{ 
@@ -357,16 +361,17 @@ const Deposit = () => {
               sx={{
                 mb: 4,
                 '& .MuiStepLabel-label': {
-                  fontSize: { xs: '0.7rem', sm: '0.875rem' },
+                  fontSize: { xs: '0.65rem', sm: '0.875rem' },
                   whiteSpace: 'normal',
                   textAlign: 'center',
-                  maxWidth: { xs: 100, sm: 150 }
+                  maxWidth: { xs: 75, sm: 150 },
+                  lineHeight: 1.2,
                 }
               }}
             >
-              {steps.map((label) => (
-                <Step key={label}>
-                  <StepLabel>{label}</StepLabel>
+              {steps.map((step) => (
+                <Step key={step.full}>
+                  <StepLabel>{step.full}</StepLabel>
                 </Step>
               ))}
             </Stepper>

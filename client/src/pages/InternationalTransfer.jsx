@@ -377,7 +377,11 @@ const InternationalTransfer = () => {
     }
   ];
 
-  const steps = ['Enter Transfer Details', 'Confirm Transfer', 'Transfer Complete'];
+  const steps = [
+    { short: 'Enter Details', full: 'Enter Transfer Details' },
+    { short: 'Confirm', full: 'Confirm Transfer' },
+    { short: 'Complete', full: 'Transfer Complete' }
+  ];
 
   const renderMethodCards = () => (
     <motion.div
@@ -494,24 +498,25 @@ const InternationalTransfer = () => {
             </Typography>
           </Box>
 
-           <Stepper
-             activeStep={activeStep}
-             sx={{
-               mb: 4,
-               '& .MuiStepLabel-label': {
-                 fontSize: { xs: '0.7rem', sm: '0.875rem' },
-                 whiteSpace: 'normal',
-                 textAlign: 'center',
-                 maxWidth: { xs: 100, sm: 150 }
-               }
-             }}
-           >
-             {steps.map((label) => (
-               <Step key={label}>
-                 <StepLabel>{label}</StepLabel>
-               </Step>
-             ))}
-           </Stepper>
+            <Stepper
+              activeStep={activeStep}
+              sx={{
+                mb: 4,
+                '& .MuiStepLabel-label': {
+                  fontSize: { xs: '0.65rem', sm: '0.875rem' },
+                  whiteSpace: 'normal',
+                  textAlign: 'center',
+                  maxWidth: { xs: 70, sm: 150 },
+                  lineHeight: 1.2,
+                }
+              }}
+            >
+              {steps.map((step) => (
+                <Step key={step.full}>
+                  <StepLabel>{step.full}</StepLabel>
+                </Step>
+              ))}
+            </Stepper>
 
           {errors.submit && <Alert severity="error" sx={{ mb: 3 }}>{errors.submit}</Alert>}
 
