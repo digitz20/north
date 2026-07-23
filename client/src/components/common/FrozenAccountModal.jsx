@@ -3,6 +3,12 @@ import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, 
 import { Chat as ChatIcon } from '@mui/icons-material';
 
 const FrozenAccountModal = ({ open, onClose }) => {
+  const handleChatClick = () => {
+    onClose();
+    window.dispatchEvent(new CustomEvent('open-support-chat'));
+    window.location.href = '/dashboard';
+  };
+
   return (
     <Dialog
       open={open}
@@ -45,10 +51,7 @@ const FrozenAccountModal = ({ open, onClose }) => {
         <Button
           variant="contained"
           startIcon={<ChatIcon />}
-          onClick={() => {
-            onClose();
-            window.location.href = '/support';
-          }}
+          onClick={handleChatClick}
           sx={{
             background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
             borderRadius: 2,
