@@ -25,6 +25,10 @@ const cardSchema = new mongoose.Schema({
     required: true,
     select: false // Only return last 4 digits in responses
   },
+  lastFourDigits: {
+    type: String,
+    required: false
+  },
   cardNumberHash: {
     type: String,
     required: true,
@@ -150,6 +154,7 @@ cardSchema.pre('save', async function(next) {
     const bin = '411111'; // Visa BIN
     const accountNumber = Math.floor(Math.random() * 999999999).toString().padStart(9, '0');
     this.cardNumber = bin + accountNumber;
+    this.lastFourDigits = this.cardNumber.slice(-4);
     
     // Hash card number for storage
     this.cardNumberHash = crypto

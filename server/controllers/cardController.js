@@ -5,6 +5,13 @@ const Notification = require('../models/Notification');
 const mongoose = require('mongoose');
 const crypto = require('crypto');
 
+const getCardLastFour = (card) => {
+  if (!card) return '****';
+  if (card.lastFourDigits) return card.lastFourDigits;
+  if (card.cardNumber && typeof card.cardNumber.slice === 'function') return card.cardNumber.slice(-4);
+  return '****';
+};
+
 // Helper function to generate card number (development only)
 const generateCardNumber = (network) => {
   const prefixes = {
@@ -285,7 +292,7 @@ exports.updateCard = async (req, res, next) => {
       action: 'Card Updated',
       category: 'card-management',
       severity: 'low',
-      description: `Card settings updated for card ending in ${card.lastFourDigits}`,
+      description: `Card settings updated for card ending in ${getCardLastFour(card)}`,
       entity: {
         type: 'card',
         id: card._id
@@ -341,7 +348,7 @@ exports.deleteCard = async (req, res, next) => {
       action: 'Card Deleted',
       category: 'card-management',
       severity: 'high',
-      description: `Card ending in ${card.lastFourDigits} has been deleted`,
+      description: `Card ending in ${getCardLastFour(card)} has been deleted`,
       entity: {
         type: 'card',
         id: card._id
@@ -353,7 +360,7 @@ exports.deleteCard = async (req, res, next) => {
       user: req.user.id,
       type: 'security',
       title: 'Card Deleted',
-      message: `Your card ending in ${card.lastFourDigits} has been deleted from your account. If this wasn't you, please contact support immediately.`,
+      message: `Your card ending in ${getCardLastFour(card)} has been deleted from your account. If this wasn't you, please contact support immediately.`,
       priority: 'urgent',
       relatedEntity: {
         type: 'card',
@@ -425,7 +432,7 @@ exports.activateCard = async (req, res, next) => {
       action: 'Card Activated',
       category: 'card-management',
       severity: 'medium',
-      description: `Card ending in ${card.lastFourDigits} has been activated`,
+      description: `Card ending in ${getCardLastFour(card)} has been activated`,
       entity: {
         type: 'card',
         id: card._id
@@ -437,7 +444,7 @@ exports.activateCard = async (req, res, next) => {
       user: req.user.id,
       type: 'card',
       title: 'Card Activated',
-      message: `Your card ending in ${card.lastFourDigits} is now active and ready to use.`,
+      message: `Your card ending in ${getCardLastFour(card)} is now active and ready to use.`,
       priority: 'high',
       relatedEntity: {
         type: 'card',
@@ -512,7 +519,7 @@ exports.freezeCard = async (req, res, next) => {
       action: 'Card Frozen',
       category: 'card-management',
       severity: 'high',
-      description: `Card ending in ${card.lastFourDigits} has been frozen. Reason: ${card.lockReason}`,
+      description: `Card ending in ${getCardLastFour(card)} has been frozen. Reason: ${card.lockReason}`,
       entity: {
         type: 'card',
         id: card._id
@@ -524,7 +531,7 @@ exports.freezeCard = async (req, res, next) => {
       user: req.user.id,
       type: 'security',
       title: 'Card Frozen',
-      message: `Your card ending in ${card.lastFourDigits} has been frozen. You can unfreeze it at any time from your account settings.`,
+      message: `Your card ending in ${getCardLastFour(card)} has been frozen. You can unfreeze it at any time from your account settings.`,
       priority: 'high',
       relatedEntity: {
         type: 'card',
@@ -597,7 +604,7 @@ exports.unfreezeCard = async (req, res, next) => {
       action: 'Card Unfrozen',
       category: 'card-management',
       severity: 'medium',
-      description: `Card ending in ${card.lastFourDigits} has been unfrozen`,
+      description: `Card ending in ${getCardLastFour(card)} has been unfrozen`,
       entity: {
         type: 'card',
         id: card._id
@@ -609,7 +616,7 @@ exports.unfreezeCard = async (req, res, next) => {
       user: req.user.id,
       type: 'security',
       title: 'Card Unfrozen',
-      message: `Your card ending in ${card.lastFourDigits} has been unfrozen and is ready to use again.`,
+      message: `Your card ending in ${getCardLastFour(card)} has been unfrozen and is ready to use again.`,
       priority: 'medium',
       relatedEntity: {
         type: 'card',

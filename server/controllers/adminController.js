@@ -13,6 +13,13 @@ const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 const logger = require('../utils/logger');
 
+const getCardLastFour = (card) => {
+  if (!card) return '****';
+  if (card.lastFourDigits) return card.lastFourDigits;
+  if (card.cardNumber && typeof card.cardNumber.slice === 'function') return card.cardNumber.slice(-4);
+  return '****';
+};
+
 // @desc    Get dashboard statistics
 // @route   GET /api/v1/admin/dashboard
 // @access  Private/Admin
@@ -585,7 +592,7 @@ exports.updateCard = async (req, res, next) => {
       actor: { user: req.user.id, role: req.user.role, ip: req.ip, userAgent: req.get('User-Agent') },
       action: 'Admin updated card',
       category: 'card-management',
-      description: `Admin updated card ending in ${updatedCard.lastFourDigits}`,
+      description: `Admin updated card ending in ${getCardLastFour(updatedCard)}`,
       entity: { type: 'card', id: updatedCard._id }
     });
 
