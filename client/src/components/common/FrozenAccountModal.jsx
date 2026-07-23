@@ -5,8 +5,9 @@ import { Chat as ChatIcon } from '@mui/icons-material';
 const FrozenAccountModal = ({ open, onClose }) => {
   const handleChatClick = () => {
     onClose();
-    window.dispatchEvent(new CustomEvent('open-support-chat'));
-    window.location.href = '/dashboard';
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('open-support-chat'));
+    }, 350);
   };
 
   return (
