@@ -98,8 +98,11 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Serve static files from uploads directory
-app.use('/uploads', express.static('server/uploads'));
+// Serve static files from uploads directory with cross-origin access so Vercel frontends can load images/audio
+app.use('/uploads', (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  next();
+}, express.static('server/uploads'));
 
 // 404 handler
 app.use('*', (req, res) => {
