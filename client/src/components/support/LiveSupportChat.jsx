@@ -76,6 +76,11 @@ const LiveSupportChat = () => {
   const ticketsCacheRef = useRef({ data: null, timestamp: 0 });
   const MIN_FETCH_INTERVAL = 3000;
 
+  const getSupportedAudioMimeType = () => {
+    const types = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus', 'audio/ogg'];
+    return types.find(type => MediaRecorder.isTypeSupported(type)) || '';
+  };
+
    const mergeMessages = (local, server) => {
      const merged = new Map();
      [...local, ...server].forEach(msg => {
@@ -455,8 +460,9 @@ const LiveSupportChat = () => {
 
   const startRecording = async () => {
     try {
+      const mimeType = getSupportedAudioMimeType();
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+      const mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
 
@@ -467,8 +473,9 @@ const LiveSupportChat = () => {
       };
 
       mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        const audioFile = new File([audioBlob], `voice-message-${Date.now()}.webm`, { type: 'audio/webm' });
+        const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType || 'audio/webm' });
+        const audioFile = new File([audioBlob], `voice-message-${Date.now()}.${ext}`, { type: mimeType || 'audio/webm' });
 
         try {
           const reader = new FileReader();
@@ -482,7 +489,7 @@ const LiveSupportChat = () => {
             name: '🎤 Voice Message',
             url: audioDataUrl,
             size: audioBlob.size,
-            mimetype: 'audio/webm',
+            mimetype: mimeType || 'audio/webm',
             uploadedAt: new Date().toISOString()
           };
 
@@ -1018,7 +1025,7 @@ const LiveSupportChat = () => {
                                         return (
                                           <Box component="img" src={url} alt={attachment.name}
                                             sx={{ maxWidth: '100%', maxHeight: 200, borderRadius: 1, mt: 1, cursor: 'pointer', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)' } }}
-                                            onClick={() => setSelectedImage(url)} />
+                                            onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); setSelectedImage(url); }} />
                                         );
                                       }
                                       if (lower.startsWith('data:audio/') || lower.match(/\.(mp3|wav|ogg|webm)$/i)) {
@@ -1035,7 +1042,7 @@ const LiveSupportChat = () => {
                                           return (
                                             <Box component="img" src={url} alt={attachment.name}
                                               sx={{ maxWidth: '100%', maxHeight: 200, borderRadius: 1, mt: 1, cursor: 'pointer', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)' } }}
-                                              onClick={() => setSelectedImage(url)} />
+                                              onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); setSelectedImage(url); }} />
                                           );
                                         }
                                         if (mime?.startsWith('audio/')) {
