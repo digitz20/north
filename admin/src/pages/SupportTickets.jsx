@@ -933,99 +933,110 @@ const SupportTickets = () => {
         </DialogActions>
       </Dialog>
 
-      <Dialog
-        open={openChat}
-        onClose={handleCloseChat}
-        maxWidth="md"
-        fullWidth
-        PaperProps={{
-          sx: {
-            height: '85vh',
-            maxHeight: '800px',
-            borderRadius: 3,
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column'
-          }
-        }}
-      >
-        {selectedTicket && (
-          <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <Box
-              sx={{
-                p: 2,
-                background: 'linear-gradient(135deg, #0066ff 0%, #00bfff 100%)',
-                color: 'white',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}
-            >
-              <Box>
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  Chat with {selectedTicket.user?.firstName} {selectedTicket.user?.lastName}
-                </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                  #{selectedTicket._id} - {selectedTicket.subject}
-                  {typingUser && <span style={{ marginLeft: 10, fontStyle: 'italic' }}>typing...</span>}
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                {selectedTicket.status !== 'closed' ? (
-                  <Button
-                    variant="contained"
-                    size="small"
-                    onClick={() => handleCloseTicket(selectedTicket._id)}
-                    sx={{ bgcolor: 'rgba(255,255,255,0.2)', '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' } }}
-                  >
-                    Close Chat
-                  </Button>
-                ) : (
-                  <Button
-                    variant="contained"
-                    size="small"
-                    onClick={() => handleReopenTicket(selectedTicket._id)}
-                    sx={{ bgcolor: 'rgba(255,255,255,0.2)', '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' } }}
-                  >
-                    Reopen
-                  </Button>
-                )}
-                <IconButton onClick={handleCloseChat} sx={{ color: 'white' }}>
-                  <CloseIcon />
-                </IconButton>
-              </Box>
-            </Box>
-
-            <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-              <Box sx={{ width: 280, borderRight: 1, borderColor: 'divider', p: 2, bgcolor: '#fafafa', overflow: 'auto' }}>
-                <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600, color: 'text.secondary' }}>
-                  CUSTOMER DETAILS
-                </Typography>
-
-                <Box sx={{ mb: 3, textAlign: 'center' }}>
-                  <Avatar
-                    sx={{
-                      width: 80,
-                      height: 80,
-                      bgcolor: '#0066ff',
-                      fontSize: 32,
-                      mx: 'auto',
-                      mb: 1
-                    }}
-                  >
-                    {selectedTicket.user?.firstName?.charAt(0) || selectedTicket.user?.name?.charAt(0) || 'U'}
-                  </Avatar>
-                  <Typography variant="h6">
-                    {selectedTicket.user?.firstName} {selectedTicket.user?.lastName || ''}
+        <Dialog
+          open={openChat}
+          onClose={handleCloseChat}
+          maxWidth="md"
+          fullWidth
+          PaperProps={{
+            sx: {
+              height: { xs: '100dvh', sm: '85vh' },
+              maxHeight: { xs: '100dvh', sm: 800 },
+              borderRadius: { xs: 0, sm: 3 },
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column'
+            }
+          }}
+        >
+          {selectedTicket && (
+            <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <Box
+                sx={{
+                  p: 2,
+                  background: 'linear-gradient(135deg, #0066ff 0%, #00bfff 100%)',
+                  color: 'white',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexShrink: 0
+                }}
+              >
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
+                    Chat with {selectedTicket.user?.firstName} {selectedTicket.user?.lastName}
                   </Typography>
-                  <Chip
-                    label="Verified"
-                    size="small"
-                    color="success"
-                    icon={<CheckCircleIcon fontSize="small" />}
-                    sx={{ mt: 1 }}
-                  />
+                  <Typography variant="body2" sx={{ opacity: 0.9, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                    #{selectedTicket._id} - {selectedTicket.subject}
+                    {typingUser && <span style={{ marginLeft: 10, fontStyle: 'italic' }}>typing...</span>}
+                  </Typography>
                 </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  {selectedTicket.status !== 'closed' ? (
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={() => handleCloseTicket(selectedTicket._id)}
+                      sx={{ bgcolor: 'rgba(255,255,255,0.2)', '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' }, fontSize: { xs: '0.7rem', sm: '0.8rem' } }}
+                    >
+                      Close Chat
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={() => handleReopenTicket(selectedTicket._id)}
+                      sx={{ bgcolor: 'rgba(255,255,255,0.2)', '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' }, fontSize: { xs: '0.7rem', sm: '0.8rem' } }}
+                    >
+                      Reopen
+                    </Button>
+                  )}
+                  <IconButton onClick={handleCloseChat} sx={{ color: 'white' }}>
+                    <CloseIcon />
+                  </IconButton>
+                </Box>
+              </Box>
+
+              <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, flex: 1, overflow: 'hidden' }}>
+                <Box sx={{
+                  width: { xs: '100%', sm: 280 },
+                  borderRight: { xs: 'none', sm: '1px solid' },
+                  borderBottom: { xs: '1px solid', sm: 'none' },
+                  borderColor: 'divider',
+                  p: { xs: 1.5, sm: 2 },
+                  bgcolor: '#fafafa',
+                  overflow: 'auto',
+                  flexShrink: 0,
+                  maxHeight: { xs: '35vh', sm: 'none' }
+                }}>
+                  <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600, color: 'text.secondary', fontSize: { xs: '0.7rem', sm: '0.8rem' } }}>
+                    CUSTOMER DETAILS
+                  </Typography>
+
+                  <Box sx={{ mb: 2, textAlign: 'center' }}>
+                    <Avatar
+                      sx={{
+                        width: { xs: 48, sm: 80 },
+                        height: { xs: 48, sm: 80 },
+                        bgcolor: '#0066ff',
+                        fontSize: { xs: 20, sm: 32 },
+                        mx: 'auto',
+                        mb: 1
+                      }}
+                    >
+                      {selectedTicket.user?.firstName?.charAt(0) || selectedTicket.user?.name?.charAt(0) || 'U'}
+                    </Avatar>
+                    <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
+                      {selectedTicket.user?.firstName} {selectedTicket.user?.lastName || ''}
+                    </Typography>
+                    <Chip
+                      label="Verified"
+                      size="small"
+                      color="success"
+                      icon={<CheckCircleIcon fontSize="small" />}
+                      sx={{ mt: 1, fontSize: { xs: '0.7rem', sm: '0.8rem' } }}
+                    />
+                  </Box>
 
                 <List disablePadding>
                   <ListItem sx={{ px: 0, py: 1 }}>
@@ -1201,8 +1212,8 @@ const SupportTickets = () => {
                 ) : null}
               </Box>
 
-              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', bgcolor: '#f7fafc' }}>
-                <Box ref={messagesContainerRef} sx={{ flex: 1, overflow: 'auto', p: 3 }}>
+              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', bgcolor: '#f7fafc', overflow: 'hidden' }}>
+                <Box ref={messagesContainerRef} sx={{ flex: 1, overflow: 'auto', p: { xs: 1.5, sm: 3 } }}>
                   {(ticketMessages[selectedTicket._id] || []).map((msg, index) => {
                     const senderId = msg.sender?._id || msg.sender;
                     const isOwn = senderId?.toString?.() === user._id?.toString?.();
@@ -1224,19 +1235,19 @@ const SupportTickets = () => {
                       return <CheckIcon fontSize="small" sx={{ fontSize: 14, opacity: 0.7 }} />;
                     };
                     
-                    return (
-                      <Box
-                        key={msg._id || index}
-                        sx={{
-                          display: 'flex',
-                          justifyContent: isOwn ? 'flex-end' : 'flex-start',
-                          mb: 2
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            maxWidth: '70%',
-                            position: 'relative',
+                     return (
+                       <Box
+                         key={msg._id || index}
+                         sx={{
+                           display: 'flex',
+                           justifyContent: isOwn ? 'flex-end' : 'flex-start',
+                           mb: { xs: 1, sm: 2 }
+                         }}
+                       >
+                         <Box
+                           sx={{
+                             maxWidth: { xs: '85%', sm: '70%' },
+                             position: 'relative',
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: isOwn ? 'flex-end' : 'flex-start'
@@ -1244,7 +1255,7 @@ const SupportTickets = () => {
                         >
                           <Box
                             sx={{
-                              p: 2,
+                              p: { xs: 1.25, sm: 2 },
                               borderRadius: 2,
                               bgcolor: isOwn ? '#0066ff' : 'white',
                               color: isOwn ? 'white' : 'text.primary',
@@ -1337,21 +1348,21 @@ const SupportTickets = () => {
                   <div ref={messagesEndRef} />
                 </Box>
 
-                <Box sx={{ p: 2, bgcolor: 'white', borderTop: 1, borderColor: 'divider' }}>
-                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-end' }}>
+                <Box sx={{ p: { xs: 1, sm: 2 }, bgcolor: 'white', borderTop: 1, borderColor: 'divider' }}>
+                  <Box sx={{ display: 'flex', gap: { xs: 0.5, sm: 1 }, alignItems: 'flex-end' }}>
                     <IconButton
                       size="small"
                       onClick={() => fileInputRef.current?.click()}
-                      sx={{ color: 'text.secondary' }}
+                      sx={{ color: 'text.secondary', padding: { xs: 0.5, sm: 1 } }}
                     >
-                      <ImageIcon />
+                      <ImageIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
                     </IconButton>
                     <IconButton
                       size="small"
                       onClick={isRecording ? stopRecording : startRecording}
-                      sx={{ color: isRecording ? 'error.main' : 'text.secondary' }}
+                      sx={{ color: isRecording ? 'error.main' : 'text.secondary', padding: { xs: 0.5, sm: 1 } }}
                     >
-                      {isRecording ? <StopIcon /> : <MicIcon />}
+                      {isRecording ? <StopIcon sx={{ fontSize: { xs: 18, sm: 20 } }} /> : <MicIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />}
                     </IconButton>
                     <TextField
                       fullWidth
@@ -1362,7 +1373,7 @@ const SupportTickets = () => {
                       onChange={handleTyping}
                       onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                       disabled={selectedTicket.status === 'closed'}
-                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, fontSize: { xs: '0.85rem', sm: '0.95rem' } } }}
                     />
                     <IconButton
                       color="primary"
@@ -1371,6 +1382,7 @@ const SupportTickets = () => {
                       sx={{
                         background: 'linear-gradient(135deg, #0066ff 0%, #00bfff 100%)',
                         color: 'white',
+                        padding: { xs: 0.75, sm: 1 },
                         '&:hover': {
                           background: 'linear-gradient(135deg, #0052cc 0%, #0099cc 100%)',
                         },
@@ -1380,7 +1392,7 @@ const SupportTickets = () => {
                         }
                       }}
                     >
-                      <SendIcon />
+                      <SendIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
                     </IconButton>
                   </Box>
                   <input
