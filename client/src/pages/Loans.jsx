@@ -12,7 +12,7 @@ const Loans = () => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const location = useLocation();
-  const { loans, loading, error, availableLoanTypes } = useSelector((state) => state.loans);
+  const { loans, loading, loanTypesLoading, error, availableLoanTypes } = useSelector((state) => state.loans);
   const [openPaymentDialog, setOpenPaymentDialog] = useState(false);
   const [openApplyDialog, setOpenApplyDialog] = useState(false);
   const [tabValue, setTabValue] = useState(0); // 0 = Loans, 1 = IRS Tax Refund
@@ -795,7 +795,11 @@ border: '1px solid rgba(0,200,150,0.1)',
               color: '#1e3a5f'
             }}>Apply for New Loan</Typography>
           </motion.div>
-          {availableLoanTypes.length > 0 ? (
+          {loanTypesLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
+              <CircularProgress size={48} sx={{ color: '#0066FF' }} />
+            </Box>
+          ) : availableLoanTypes.length > 0 ? (
             <Grid container spacing={4}>
               {availableLoanTypes.map((option, index) => (
                 <Grid item xs={12} md={6} key={index}>
@@ -894,7 +898,9 @@ border: '1px solid rgba(0,200,150,0.1)',
                 border: '1px solid rgba(0,0,0,0.05)',
                 boxShadow: '0 15px 50px -15px rgba(0,0,0,0.1)'
               }}>
-                <Typography variant="body1" color="text.secondary" sx={{ fontSize: '1.1rem' }}>Loading loan options...</Typography>
+                <Typography variant="body1" color="text.secondary" sx={{ fontSize: '1.1rem' }}>
+                  {error ? `Failed to load loan options: ${error}` : 'No loan options available at this time'}
+                </Typography>
               </Paper>
             </motion.div>
           )}

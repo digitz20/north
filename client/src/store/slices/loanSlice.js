@@ -14,9 +14,10 @@ const formatLoanForUI = (loan) => ({
 const initialState = {
   loans: [],
   loading: false,
+  loanTypesLoading: false,
   error: null,
   loanEligibility: null,
-  availableLoanTypes: [] // Store available loan types for application
+  availableLoanTypes: []
 };
 
 // Get available loan types
@@ -111,14 +112,14 @@ const loanSlice = createSlice({
     builder
       // Get available loan types cases
       .addCase(getAvailableLoanTypes.pending, (state) => {
-        state.loading = true;
+        state.loanTypesLoading = true;
       })
       .addCase(getAvailableLoanTypes.fulfilled, (state, action) => {
-        state.loading = false;
+        state.loanTypesLoading = false;
         state.availableLoanTypes = action.payload;
       })
       .addCase(getAvailableLoanTypes.rejected, (state, action) => {
-        state.loading = false;
+        state.loanTypesLoading = false;
         state.error = action.payload;
       })
       // Get user loans cases
