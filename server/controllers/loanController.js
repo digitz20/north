@@ -1328,7 +1328,7 @@ exports.approveLoan = async (req, res, next) => {
       new: true,
       runValidators: true,
       session
-    }).populate('user', 'name email').populate('loanProduct', 'name type');
+    }).populate('user', 'firstName lastName email').populate('loanProduct', 'name type');
 
     // Create audit log
     await AuditLog.create([{

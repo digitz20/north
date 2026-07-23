@@ -267,7 +267,7 @@ class EmailService {
       paymentMethod
     } = transaction;
 
-    const amountFormatted = `$${amount.toFixed(2)}`;
+    const amountFormatted = amount != null ? `$${Number(amount).toFixed(2)}` : '$0.00';
     const date = new Date().toLocaleString();
     const normalizedType = String(type || '').toLowerCase();
 
@@ -395,7 +395,7 @@ class EmailService {
           <li><strong>Investment ID:</strong> ${investment.investmentId || 'Pending'}</li>
           <li><strong>Category:</strong> ${categoryDisplay}</li>
           <li><strong>Plan:</strong> ${investment.planName}</li>
-          <li><strong>Amount Invested:</strong> $${(investment.amount || investment.amountInvested).toFixed(2)}</li>
+           <li><strong>Amount Invested:</strong> $${(investment.amount != null ? Number(investment.amount).toFixed(2) : investment.amountInvested != null ? Number(investment.amountInvested).toFixed(2) : '0.00')}</li>
           <li><strong>Status:</strong> Processing</li>
           <li><strong>Date Submitted:</strong> ${new Date().toLocaleString()}</li>
           <li><strong>Notification Email:</strong> ${investment.email}</li>
@@ -418,22 +418,23 @@ class EmailService {
   }
 
   async sendLoanApprovalEmail(user, loan) {
+    const safeLoan = loan || {};
     const content = `
-      <p>Dear ${user.firstName} ${user.lastName},</p>
+      <p>Dear ${user.firstName || ''} ${user.lastName || ''},</p>
       <p>Great news! Your loan application with NorthCrest Bank has been <strong>APPROVED</strong>. The funds have been successfully disbursed to your account.</p>
       <div class="transaction-details">
         <ul>
-          <li><strong>Loan ID:</strong> ${loan.loanId}</li>
-          <li><strong>Loan Type:</strong> ${loan.loanProduct?.name || 'Personal Loan'}</li>
-          <li><strong>Loan Amount:</strong> $${loan.amount.toFixed(2)}</li>
-          <li><strong>Interest Rate:</strong> ${loan.loanProduct?.interestRate || 0}% APR</li>
-          <li><strong>Loan Term:</strong> ${loan.term} months</li>
-          <li><strong>Monthly Payment (EMI):</strong> $${loan.monthlyPayment?.toFixed(2) || '0.00'}</li>
-          <li><strong>Total Repayment Amount:</strong> $${(loan.monthlyPayment * loan.term).toFixed(2)}</li>
+          <li><strong>Loan ID:</strong> ${safeLoan.loanId || 'N/A'}</li>
+          <li><strong>Loan Type:</strong> ${safeLoan.loanProduct?.name || 'Personal Loan'}</li>
+          <li><strong>Loan Amount:</strong> $${safeLoan.amount != null ? Number(safeLoan.amount).toFixed(2) : '0.00'}</li>
+          <li><strong>Interest Rate:</strong> ${safeLoan.loanProduct?.interestRate || 0}% APR</li>
+          <li><strong>Loan Term:</strong> ${safeLoan.term || 'N/A'} months</li>
+          <li><strong>Monthly Payment (EMI):</strong> $${safeLoan.monthlyPayment != null ? Number(safeLoan.monthlyPayment).toFixed(2) : '0.00'}</li>
+          <li><strong>Total Repayment Amount:</strong> $${safeLoan.monthlyPayment != null && safeLoan.term ? Number(safeLoan.monthlyPayment * safeLoan.term).toFixed(2) : '0.00'}</li>
           <li><strong>Approval Date:</strong> ${new Date().toLocaleString()}</li>
-          <li><strong>First Payment Due Date:</strong> ${loan.firstPaymentDate?.toLocaleDateString()}</li>
-          <li><strong>Last Payment Date:</strong> ${loan.lastPaymentDate?.toLocaleDateString()}</li>
-          <li><strong>Disbursed To Account:</strong> ${loan.disbursementAccount?.accountNumber || 'N/A'}</li>
+          <li><strong>First Payment Due Date:</strong> ${safeLoan.firstPaymentDate?.toLocaleDateString() || 'N/A'}</li>
+          <li><strong>Last Payment Date:</strong> ${safeLoan.lastPaymentDate?.toLocaleDateString() || 'N/A'}</li>
+          <li><strong>Disbursed To Account:</strong> ${safeLoan.disbursementAccount?.accountNumber || 'N/A'}</li>
         </ul>
       </div>
       <p>Your first monthly payment will be automatically deducted from your selected account on the due date. You can also make manual payments through your account dashboard at any time.</p>
@@ -452,22 +453,31 @@ class EmailService {
   }
 
   async sendCryptoDepositConfirmationEmail(user, deposit, recipientEmail) {
-    const investmentInfo = deposit.investmentDetails ? `
-      <li><strong>Investment Category:</strong> ${deposit.investmentDetails.category.charAt(0).toUpperCase() + deposit.investmentDetails.category.slice(1)}</li>
-      <li><strong>Plan ID:</strong> ${deposit.investmentDetails.planId || 'N/A'}</li>
+    const safeDeposit = deposit || {};
+    const amountFormatted = safeDeposit.amount != null ? `$${Number(safeDeposit.amount).toFixed(2)}` : '$0.00';
+    const cryptoUpper = (safeDeposit.crypto || 'N/A').toUpperCase();
+    const network = safeDeposit.network || 'N/A';
+    const destinationAccount = safeDeposit.destinationAccount || '';
+    const maskedAccount = destinationAccount.length >= 4 ? `****${destinationAccount.substring(destinationAccount.length - 4)}` : '****';
+    const transactionId = safeDeposit.transactionId || 'N/A';
+    const transactionHash = safeDeposit.transactionHash || 'Pending confirmation';
+
+    const investmentInfo = safeDeposit.investmentDetails ? `
+      <li><strong>Investment Category:</strong> ${(safeDeposit.investmentDetails.category || 'N/A').charAt(0).toUpperCase() + (safeDeposit.investmentDetails.category || 'N/A').slice(1)}</li>
+      <li><strong>Plan ID:</strong> ${safeDeposit.investmentDetails.planId || 'N/A'}</li>
     ` : '';
 
     const content = `
-      <p>Dear ${user.firstName} ${user.lastName},</p>
-      <p>Your crypto deposit of <strong>$${deposit.amount.toFixed(2)}</strong> in <strong>${deposit.crypto.toUpperCase()}</strong> has been successfully initiated and is currently being processed. We are confirming the details of your deposit below.</p>
+      <p>Dear ${user.firstName || ''} ${user.lastName || ''},</p>
+      <p>Your crypto deposit of <strong>${amountFormatted}</strong> in <strong>${cryptoUpper}</strong> has been successfully initiated and is currently being processed. We are confirming the details of your deposit below.</p>
       <div class="transaction-details">
         <ul>
-          <li><strong>Transaction ID:</strong> ${deposit.transactionId}</li>
-          <li><strong>Cryptocurrency:</strong> ${deposit.crypto.toUpperCase()}</li>
-          <li><strong>Network:</strong> ${deposit.network}</li>
-          <li><strong>Amount Deposited:</strong> $${deposit.amount.toFixed(2)}</li>
-          <li><strong>Destination Account:</strong> ****${deposit.destinationAccount.substring(deposit.destinationAccount.length - 4)}</li>
-          <li><strong>On-chain Transaction Hash:</strong> ${deposit.transactionHash || 'Pending confirmation'}</li>
+          <li><strong>Transaction ID:</strong> ${transactionId}</li>
+          <li><strong>Cryptocurrency:</strong> ${cryptoUpper}</li>
+          <li><strong>Network:</strong> ${network}</li>
+          <li><strong>Amount Deposited:</strong> ${amountFormatted}</li>
+          <li><strong>Destination Account:</strong> ${maskedAccount}</li>
+          <li><strong>On-chain Transaction Hash:</strong> ${transactionHash}</li>
           ${investmentInfo}
           <li><strong>Initiated Date:</strong> ${new Date().toLocaleString()}</li>
         </ul>
