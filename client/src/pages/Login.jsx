@@ -133,13 +133,33 @@ const Login = () => {
                 required
                 fullWidth
                 id="login-email"
-                label="Email Address"
                 name="email"
                 autoComplete="email"
                 autoFocus
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Box
+                        sx={{
+                          bgcolor: 'rgba(0, 102, 255, 0.08)',
+                          color: '#0066FF',
+                          px: 1.2,
+                          py: 0.4,
+                          borderRadius: '6px',
+                          fontSize: '0.75rem',
+                          fontWeight: 600,
+                          letterSpacing: '0.02em',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        Email
+                      </Box>
+                    </InputAdornment>
+                  ),
+                }}
                 sx={{
                   '& .MuiInputBase-root': { bgcolor: 'transparent' },
                   '& .MuiOutlinedInput-root': { borderRadius: '6px' },
@@ -151,7 +171,6 @@ const Login = () => {
                 required
                 fullWidth
                 name="password"
-                label="Password"
                 type={showPassword ? 'text' : 'password'}
                 id="login-password"
                 autoComplete="current-password"
@@ -159,6 +178,25 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Box
+                        sx={{
+                          bgcolor: 'rgba(0, 102, 255, 0.08)',
+                          color: '#0066FF',
+                          px: 1.2,
+                          py: 0.4,
+                          borderRadius: '6px',
+                          fontSize: '0.75rem',
+                          fontWeight: 600,
+                          letterSpacing: '0.02em',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        Password
+                      </Box>
+                    </InputAdornment>
+                  ),
                   endAdornment: (
                     <InputAdornment position="end">
                       <IconButton
