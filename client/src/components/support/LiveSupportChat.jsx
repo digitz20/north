@@ -85,7 +85,7 @@ const LiveSupportChat = () => {
   const currentTicketRef = useRef(null);
   const lastFetchRef = useRef(0);
   const ticketsCacheRef = useRef({ data: null, timestamp: 0 });
-  const MIN_FETCH_INTERVAL = 3000;
+  const MIN_FETCH_INTERVAL = 500;
 
   const getSupportedAudioMimeType = () => {
     const types = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus', 'audio/ogg'];
@@ -139,10 +139,29 @@ const LiveSupportChat = () => {
     let cancelled = false;
 
     const init = async () => {
+      const now = Date.now();
+      
+      // Show cached messages immediately if available
+      const cachedTicketId = currentTicket?._id;
+      if (!cachedTicketId) {
+        const cachedData = ticketsCacheRef.current.data;
+        if (cachedData && cachedData[0]) {
+          const cachedTicket = cachedData[0];
+          const stored = loadMessagesFromStorage(cachedTicket._id);
+          if (stored.length > 0) {
+            setCurrentTicket(cachedTicket);
+            setMessages(stored);
+            setUnreadCount(0);
+          }
+        }
+      }
+      
       setLoading(true);
       try {
         const ticketsResponse = await api.get('/support/tickets?status=open,in-progress,awaiting-user');
         const tickets = ticketsResponse.data?.data?.tickets || ticketsResponse.data?.tickets || [];
+        ticketsCacheRef.current = { data: tickets, timestamp: now };
+        lastFetchRef.current = now;
         let activeTicket = tickets[0];
 
         if (!activeTicket) {
@@ -194,95 +213,6 @@ const LiveSupportChat = () => {
       initializedRef.current = false;
     }
   }, [isOpen]);
-
-  // Initialize or get existing chat
-  const initializeChat = async () => {
-    if (!user || !token) return;
-    
-    const now = Date.now();
-    if (now - lastFetchRef.current < MIN_FETCH_INTERVAL && ticketsCacheRef.current.data) {
-      const cached = ticketsCacheRef.current.data;
-      let activeTicket = cached[0];
-      
-      if (!activeTicket && cached.length === 0) {
-        return;
-      }
-      
-      if (activeTicket) {
-        const ticketIdChanged = currentTicket?._id !== activeTicket._id;
-        const messagesChanged = JSON.stringify(activeTicket.messages || []) !== JSON.stringify(currentTicket?.messages || []);
-        
-        if (ticketIdChanged || messagesChanged) {
-          setCurrentTicket(activeTicket);
-          setMessages(activeTicket.messages || []);
-        }
-        
-        if (socket && isConnected) {
-          joinChat(activeTicket._id);
-        }
-  
-        if (activeTicket.messages && activeTicket.messages.length > 0) {
-          activeTicket.messages.forEach(msg => {
-            if (!msg.readBy || !Array.isArray(msg.readBy)) return;
-            if (!msg.readBy.some(read => read.user?.toString?.() === user.id)) {
-              markMessageAsRead(activeTicket._id, msg._id);
-            }
-          });
-        }
-        setUnreadCount(0);
-      }
-      return;
-    }
-    
-    setLoading(true);
-    try {
-      const ticketsResponse = await api.get('/support/tickets?status=open,in-progress,awaiting-user');
-      
-      const tickets = ticketsResponse.data?.data?.tickets || ticketsResponse.data?.tickets || [];
-      ticketsCacheRef.current = { data: tickets, timestamp: now };
-      lastFetchRef.current = now;
-      let activeTicket = tickets[0];
-      
-      if (!activeTicket) {
-        const createResponse = await api.post('/support/tickets', {
-          subject: 'Live Chat Inquiry',
-          description: 'Customer started a live chat session',
-          category: 'technical',
-          priority: 'medium'
-        });
-        
-        activeTicket = createResponse.data?.data || createResponse.data;
-      }
-
-      if (activeTicket) {
-        const ticketIdChanged = currentTicket?._id !== activeTicket._id;
-        const messagesChanged = JSON.stringify(activeTicket.messages || []) !== JSON.stringify(currentTicket?.messages || []);
-        
-        if (ticketIdChanged || messagesChanged) {
-          setCurrentTicket(activeTicket);
-          setMessages(activeTicket.messages || []);
-        }
-        
-        if (socket && isConnected) {
-          joinChat(activeTicket._id);
-        }
-  
-        if (activeTicket.messages && activeTicket.messages.length > 0) {
-          activeTicket.messages.forEach(msg => {
-            if (!msg.readBy || !Array.isArray(msg.readBy)) return;
-            if (!msg.readBy.some(read => read.user?.toString?.() === user.id)) {
-              markMessageAsRead(activeTicket._id, msg._id);
-            }
-          });
-        }
-        setUnreadCount(0);
-      }
-    } catch (error) {
-      console.error('Error initializing chat:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const markMessagesAsReadIfNeeded = useCallback((ticket) => {
     if (!ticket?._id || !(user?.id || user?._id)) return;
