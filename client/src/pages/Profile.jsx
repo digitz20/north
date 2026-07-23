@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Box, Typography, Paper, Grid, Avatar, Button, Divider, Chip, CircularProgress, Alert } from '@mui/material';
+import { Box, Typography, Paper, Grid, Avatar, Button, Divider, Chip, CircularProgress, Alert, TextField } from '@mui/material';
 import { Camera } from '@mui/icons-material';
 import { useSelector, useDispatch } from 'react-redux';
-import { useLocation } from 'react-router-dom';
-import { getCurrentUser } from '../store/slices/authSlice';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { getCurrentUser, changePassword } from '../store/slices/authSlice';
 import { fetchAccounts } from '../store/slices/accountSlice';
 import CountUp from 'react-countup';
 import api from '../services/api';
@@ -13,12 +13,19 @@ import PremiumButton from '../components/PremiumButton';
 
 const Profile = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const location = useLocation();
   const { user, loading: authLoading } = useSelector((state) => state.auth);
   const { accounts, loading: accountsLoading } = useSelector((state) => state.accounts);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const [uploadSuccess, setUploadSuccess] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
+  const [passwordLoading, setPasswordLoading] = useState(false);
   const fileInputRef = useRef(null);
   
   useEffect(() => {
@@ -85,6 +92,38 @@ const Profile = () => {
 
   const handleUploadClick = () => {
     fileInputRef.current.click();
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    setPasswordError('');
+    setPasswordSuccess('');
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setPasswordError('All fields are required');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError('New passwords do not match');
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPasswordError('New password must be at least 8 characters');
+      return;
+    }
+
+    try {
+      setPasswordLoading(true);
+      await dispatch(changePassword({ currentPassword, newPassword })).unwrap();
+      setPasswordSuccess('Password changed successfully');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err) {
+      setPasswordError(err || 'Failed to change password. Please try again.');
+    } finally {
+      setPasswordLoading(false);
+    }
   };
 
   if (authLoading || accountsLoading) {
@@ -229,6 +268,51 @@ const Profile = () => {
                     </Typography>
                   </Grid>
                 </Grid>
+
+                <Divider sx={{ my: 4 }} />
+
+                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>Security</Typography>
+                <Box component="form" onSubmit={handleChangePassword}>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Current Password"
+                        type="password"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        size="small"
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="New Password"
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        size="small"
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Confirm New Password"
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        size="small"
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} sx={{ display: 'flex', alignItems: 'center' }}>
+                      <PremiumButton variant="primary" type="submit" disabled={passwordLoading}>
+                        {passwordLoading ? <CircularProgress size={20} color="inherit" /> : 'Change Password'}
+                      </PremiumButton>
+                    </Grid>
+                  </Grid>
+                  {passwordError && <Alert severity="error" sx={{ mt: 2 }}>{passwordError}</Alert>}
+                  {passwordSuccess && <Alert severity="success" sx={{ mt: 2 }}>{passwordSuccess}</Alert>}
+                </Box>
 
                 <Divider sx={{ my: 4 }} />
 

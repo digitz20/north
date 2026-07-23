@@ -896,3 +896,58 @@ exports.updateSettings = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Change password
+// @route   POST /api/v1/auth/change-password
+// @access  Private
+exports.changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide current password and new password'
+      });
+    }
+
+    const user = await User.findById(req.user._id).select('+password');
+
+    const isMatch = await user.matchPassword(currentPassword);
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: 'Current password is incorrect'
+      });
+    }
+
+    const validatePassword = require('../utils/passwordValidator');
+    const passwordValidation = validatePassword(newPassword);
+    if (!passwordValidation.isValid) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid password',
+        errors: passwordValidation.errors
+      });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    await AuditLog.log({
+      actor: { user: user._id, role: user.role, ip: req.ip, userAgent: req.get('User-Agent') },
+      action: 'password_change',
+      category: 'security',
+      severity: 'high',
+      description: 'User changed their password',
+      entity: { type: 'user', id: user._id, name: user.fullName }
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Password changed successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};

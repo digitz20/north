@@ -10,7 +10,8 @@ const {
   forgotPassword,
   resetPassword,
   getMe,
-  uploadProfilePicture
+  uploadProfilePicture,
+  changePassword
 } = require('../controllers/authController');
 const { protect } = require('../middlewares/auth');
 
@@ -30,5 +31,6 @@ router.post('/add-saved-wallet', protect, require('../controllers/authController
 router.post('/initialize-saved-wallets', protect, require('../controllers/authController').initializeSavedWallets);
 router.put('/profile-picture', protect, uploadProfilePicture);
 router.post('/settings', protect, require('../controllers/authController').updateSettings);
+router.post('/change-password', protect, changePassword);
 
 module.exports = router;
