@@ -115,11 +115,7 @@ const DashboardLayout = () => {
             key={item.text}
             component={Link}
             to={item.path}
-            onClick={(e) => {
-              e.preventDefault();
-              setMobileOpen(false);
-              navigate(item.path);
-            }}
+            onClick={() => setMobileOpen(false)}
             selected={location.pathname === item.path}
             sx={{
               mx: 1,
@@ -257,7 +253,7 @@ const DashboardLayout = () => {
           open={mobileOpen}
           onClose={() => setMobileOpen(false)}
           ModalProps={{
-            keepMounted: false,
+            keepMounted: true,
             closeAfterTransition: true
           }}
           sx={{

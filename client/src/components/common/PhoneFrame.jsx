@@ -1,6 +1,5 @@
 import React from 'react';
-import { Box, Typography } from '@mui/material';
-import { SignalCellular4Bar, Wifi, BatteryFull } from '@mui/icons-material';
+import { Box } from '@mui/material';
 
 const PhoneFrame = ({ children }) => {
   return (
@@ -30,7 +29,7 @@ const PhoneFrame = ({ children }) => {
         <Box
           sx={{
             position: 'absolute',
-            top: 8,
+            top: 10,
             left: '50%',
             transform: 'translateX(-50%)',
             width: 100,
@@ -44,29 +43,10 @@ const PhoneFrame = ({ children }) => {
 
         <Box
           sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            px: 3.5,
-            pt: 2.5,
-            pb: 0.5,
-          }}
-        >
-          <Typography sx={{ fontWeight: 700, color: '#000000', fontSize: '0.85rem' }}>
-            9:41
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4 }}>
-            <SignalCellular4Bar sx={{ fontSize: 14, color: '#000000' }} />
-            <Wifi sx={{ fontSize: 14, color: '#000000' }} />
-            <BatteryFull sx={{ fontSize: 16, color: '#000000' }} />
-          </Box>
-        </Box>
-
-        <Box
-          sx={{
             flex: 1,
             overflowY: 'auto',
             px: 3,
+            pt: 3.5,
             pb: 2,
             '&::-webkit-scrollbar': { display: 'none' },
           }}

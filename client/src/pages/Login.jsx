@@ -128,7 +128,7 @@ const Login = () => {
           )}
 
           <Box component="form" onSubmit={handleSubmit} autoComplete="on">
-            <Box sx={{ bgcolor: '#ffffff', borderRadius: 3, overflow: 'hidden', mb: 2.5, border: '1px solid #e5e5ea' }}>
+            <Box sx={{ bgcolor: '#ffffff', borderRadius: 3, overflow: 'hidden', mb: 2, border: '1px solid #e5e5ea' }}>
               <TextField
                 required
                 fullWidth
