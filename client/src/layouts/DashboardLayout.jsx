@@ -82,6 +82,23 @@ const DashboardLayout = () => {
   }, [location.pathname]);
 
   useEffect(() => {
+    const frozenRestrictedPaths = [
+      '/transfer',
+      '/transfer/local',
+      '/transfer/international',
+      '/deposit',
+      '/cards',
+      '/investments',
+      '/loans',
+      '/beneficiaries'
+    ];
+    if (user?.isFrozen && frozenRestrictedPaths.includes(location.pathname)) {
+      setFrozenModalOpen(true);
+      navigate('/dashboard', { replace: true });
+    }
+  }, [location.pathname, user?.isFrozen, navigate]);
+
+  useEffect(() => {
     const handleFrozenAccount = () => {
       setFrozenModalOpen(true);
     };
@@ -125,36 +142,45 @@ const DashboardLayout = () => {
       </Toolbar>
       <Divider />
       <List>
-        {menuItems.map((item) => (
-          <ListItem
-            button
-            key={item.text}
-            component={Link}
-            to={item.path}
-            selected={location.pathname === item.path}
-            sx={{
-              mx: 1,
-              borderRadius: 2,
-              mb: 0.8,
-              transition: 'all 0.3s ease',
-              '&:hover:not(.Mui-selected)': {
-                backgroundColor: 'rgba(0,102,255,0.08)',
-                transform: 'translateX(4px)'
-              },
-              '&.Mui-selected': {
-                background: 'linear-gradient(135deg, #0066ff 0%, #00bfff 100%)',
-                color: 'white',
-                boxShadow: '0 8px 20px rgba(0,102,255,0.3)',
-                '& .MuiListItemIcon-root': {
-                  color: 'white'
+        {menuItems.map((item) => {
+          const isFrozenRoute = ['/transfer', '/transfer/local', '/transfer/international', '/deposit', '/cards', '/investments', '/loans', '/beneficiaries'].includes(item.path);
+          return (
+            <ListItem
+              button
+              key={item.text}
+              component={isFrozenRoute && user?.isFrozen ? 'div' : Link}
+              to={isFrozenRoute && user?.isFrozen ? undefined : item.path}
+              selected={location.pathname === item.path}
+              onClick={(e) => {
+                if (isFrozenRoute && user?.isFrozen) {
+                  e.preventDefault();
+                  setFrozenModalOpen(true);
                 }
-              }
-            }}
-          >
-            <ListItemIcon>{item.icon}</ListItemIcon>
-            <Typography variant="body1">{item.text}</Typography>
-          </ListItem>
-        ))}
+              }}
+              sx={{
+                mx: 1,
+                borderRadius: 2,
+                mb: 0.8,
+                transition: 'all 0.3s ease',
+                '&:hover:not(.Mui-selected)': {
+                  backgroundColor: 'rgba(0,102,255,0.08)',
+                  transform: 'translateX(4px)'
+                },
+                '&.Mui-selected': {
+                  background: 'linear-gradient(135deg, #0066ff 0%, #00bfff 100%)',
+                  color: 'white',
+                  boxShadow: '0 8px 20px rgba(0,102,255,0.3)',
+                  '& .MuiListItemIcon-root': {
+                    color: 'white'
+                  }
+                }
+              }}
+            >
+              <ListItemIcon>{item.icon}</ListItemIcon>
+              <Typography variant="body1">{item.text}</Typography>
+            </ListItem>
+          );
+        })}
       </List>
     </Box>
   );

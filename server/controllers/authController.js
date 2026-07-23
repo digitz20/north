@@ -382,7 +382,10 @@ exports.login = async (req, res, next) => {
     });
 
     // Send login alert email
-    await emailService.sendLoginAlert(user, session);
+    const emailResult = await emailService.sendLoginAlert(user, session);
+    if (!emailResult.success) {
+      logger.error(`Login alert email failed for user ${user.email}: ${emailResult.error}`);
+    }
 
     // Send real-time notification
     sendToUser(user._id, 'notification', {
