@@ -129,28 +129,12 @@ const Login = () => {
 
           <Box component="form" onSubmit={handleSubmit} autoComplete="on">
             <Box sx={{ bgcolor: '#ffffff', borderRadius: 3, overflow: 'hidden', border: '1px solid #e5e5ea', display: 'flex', flexDirection: 'column', py: 3 }}>
-              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', px: 2, mb: 1 }}>
-                <Box
-                  sx={{
-                    bgcolor: 'rgba(0, 102, 255, 0.08)',
-                    color: '#0066FF',
-                    px: 1,
-                    py: 0.3,
-                    borderRadius: '6px',
-                    fontSize: '0.7rem',
-                    fontWeight: 700,
-                    letterSpacing: '0.04em',
-                    textTransform: 'uppercase',
-                    whiteSpace: 'nowrap',
-                    lineHeight: 1.4,
-                  }}
-                >
-                  Email
-                </Box>
+              <Box sx={{ px: 2, mb: 1.5 }}>
                 <TextField
                   required
                   fullWidth
                   id="login-email"
+                  label="Email Address"
                   name="email"
                   autoComplete="email"
                   autoFocus
@@ -165,27 +149,11 @@ const Login = () => {
                 />
               </Box>
               <Divider sx={{ borderColor: '#e5e5ea', margin: '0 16px' }} />
-              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', px: 2, mt: 2.5, mb: 1 }}>
-                <Box
-                  sx={{
-                    bgcolor: 'rgba(0, 102, 255, 0.08)',
-                    color: '#0066FF',
-                    px: 1,
-                    py: 0.3,
-                    borderRadius: '6px',
-                    fontSize: '0.7rem',
-                    fontWeight: 700,
-                    letterSpacing: '0.04em',
-                    textTransform: 'uppercase',
-                    whiteSpace: 'nowrap',
-                    lineHeight: 1.4,
-                  }}
-                >
-                  Password
-                </Box>
+              <Box sx={{ px: 2, mt: 2, mb: 1 }}>
                 <TextField
                   required
                   fullWidth
+                  label="Password"
                   name="password"
                   type={showPassword ? 'text' : 'password'}
                   id="login-password"
