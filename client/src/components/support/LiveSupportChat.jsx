@@ -412,23 +412,30 @@ const LiveSupportChat = () => {
       }
   };
 
-  // Handle image upload
+  // Handle image upload - convert to base64 and send directly (no server disk dependency)
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
 
-      const uploadResponse = await api.post(`/support/tickets/${currentTicket?._id}/upload`, formData);
+      const attachment = {
+        name: file.name,
+        url: dataUrl,
+        size: file.size,
+        mimetype: file.type,
+        uploadedAt: new Date().toISOString()
+      };
 
-      if (uploadResponse.data?.success) {
-        const attachment = uploadResponse.data.data;
-        handleSendMessage([attachment]);
-      }
+      handleSendMessage([attachment]);
     } catch (error) {
-      console.error('Error uploading image:', error);
+      console.error('Error reading image:', error);
     }
 
     if (fileInputRef.current) {
@@ -462,18 +469,24 @@ const LiveSupportChat = () => {
         const audioFile = new File([audioBlob], `voice-message-${Date.now()}.webm`, { type: 'audio/webm' });
 
         try {
-          const formData = new FormData();
-          formData.append('file', audioFile);
+          const reader = new FileReader();
+          const audioDataUrl = await new Promise((resolve, reject) => {
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(audioFile);
+          });
 
-          const uploadResponse = await api.post(`/support/tickets/${currentTicket?._id}/upload`, formData);
+          const attachment = {
+            name: '🎤 Voice Message',
+            url: audioDataUrl,
+            size: audioBlob.size,
+            mimetype: 'audio/webm',
+            uploadedAt: new Date().toISOString()
+          };
 
-          if (uploadResponse.data?.success) {
-            const attachment = uploadResponse.data.data;
-            attachment.name = '🎤 Voice Message';
-            handleSendMessage([attachment]);
-          }
+          handleSendMessage([attachment]);
         } catch (error) {
-          console.error('Error uploading audio:', error);
+          console.error('Error processing audio:', error);
         }
 
         stream.getTracks().forEach(track => track.stop());
@@ -492,17 +505,26 @@ const LiveSupportChat = () => {
   };
 
   const handleSendAttachment = async (file) => {
-    if (!file || !currentTicket?._id) return;
+    if (!file) return;
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const uploadResponse = await api.post(`/support/tickets/${currentTicket._id}/upload`, formData);
-      if (uploadResponse.data?.success) {
-        const attachment = uploadResponse.data.data;
-        handleSendMessage([attachment]);
-      }
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const attachment = {
+        name: file.name,
+        url: dataUrl,
+        size: file.size,
+        mimetype: file.type,
+        uploadedAt: new Date().toISOString()
+      };
+
+      handleSendMessage([attachment]);
     } catch (error) {
-      console.error('Error uploading attachment:', error);
+      console.error('Error reading attachment:', error);
     }
     if (fileInputRef.current) fileInputRef.current.value = '';
   };

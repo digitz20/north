@@ -412,31 +412,40 @@ const SupportTickets = () => {
     const file = event.target.files[0];
     if (!file || !selectedTicket) return;
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const uploadResponse = await api.post(`/support/tickets/${selectedTicket._id}/upload`, formData);
-      if (uploadResponse.data?.success) {
-        const attachment = uploadResponse.data.data;
-        if (isConnected && socket) {
-          sendMessage({
-            ticketId: selectedTicket._id,
-            message: '📎 Attachment',
-            attachments: [attachment]
-          });
-        } else {
-          const response = await api.post(`/support/tickets/${selectedTicket._id}/messages`, {
-            message: '📎 Attachment',
-            attachments: [attachment],
-            sender: user._id,
-            senderName: user?.firstName || user?.name || 'Admin'
-          });
-          const savedMessage = response.data?.data || response.data;
-          if (savedMessage) updateTicketMessages(selectedTicket._id, savedMessage);
-        }
-        scrollToBottom();
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const attachment = {
+        name: file.name,
+        url: dataUrl,
+        size: file.size,
+        mimetype: file.type,
+        uploadedAt: new Date().toISOString()
+      };
+
+      if (isConnected && socket) {
+        sendMessage({
+          ticketId: selectedTicket._id,
+          message: '📎 Attachment',
+          attachments: [attachment]
+        });
+      } else {
+        const response = await api.post(`/support/tickets/${selectedTicket._id}/messages`, {
+          message: '📎 Attachment',
+          attachments: [attachment],
+          sender: user._id,
+          senderName: user?.firstName || user?.name || 'Admin'
+        });
+        const savedMessage = response.data?.data || response.data;
+        if (savedMessage) updateTicketMessages(selectedTicket._id, savedMessage);
       }
+      scrollToBottom();
     } catch (error) {
-      console.error('Error uploading image:', error);
+      console.error('Error reading image:', error);
     }
     setPendingImage(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -456,32 +465,40 @@ const SupportTickets = () => {
         const audioFile = new File([audioBlob], `voice-message-${Date.now()}.webm`, { type: 'audio/webm' });
         if (selectedTicket) {
           try {
-            const formData = new FormData();
-            formData.append('file', audioFile);
-            const uploadResponse = await api.post(`/support/tickets/${selectedTicket._id}/upload`, formData);
-            if (uploadResponse.data?.success) {
-              const attachment = uploadResponse.data.data;
-              attachment.name = '🎤 Voice Message';
-              if (isConnected && socket) {
-                  sendMessage({
-                    ticketId: selectedTicket._id,
-                    message: attachment.name || '🎤 Voice Message',
-                    attachments: [attachment]
-                  });
-              } else {
-                const response = await api.post(`/support/tickets/${selectedTicket._id}/messages`, {
-                  message: '🎤 Voice Message',
-                  attachments: [attachment],
-                  sender: user._id,
-                  senderName: user?.firstName || user?.name || 'Admin'
-                });
-                const savedMessage = response.data?.data || response.data;
-                if (savedMessage) updateTicketMessages(selectedTicket._id, savedMessage);
-              }
-              scrollToBottom();
+            const reader = new FileReader();
+            const audioDataUrl = await new Promise((resolve, reject) => {
+              reader.onload = () => resolve(reader.result);
+              reader.onerror = reject;
+              reader.readAsDataURL(audioFile);
+            });
+
+            const attachment = {
+              name: '🎤 Voice Message',
+              url: audioDataUrl,
+              size: audioBlob.size,
+              mimetype: 'audio/webm',
+              uploadedAt: new Date().toISOString()
+            };
+
+            if (isConnected && socket) {
+              sendMessage({
+                ticketId: selectedTicket._id,
+                message: attachment.name || '🎤 Voice Message',
+                attachments: [attachment]
+              });
+            } else {
+              const response = await api.post(`/support/tickets/${selectedTicket._id}/messages`, {
+                message: '🎤 Voice Message',
+                attachments: [attachment],
+                sender: user._id,
+                senderName: user?.firstName || user?.name || 'Admin'
+              });
+              const savedMessage = response.data?.data || response.data;
+              if (savedMessage) updateTicketMessages(selectedTicket._id, savedMessage);
             }
+            scrollToBottom();
           } catch (error) {
-            console.error('Error uploading audio:', error);
+            console.error('Error processing audio:', error);
           }
         }
         stream.getTracks().forEach(track => track.stop());
