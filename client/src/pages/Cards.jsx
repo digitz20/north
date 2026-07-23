@@ -7,7 +7,7 @@ import {
   DialogActions, TextField, Stack, CircularProgress, Alert, InputAdornment
 } from '@mui/material';
 import {
-  CreditCard, Add, Visibility, Lock, Delete, Refresh, Security,
+  CreditCard, Add, Visibility, VisibilityOff, Lock, Delete, Refresh, Security,
   Payment, ConfirmationNumber, CardGiftcard, ArrowForward, Person
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -27,6 +27,7 @@ const Cards = () => {
   const [ref, inView] = useInView({ threshold: 0.1 });
   const containerRef = useRef(null);
   const [flippedCard, setFlippedCard] = useState(null);
+  const [detailsHidden, setDetailsHidden] = useState({});
   const [newCardData, setNewCardData] = useState({
     accountId: '',
     cardType: 'debit',
@@ -345,25 +346,49 @@ const Cards = () => {
                             </Box>
                           </Box>
                           
-                          <Box>
-                            <Typography variant="h4" sx={{ 
-                              fontWeight: 600, 
-                              letterSpacing: 3,
-                              mb: 3
-                            }}>
-                              {card.maskedNumber}
-                            </Typography>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                              <Box>
-                                <Typography variant="body2" sx={{ opacity: 0.7, mb: 0.5 }}>Card Holder</Typography>
-                                <Typography variant="h6" sx={{ fontWeight: 600 }}>{card.holder}</Typography>
-                              </Box>
-                              <Box sx={{ textAlign: 'right' }}>
-                                <Typography variant="body2" sx={{ opacity: 0.7, mb: 0.5 }}>Expires</Typography>
-                                <Typography variant="h6" sx={{ fontWeight: 600 }}>{card.expiry}</Typography>
-                              </Box>
-                            </Box>
-                          </Box>
+                           <Box>
+                             {detailsHidden[card.id] !== false ? (
+                               <Typography variant="h4" sx={{ 
+                                 fontWeight: 600, 
+                                 letterSpacing: 3,
+                                 mb: 3,
+                                 color: 'rgba(255,255,255,0.7)'
+                               }}>
+                                 •••• •••• •••• ••••
+                               </Typography>
+                             ) : (
+                               <Typography variant="h4" sx={{ 
+                                 fontWeight: 600, 
+                                 letterSpacing: 3,
+                                 mb: 3
+                               }}>
+                                 {card.maskedNumber}
+                               </Typography>
+                             )}
+                             {detailsHidden[card.id] !== false ? (
+                               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', opacity: 0.5 }}>
+                                 <Box>
+                                   <Typography variant="body2" sx={{ opacity: 0.7, mb: 0.5 }}>Card Holder</Typography>
+                                   <Typography variant="h6" sx={{ fontWeight: 600 }}>••••</Typography>
+                                 </Box>
+                                 <Box sx={{ textAlign: 'right' }}>
+                                   <Typography variant="body2" sx={{ opacity: 0.7, mb: 0.5 }}>Expires</Typography>
+                                   <Typography variant="h6" sx={{ fontWeight: 600 }}>••/••</Typography>
+                                 </Box>
+                               </Box>
+                             ) : (
+                               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                                 <Box>
+                                   <Typography variant="body2" sx={{ opacity: 0.7, mb: 0.5 }}>Card Holder</Typography>
+                                   <Typography variant="h6" sx={{ fontWeight: 600 }}>{card.holder}</Typography>
+                                 </Box>
+                                 <Box sx={{ textAlign: 'right' }}>
+                                   <Typography variant="body2" sx={{ opacity: 0.7, mb: 0.5 }}>Expires</Typography>
+                                   <Typography variant="h6" sx={{ fontWeight: 600 }}>{card.expiry}</Typography>
+                                 </Box>
+                               </Box>
+                             )}
+                           </Box>
                         </Box>
                       </Box>
                     </Paper>
@@ -417,13 +442,21 @@ const Cards = () => {
 
                   {/* Card Actions */}
                   <Box sx={{ mt: 3, display: 'flex', gap: 2, justifyContent: 'center' }}>
-                    <Tooltip title="View Details">
-                      <IconButton sx={{ 
-                        bgcolor: 'rgba(0,102,255,0.1)', 
-                        color: '#0066FF',
-                        '&:hover': { bgcolor: 'rgba(0,102,255,0.2)' }
-                      }}>
-                        <Visibility />
+                    <Tooltip title={detailsHidden[card.id] ? "Show Card Details" : "Hide Card Details"}>
+                      <IconButton 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDetailsHidden(prev => ({
+                            ...prev,
+                            [card.id]: !prev[card.id]
+                          }));
+                        }}
+                        sx={{ 
+                          bgcolor: 'rgba(0,102,255,0.1)', 
+                          color: '#0066FF',
+                          '&:hover': { bgcolor: 'rgba(0,102,255,0.2)' }
+                        }}>
+                        {(detailsHidden[card.id] !== false) ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
                     </Tooltip>
                     <Tooltip title={card.status === 'Active' ? "Freeze Card" : "Unfreeze Card"}>

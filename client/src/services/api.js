@@ -55,6 +55,11 @@ api.interceptors.response.use(
         return Promise.reject(refreshError);
       }
     }
+
+    // Dispatch frozen account event
+    if (error.response?.data?.code === 'ACCOUNT_FROZEN') {
+      window.dispatchEvent(new CustomEvent('frozen-account'));
+    }
     
     return Promise.reject(error);
   }

@@ -20,6 +20,7 @@ const Loans = () => {
   const [paymentAmount, setPaymentAmount] = useState('');
   const [selectedLoanType, setSelectedLoanType] = useState(null);
   const [loanAmount, setLoanAmount] = useState('');
+  const [loanTerm, setLoanTerm] = useState('');
   const [loanApplicationStep, setLoanApplicationStep] = useState(0); // Track current step in loan application stepper
   const [loanPaymentStep, setLoanPaymentStep] = useState(0); // Track current step in loan payment stepper
   
@@ -85,8 +86,44 @@ const Loans = () => {
   const handleApplyClick = (loanType) => {
     setSelectedLoanType(loanType);
     setLoanAmount('');
-    setLoanApplicationStep(0); // Reset to first step when opening new application
+    setLoanTerm('');
+    setLoanApplicationStep(0);
     setOpenApplyDialog(true);
+  };
+
+  const calculateLoanDetails = (amount, rate, termMonths) => {
+    const principal = parseFloat(amount);
+    const rateNum = parseFloat(rate);
+    const months = parseInt(termMonths);
+    if (!principal || !rateNum || !months || months <= 0) {
+      return { monthlyPayment: 0, totalInterest: 0, totalRepayment: 0 };
+    }
+    const monthlyRate = rateNum / 100 / 12;
+    let monthlyPayment;
+    if (monthlyRate === 0) {
+      monthlyPayment = principal / months;
+    } else {
+      monthlyPayment = principal * (monthlyRate * Math.pow(1 + monthlyRate, months)) / (Math.pow(1 + monthlyRate, months) - 1);
+    }
+    const totalRepayment = monthlyPayment * months;
+    const totalInterest = totalRepayment - principal;
+    return {
+      monthlyPayment: monthlyPayment.toFixed(2),
+      totalInterest: totalInterest.toFixed(2),
+      totalRepayment: totalRepayment.toFixed(2)
+    };
+  };
+
+  const handleApplySubmit = () => {
+    if (selectedLoanType && loanAmount && loanTerm) {
+      dispatch(applyForLoan({
+        loanType: selectedLoanType.type,
+        amount: parseFloat(loanAmount),
+        term: parseInt(loanTerm)
+      }));
+      setOpenApplyDialog(false);
+      setLoanApplicationStep(0);
+    }
   };
 
   const handleTabChange = (event, newValue) => {
@@ -799,6 +836,7 @@ border: '1px solid rgba(0,200,150,0.1)',
                       }
                     }}>
                       <CardContent sx={{ p: 5 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 600, color: '#888', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', mb: 0.5 }}>Loan Provider</Typography>
                         <Typography variant="h5" sx={{ fontWeight: 700, color: '#1e3a5f', mb: 1 }}>{option.type}</Typography>
                         <Typography 
                           color="primary" 
@@ -813,7 +851,10 @@ border: '1px solid rgba(0,200,150,0.1)',
                             WebkitTextFillColor: 'transparent'
                           }}
                         >{option.rate}% p.a.</Typography>
-                        <Typography color="text.secondary" sx={{ fontSize: '1.1rem', mb: 4 }}>Up to ${option.maxAmount?.toLocaleString()}</Typography>
+                        <Typography color="text.secondary" sx={{ fontSize: '1.1rem', mb: 1 }}>Up to ${option.maxAmount?.toLocaleString()}</Typography>
+                        <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 2 }}>
+                          Min: ${option.minimumAmount?.toLocaleString()} | Term: {option.minTerm}-{option.maxTerm} months
+                        </Typography>
                         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                           <Button 
                             variant="contained" 
@@ -1180,10 +1221,42 @@ border: '1px solid rgba(0,200,150,0.1)',
             <Grid container spacing={3}>
               <Grid item xs={12}>
                 <Typography variant="h5" gutterBottom fontWeight="bold">Step 2: Enter Your Loan Details</Typography>
-                <Typography variant="body1" color="text.secondary" gutterBottom>Enter the amount you wish to borrow</Typography>
+                <Typography variant="body1" color="text.secondary" gutterBottom>Select your loan term and enter the amount you wish to borrow</Typography>
               </Grid>
               
-              <Grid item xs={12}>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  select
+                  fullWidth
+                  label="Loan Term (Months)"
+                  value={loanTerm}
+                  onChange={(e) => setLoanTerm(e.target.value)}
+                  required
+                  sx={{ mt: 1 }}
+                >
+                  {selectedLoanType?.minTerm && selectedLoanType?.maxTerm ? (
+                    Array.from({ length: (selectedLoanType.maxTerm - selectedLoanType.minTerm) / 6 + 1 }, (_, i) => {
+                      const months = selectedLoanType.minTerm + i * 6;
+                      const years = months / 12;
+                      return (
+                        <MenuItem key={months} value={months}>
+                          {months} months (~{years % 1 === 0 ? years.toFixed(0) : years.toFixed(1)} years)
+                        </MenuItem>
+                      );
+                    })
+                  ) : (
+                    <>
+                      <MenuItem value={12}>12 months (1 year)</MenuItem>
+                      <MenuItem value={24}>24 months (2 years)</MenuItem>
+                      <MenuItem value={36}>36 months (3 years)</MenuItem>
+                      <MenuItem value={48}>48 months (4 years)</MenuItem>
+                      <MenuItem value={60}>60 months (5 years)</MenuItem>
+                    </>
+                  )}
+                </TextField>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
                 <TextField
                   label="Loan Amount (USD)"
                   type="number"
@@ -1192,10 +1265,55 @@ border: '1px solid rgba(0,200,150,0.1)',
                   onChange={(e) => setLoanAmount(e.target.value)}
                   error={loanAmount > selectedLoanType?.maxAmount}
                   helperText={loanAmount > selectedLoanType?.maxAmount ? `Maximum loan amount is $${selectedLoanType?.maxAmount?.toLocaleString()}` : `Enter an amount up to $${selectedLoanType?.maxAmount?.toLocaleString()}`}
-                  InputProps={{ inputProps: { min: 1000, max: selectedLoanType?.maxAmount, step: 0.01 } }}
-                  sx={{ mt: 1 }}
+                  InputProps={{ inputProps: { min: selectedLoanType?.minimumAmount || 1000, max: selectedLoanType?.maxAmount, step: 0.01 } }}
+                  sx={{ mt: { xs: 1, md: 0 } }}
                 />
               </Grid>
+              
+              {loanAmount && loanTerm && selectedLoanType && calculateLoanDetails(loanAmount, selectedLoanType.rate, loanTerm).monthlyPayment > 0 && (
+                <Grid item xs={12}>
+                  <Card sx={{ 
+                    p: 3, 
+                    background: 'linear-gradient(135deg, rgba(0,102,255,0.05) 0%, rgba(0,200,150,0.05) 100%)',
+                    border: '1px solid rgba(0,102,255,0.15)'
+                  }}>
+                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: '#1e3a5f' }}>
+                      Loan Repayment Calculator
+                    </Typography>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={4}>
+                        <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'rgba(0,102,255,0.08)', borderRadius: 2 }}>
+                          <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 0.5 }}>Monthly Payment</Typography>
+                          <Typography variant="h5" sx={{ fontWeight: 800, color: '#0066FF' }}>
+                            ${parseFloat(calculateLoanDetails(loanAmount, selectedLoanType.rate, loanTerm).monthlyPayment).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'rgba(255,152,0,0.08)', borderRadius: 2 }}>
+                          <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 0.5 }}>Total Interest</Typography>
+                          <Typography variant="h5" sx={{ fontWeight: 800, color: '#FF9800' }}>
+                            ${parseFloat(calculateLoanDetails(loanAmount, selectedLoanType.rate, loanTerm).totalInterest).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'rgba(0,200,150,0.08)', borderRadius: 2 }}>
+                          <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 0.5 }}>Total Repayment</Typography>
+                          <Typography variant="h5" sx={{ fontWeight: 800, color: '#00C896' }}>
+                            ${parseFloat(calculateLoanDetails(loanAmount, selectedLoanType.rate, loanTerm).totalRepayment).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    </Grid>
+                    <Box sx={{ mt: 2, p: 1.5, bgcolor: 'rgba(0,0,0,0.03)', borderRadius: 1 }}>
+                      <Typography variant="caption" sx={{ color: '#666' }}>
+                        At {selectedLoanType.rate}% p.a. over {loanTerm} months on ${parseFloat(loanAmount).toLocaleString()} principal
+                      </Typography>
+                    </Box>
+                  </Card>
+                </Grid>
+              )}
 
               {/* Navigation buttons */}
               <Grid item xs={6}>
@@ -1215,7 +1333,7 @@ border: '1px solid rgba(0,200,150,0.1)',
                   size="large" 
                   fullWidth
                   onClick={() => setLoanApplicationStep(2)}
-                  disabled={!loanAmount || loanAmount > selectedLoanType?.maxAmount || loanAmount < 1000}
+                  disabled={!loanAmount || loanAmount > selectedLoanType?.maxAmount || loanAmount < (selectedLoanType?.minimumAmount || 1000) || !loanTerm}
                   sx={{ background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)', py: 2, mt: 2, fontSize: '1.1rem' }}
                 >
                   Continue to Submit →
@@ -1236,10 +1354,19 @@ border: '1px solid rgba(0,200,150,0.1)',
                 <Card sx={{ p: 3 }}>
                   <Typography variant="h6" gutterBottom>Application Summary</Typography>
                   <Box mt={2}>
-                    <Typography variant="body2" display="block" sx={{ mb: 1 }}><strong>Loan Type:</strong> {selectedLoanType?.type}</Typography>
+                    <Typography variant="body2" display="block" sx={{ mb: 1 }}><strong>Loan Provider:</strong> {selectedLoanType?.type}</Typography>
                     <Typography variant="body2" display="block" sx={{ mb: 1 }}><strong>Requested Amount:</strong> ${parseFloat(loanAmount).toLocaleString()}</Typography>
+                    <Typography variant="body2" display="block" sx={{ mb: 1 }}><strong>Loan Term:</strong> {loanTerm} months</Typography>
                     <Typography variant="body2" display="block" sx={{ mb: 1 }}><strong>Interest Rate:</strong> {selectedLoanType?.rate}% p.a.</Typography>
                   </Box>
+                  {loanAmount && loanTerm && calculateLoanDetails(loanAmount, selectedLoanType.rate, loanTerm).monthlyPayment > 0 && (
+                    <Box sx={{ mt: 3, p: 2, bgcolor: '#f5f5f5', borderRadius: 2 }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Repayment Breakdown</Typography>
+                      <Typography variant="body2" sx={{ mb: 0.5 }}><strong>Monthly Payment:</strong> ${parseFloat(calculateLoanDetails(loanAmount, selectedLoanType.rate, loanTerm).monthlyPayment).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Typography>
+                      <Typography variant="body2" sx={{ mb: 0.5 }}><strong>Total Interest:</strong> ${parseFloat(calculateLoanDetails(loanAmount, selectedLoanType.rate, loanTerm).totalInterest).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Typography>
+                      <Typography variant="body2"><strong>Total Repayment:</strong> ${parseFloat(calculateLoanDetails(loanAmount, selectedLoanType.rate, loanTerm).totalRepayment).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Typography>
+                    </Box>
+                  )}
                 </Card>
               </Grid>
 

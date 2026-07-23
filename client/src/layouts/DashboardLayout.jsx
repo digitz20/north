@@ -22,6 +22,7 @@ import {
 
 // Lazy load the chat widget to implement code splitting
 const LiveSupportChat = lazy(() => import('../components/support/LiveSupportChat'));
+import FrozenAccountModal from '../components/common/FrozenAccountModal';
 import {
   Dashboard as DashboardIcon,
   AccountBalance as AccountsIcon,
@@ -73,11 +74,26 @@ const DashboardLayout = () => {
   
   const { user } = useSelector(state => state.auth);
   const { unreadCount } = useSelector(state => state.notifications);
+  const [frozenModalOpen, setFrozenModalOpen] = useState(false);
 
   // Close mobile drawer when navigating to a new page
   useEffect(() => {
     setMobileOpen(false);
   }, [location.pathname]);
+
+  useEffect(() => {
+    const handleFrozenAccount = () => {
+      setFrozenModalOpen(true);
+    };
+    window.addEventListener('frozen-account', handleFrozenAccount);
+    return () => window.removeEventListener('frozen-account', handleFrozenAccount);
+  }, []);
+
+  useEffect(() => {
+    if (user?.isFrozen) {
+      setFrozenModalOpen(true);
+    }
+  }, [user?.isFrozen]);
 
   const handleDrawerToggle = () => {
     setMobileOpen((prev) => !prev);
@@ -310,6 +326,11 @@ const DashboardLayout = () => {
       <Suspense fallback={null}>
         <LiveSupportChat />
       </Suspense>
+
+      <FrozenAccountModal
+        open={frozenModalOpen}
+        onClose={() => setFrozenModalOpen(false)}
+      />
     </Box>
   );
 };

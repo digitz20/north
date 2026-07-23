@@ -360,12 +360,19 @@ const Deposit = () => {
               activeStep={activeStep}
               sx={{
                 mb: 4,
+                '& .MuiStepLabel-root': {
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  padding: { xs: '6px 0', sm: '12px 0' },
+                },
                 '& .MuiStepLabel-label': {
-                  fontSize: { xs: '0.65rem', sm: '0.875rem' },
-                  whiteSpace: 'normal',
+                  fontSize: { xs: '0.6rem', sm: '0.75rem' },
                   textAlign: 'center',
-                  maxWidth: { xs: 75, sm: 150 },
-                  lineHeight: 1.2,
+                  maxWidth: { xs: 1, sm: 150 },
+                  lineHeight: 1.3,
+                  fontWeight: 500,
+                  '& .MuiStepLabel-labelContainer': {
+                    maxWidth: { xs: 80, sm: 150 },
+                  }
                 }
               }}
             >

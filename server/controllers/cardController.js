@@ -192,7 +192,7 @@ exports.createCard = async (req, res, next) => {
       severity: 'medium',
       description: `New ${cardNetwork} ${cardType} card created for account ending in ${account.accountNumber.slice(-4)}`,
       entity: {
-        type: 'Card',
+        type: 'card',
         id: card[0]._id
       },
       metadata: {
@@ -209,7 +209,7 @@ exports.createCard = async (req, res, next) => {
       message: `Your new ${cardNetwork} ${cardType} card has been created. Please activate it to start using.`,
       priority: 'high',
       relatedEntity: {
-        type: 'Card',
+        type: 'card',
         id: card[0]._id
       }
     }], { session });
@@ -287,7 +287,7 @@ exports.updateCard = async (req, res, next) => {
       severity: 'low',
       description: `Card settings updated for card ending in ${card.lastFourDigits}`,
       entity: {
-        type: 'Card',
+        type: 'card',
         id: card._id
       },
       metadata: { updatedFields: Object.keys(updateFields) }
@@ -343,7 +343,7 @@ exports.deleteCard = async (req, res, next) => {
       severity: 'high',
       description: `Card ending in ${card.lastFourDigits} has been deleted`,
       entity: {
-        type: 'Card',
+        type: 'card',
         id: card._id
       }
     }], { session });
@@ -356,7 +356,7 @@ exports.deleteCard = async (req, res, next) => {
       message: `Your card ending in ${card.lastFourDigits} has been deleted from your account. If this wasn't you, please contact support immediately.`,
       priority: 'urgent',
       relatedEntity: {
-        type: 'Card',
+        type: 'card',
         id: card._id
       }
     }], { session });
@@ -427,7 +427,7 @@ exports.activateCard = async (req, res, next) => {
       severity: 'medium',
       description: `Card ending in ${card.lastFourDigits} has been activated`,
       entity: {
-        type: 'Card',
+        type: 'card',
         id: card._id
       }
     }], { session });
@@ -440,7 +440,7 @@ exports.activateCard = async (req, res, next) => {
       message: `Your card ending in ${card.lastFourDigits} is now active and ready to use.`,
       priority: 'high',
       relatedEntity: {
-        type: 'Card',
+        type: 'card',
         id: card._id
       }
     }], { session });
@@ -514,7 +514,7 @@ exports.freezeCard = async (req, res, next) => {
       severity: 'high',
       description: `Card ending in ${card.lastFourDigits} has been frozen. Reason: ${card.lockReason}`,
       entity: {
-        type: 'Card',
+        type: 'card',
         id: card._id
       }
     }], { session });
@@ -527,7 +527,7 @@ exports.freezeCard = async (req, res, next) => {
       message: `Your card ending in ${card.lastFourDigits} has been frozen. You can unfreeze it at any time from your account settings.`,
       priority: 'high',
       relatedEntity: {
-        type: 'Card',
+        type: 'card',
         id: card._id
       }
     }], { session });
@@ -599,7 +599,7 @@ exports.unfreezeCard = async (req, res, next) => {
       severity: 'medium',
       description: `Card ending in ${card.lastFourDigits} has been unfrozen`,
       entity: {
-        type: 'Card',
+        type: 'card',
         id: card._id
       }
     }], { session });
@@ -612,7 +612,7 @@ exports.unfreezeCard = async (req, res, next) => {
       message: `Your card ending in ${card.lastFourDigits} has been unfrozen and is ready to use again.`,
       priority: 'medium',
       relatedEntity: {
-        type: 'Card',
+        type: 'card',
         id: card._id
       }
     }], { session });
