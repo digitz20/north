@@ -104,7 +104,7 @@ const Login = () => {
         transition={{ duration: 0.6, ease: 'easeOut' }}
       >
         <PhoneFrame>
-          <Box sx={{ mt: 0.5, textAlign: 'center', mb: 2.5 }}>
+          <Box sx={{ mt: 6, textAlign: 'center', mb: 2.5 }}>
             <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>
               <NorthCrestLogo />
             </Box>
@@ -128,7 +128,7 @@ const Login = () => {
           )}
 
           <Box component="form" onSubmit={handleSubmit} autoComplete="on">
-            <Box sx={{ bgcolor: '#ffffff', borderRadius: 3, overflow: 'hidden', mb: 2, border: '1px solid #e5e5ea' }}>
+            <Box sx={{ bgcolor: '#ffffff', borderRadius: 3, overflow: 'hidden', border: '1px solid #e5e5ea', display: 'flex', flexDirection: 'column', py: 2 }}>
               <TextField
                 required
                 fullWidth
@@ -140,7 +140,7 @@ const Login = () => {
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                sx={{ 
+                sx={{
                   '& .MuiInputBase-root': { bgcolor: 'transparent' },
                 }}
               />
@@ -170,7 +170,7 @@ const Login = () => {
                     </InputAdornment>
                   ),
                 }}
-                sx={{ 
+                sx={{
                   '& .MuiInputBase-root': { bgcolor: 'transparent' },
                 }}
               />

@@ -169,7 +169,7 @@ const Register = () => {
         transition={{ duration: 0.6, ease: 'easeOut' }}
       >
         <PhoneFrame>
-          <Box sx={{ mt: 0.5, textAlign: 'center', mb: 2.5 }}>
+          <Box sx={{ mt: 6, textAlign: 'center', mb: 2.5 }}>
             <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>
               <NorthCrestLogo />
             </Box>
