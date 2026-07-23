@@ -155,13 +155,16 @@ exports.createTransfer = async (req, res, next) => {
 
     // Send transfer confirmation email
     try {
+      const transferTypeForEmail = req.body.transferType || req.body.method || 'transfer';
       await emailService.sendTransactionAlert(req.user, {
         amount: amount,
-        type: 'transfer',
+        type: transferTypeForEmail === 'domestic' ? 'transfer' : transferTypeForEmail,
         status: 'pending',
         transactionId: transfer[0]._id,
         description: `Transfer to ${recipientDetails.name || 'recipient'}`,
-        direction: 'debit'
+        direction: 'debit',
+        method: transferTypeForEmail,
+        recipient: recipientDetails
       });
       logger.info(`Transfer confirmation email sent to: ${req.user.email}`);
     } catch (emailErr) {
@@ -602,7 +605,13 @@ exports.createInternationalTransfer = async (req, res, next) => {
         status: 'pending',
         transactionId: transfer[0]._id,
         description: `Crypto transfer - ${source.crypto.toUpperCase()} to ${source.walletAddress.substring(0, 10)}...`,
-        direction: 'debit'
+        direction: 'debit',
+        method: 'crypto-transfer',
+        recipient: {
+          ...recipient,
+          crypto: source.crypto,
+          walletAddress: source.walletAddress
+        }
       });
       logger.info(`Crypto transfer confirmation email sent to: ${req.user.email}`);
     } catch (emailErr) {

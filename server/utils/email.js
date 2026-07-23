@@ -268,30 +268,94 @@ class EmailService {
 
   // Transaction alert
   async sendTransactionAlert(user, transaction) {
-    const direction = transaction.direction === 'credit' ? 'received' : 'sent';
-    const content = `
-      <p>Dear ${user.firstName} ${user.lastName},</p>
-      <p>A transaction of <strong>$${transaction.amount.toFixed(2)}</strong> has been ${direction} from your account.</p>
+    const {
+      type,
+      direction,
+      amount,
+      status,
+      transactionId,
+      description,
+      method,
+      recipient,
+      sender,
+      paymentMethod
+    } = transaction;
+
+    const amountFormatted = `$${amount.toFixed(2)}`;
+    const date = new Date().toLocaleString();
+
+    let title = 'Transaction Alert';
+    let subject = `Transaction Alert: ${transactionId}`;
+    let greeting = 'A transaction has been processed on your account.';
+    let bodyContent = '';
+
+    const details = `
       <div class="transaction-details">
         <ul>
-          <li><strong>Transaction ID:</strong> ${transaction.transactionId}</li>
-          <li><strong>Amount:</strong> $${transaction.amount.toFixed(2)}</li>
-          <li><strong>Type:</strong> ${transaction.type}</li>
-          <li><strong>Status:</strong> ${transaction.status}</li>
-          <li><strong>Date:</strong> ${new Date().toLocaleString()}</li>
-          <li><strong>Description:</strong> ${transaction.description}</li>
+          <li><strong>Transaction ID:</strong> ${transactionId}</li>
+          <li><strong>Amount:</strong> ${amountFormatted}</li>
+          <li><strong>Status:</strong> ${status}</li>
+          <li><strong>Date:</strong> ${date}</li>
+          ${description ? `<li><strong>Description:</strong> ${description}</li>` : ''}
+          ${method ? `<li><strong>Method:</strong> ${method}</li>` : ''}
+          ${paymentMethod ? `<li><strong>Payment Method:</strong> ${paymentMethod}</li>` : ''}
+          ${sender?.name ? `<li><strong>Sender:</strong> ${sender.name}</li>` : ''}
+          ${recipient?.name ? `<li><strong>Recipient:</strong> ${recipient.name}</li>` : ''}
         </ul>
       </div>
+    `;
+
+    if (type === 'deposit' || type === 'Deposit') {
+      title = 'Deposit Confirmation';
+      subject = `Deposit Confirmation: ${transactionId}`;
+      greeting = `
+        <p>Dear ${user.firstName} ${user.lastName},</p>
+        <p>We are pleased to confirm that your deposit of <strong>${amountFormatted}</strong> has been successfully processed and credited to your account.</p>
+      `;
+    } else if (type === 'transfer' || type === 'Transfer') {
+      title = 'Transfer Confirmation';
+      subject = `Transfer Confirmation: ${transactionId}`;
+      greeting = `
+        <p>Dear ${user.firstName} ${user.lastName},</p>
+        <p>Your transfer of <strong>${amountFormatted}</strong> ${direction === 'credit' ? 'has been received' : 'has been initiated'}. The transaction is currently <strong>${status}</strong>.</p>
+      `;
+    } else if (type === 'international' || type === 'International Transfer' || type === 'wire-transfer' || type === 'bank-transfer' || method === 'wire-transfer' || method === 'bank-transfer') {
+      title = type === 'wire-transfer' || method === 'wire-transfer' ? 'Wire Transfer Confirmation' : type === 'bank-transfer' || method === 'bank-transfer' ? 'Bank Transfer Confirmation' : 'International Bank Transfer Confirmation';
+      subject = `${title}: ${transactionId}`;
+      greeting = `
+        <p>Dear ${user.firstName} ${user.lastName},</p>
+        <p>Your ${type === 'wire-transfer' || method === 'wire-transfer' ? 'wire transfer' : type === 'bank-transfer' || method === 'bank-transfer' ? 'bank transfer' : 'international bank transfer'} of <strong>${amountFormatted}</strong> has been successfully initiated and is currently being processed.</p>
+        <p>Please note that international transfers may take 1-3 business days to complete depending on the destination bank and currency.</p>
+      `;
+    } else if (type === 'crypto-withdrawal' || type === 'crypto-transfer') {
+      title = 'Crypto Transfer Confirmation';
+      subject = `Crypto Transfer Confirmation: ${transactionId}`;
+      greeting = `
+        <p>Dear ${user.firstName} ${user.lastName},</p>
+        <p>Your cryptocurrency transfer of <strong>${amountFormatted}</strong> has been successfully initiated and is currently being processed on the blockchain.</p>
+      `;
+    } else if (type === 'Withdrawal') {
+      title = 'Withdrawal Confirmation';
+      subject = `Withdrawal Confirmation: ${transactionId}`;
+      greeting = `
+        <p>Dear ${user.firstName} ${user.lastName},</p>
+        <p>Your withdrawal request of <strong>${amountFormatted}</strong> has been successfully processed. The funds have been ${direction === 'credit' ? 'credited' : 'debited'} to your account.</p>
+      `;
+    }
+
+    const content = `
+      ${greeting}
+      ${details}
       <div class="alert-warning">
         <p>If you did not authorize this transaction, please contact our security team immediately to report unauthorized activity.</p>
       </div>
     `;
 
-    const html = this.#getBaseTemplate(content, `Transaction Alert: ${transaction.transactionId}`);
+    const html = this.#getBaseTemplate(content, title);
 
     return this.sendEmail({
       to: user.email,
-      subject: `Transaction Alert: ${transaction.transactionId}`,
+      subject,
       html
     });
   }

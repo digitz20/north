@@ -165,8 +165,8 @@ exports.sendEmail = async (req, res, next) => {
         await emailService.sendTransactionAlert(user, {
           ...transactionDetails,
           direction: 'sent',
-          type: 'International Transfer',
-          description: 'Your international transfer has been initiated'
+          type: transactionDetails.method === 'wire-transfer' ? 'wire-transfer' : transactionDetails.method === 'bank-transfer' ? 'bank-transfer' : 'international',
+          description: transactionDetails.description || 'Your international transfer has been initiated'
         });
         logger.info(`International transfer confirmation email sent to: ${email}`);
         break;

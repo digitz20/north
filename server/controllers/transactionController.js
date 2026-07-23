@@ -201,7 +201,8 @@ exports.deposit = async (req, res, next) => {
         status: 'completed',
         transactionId: transaction[0]._id,
         description: description || `Deposit to ${account.nickname}`,
-        direction: 'credit'
+        direction: 'credit',
+        paymentMethod: req.body.paymentMethod
       });
       logger.info(`Deposit confirmation email sent to: ${req.user.email}`);
     } catch (emailErr) {

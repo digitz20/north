@@ -235,6 +235,7 @@ exports.createInvestment = async (req, res, next) => {
       description: `Investment in ${plan.name}`,
       category: 'investment',
       status: 'completed',
+      direction: 'debit',
       metadata: { planId: plan._id }
     }], { session });
 
