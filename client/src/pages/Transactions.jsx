@@ -23,7 +23,7 @@ import PremiumButton from '../components/PremiumButton';
 const Transactions = () => {
   const dispatch = useDispatch();
   const location = useLocation();
-  const { transactions, loading } = useSelector((state) => state.transactions);
+  const { transactions, loading, error } = useSelector((state) => state.transactions);
   const [ref, inView] = useInView({ threshold: 0.1 });
   const containerRef = useRef(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -123,6 +123,15 @@ const Transactions = () => {
   });
 
   if (loading) return null;
+
+  if (error) {
+    return (
+      <Box sx={{ p: 5, textAlign: 'center' }}>
+        <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
+        <Button variant="contained" onClick={() => dispatch(fetchTransactions())}>Retry</Button>
+      </Box>
+    );
+  }
 
   return (
     <motion.div
@@ -420,7 +429,7 @@ const Transactions = () => {
                         {transaction.description}
                       </Typography>
                       <Typography variant="body2" sx={{ color: '#666' }}>
-                        {new Date(transaction.date).toLocaleDateString('en-US', { 
+                        {new Date(transaction.createdAt).toLocaleDateString('en-US', { 
                           year: 'numeric', 
                           month: 'long', 
                           day: 'numeric' 

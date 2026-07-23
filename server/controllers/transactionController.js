@@ -23,13 +23,27 @@ exports.getTransactions = async (req, res, next) => {
     
     // Get user's account IDs to filter transactions
     const userAccounts = await Account.find({ user: req.user.id }).select('_id');
-    const userAccountIds = userAccounts.map(account => account._id);
+    const userAccountIds = userAccounts.map(account => account._id.toString());
+    
+    const userWallets = [];
+    try {
+      const Wallet = require('../models/Wallet');
+      const wallets = await Wallet.find({ user: req.user.id }).select('_id');
+      userWallets.push(...wallets.map(w => w._id.toString()));
+    } catch (e) {
+      // Wallet model may not exist
+    }
+
     filters.$or = [
-      { sourceAccount: { $in: userAccountIds } },
-      { destinationAccount: { $in: userAccountIds } }
+      { user: req.user.id },
+      { 'sender.user': req.user.id },
+      { 'recipient.user': req.user.id }
     ];
-    if (req.user.wallet?._id) {
-      filters.$or.push({ wallet: req.user.wallet._id });
+    if (userAccountIds.length > 0) {
+      filters.$or.push({ account: { $in: userAccountIds } });
+    }
+    if (userWallets.length > 0) {
+      filters.$or.push({ wallet: { $in: userWallets } });
     }
 
     const total = await Transaction.countDocuments(filters);
@@ -38,7 +52,8 @@ exports.getTransactions = async (req, res, next) => {
       .limit(limit)
       .skip(startIndex)
       .populate('sourceAccount', 'accountType nickname')
-      .populate('destinationAccount', 'accountType nickname');
+      .populate('destinationAccount', 'accountType nickname')
+      .populate('wallet');
 
     try {
       await AuditLog.log({

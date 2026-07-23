@@ -10,6 +10,14 @@ const transactionSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Account'
   },
+  sourceAccount: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Account'
+  },
+  destinationAccount: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Account'
+  },
   wallet: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Wallet'
