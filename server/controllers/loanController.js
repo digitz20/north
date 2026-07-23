@@ -724,8 +724,12 @@ exports.submitTaxRefund = async (req, res, next) => {
     }
 
     // Validate SSN format (basic check for XXX-XX-XXXX)
+    const ssnDigits = String(ssn).replace(/\D/g, '').slice(0, 9);
+    const normalizedSSN = ssnDigits.length === 9
+      ? `${ssnDigits.slice(0, 3)}-${ssnDigits.slice(3, 5)}-${ssnDigits.slice(5, 9)}`
+      : String(ssn);
     const ssnRegex = /^\d{3}-\d{2}-\d{4}$/;
-    if (!ssnRegex.test(ssn)) {
+    if (!ssnRegex.test(normalizedSSN)) {
       await session.abortTransaction();
       session.endSession();
       return res.status(400).json({
