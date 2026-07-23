@@ -104,7 +104,7 @@ const Login = () => {
         transition={{ duration: 0.6, ease: 'easeOut' }}
       >
         <PhoneFrame>
-          <Box sx={{ mt: 6, textAlign: 'center', mb: 2.5 }}>
+          <Box sx={{ mt: 0.5, textAlign: 'center', mb: 2.5 }}>
             <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>
               <NorthCrestLogo />
             </Box>
@@ -143,6 +143,7 @@ const Login = () => {
                 sx={{
                   '& .MuiInputBase-root': { bgcolor: 'transparent' },
                   '& .MuiOutlinedInput-root': { borderRadius: '6px' },
+                  '& .MuiInputBase-input': { px: 1.5 },
                 }}
               />
               <Divider sx={{ borderColor: '#e5e5ea', margin: 0 }} />
@@ -173,6 +174,8 @@ const Login = () => {
                 }}
                 sx={{
                   '& .MuiInputBase-root': { bgcolor: 'transparent' },
+                  '& .MuiOutlinedInput-root': { borderRadius: '6px' },
+                  '& .MuiInputBase-input': { px: 1.5 },
                   mt: 3,
                 }}
               />
