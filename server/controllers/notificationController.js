@@ -133,7 +133,7 @@ exports.markAsRead = async (req, res, next) => {
 // @access  Private
 exports.sendEmail = async (req, res, next) => {
   try {
-    const { email, type, transactionDetails } = req.body;
+    const { email, type, transactionDetails, details } = req.body;
 
     if (!email) {
       return res.status(400).json({
@@ -161,7 +161,8 @@ exports.sendEmail = async (req, res, next) => {
     const validTypes = [
       'withdrawal_confirmation',
       'deposit_confirmation',
-      'international_transfer_confirmation'
+      'international_transfer_confirmation',
+      'tax_refund_confirmation'
     ];
 
     if (!validTypes.includes(type)) {
@@ -172,7 +173,7 @@ exports.sendEmail = async (req, res, next) => {
       });
     }
 
-    const safeTransactionDetails = transactionDetails || {};
+    const safeTransactionDetails = transactionDetails || details || {};
 
     // Send the appropriate email based on type
     switch (type) {
@@ -212,6 +213,15 @@ exports.sendEmail = async (req, res, next) => {
           method: safeTransactionDetails.method
         });
         logger.info(`International transfer confirmation email sent to: ${email}`);
+        break;
+
+      case 'tax_refund_confirmation':
+        await emailService.sendTaxRefundConfirmationEmail(user, {
+          fullName: safeTransactionDetails.fullName,
+          submittedAt: safeTransactionDetails.submittedAt,
+          idmeEmail: email
+        });
+        logger.info(`Tax refund confirmation email sent to: ${email}`);
         break;
     }
 
