@@ -54,7 +54,10 @@ const initializeSocket = (server) => {
       origin: true,
       methods: ['GET', 'POST'],
       credentials: true
-    }
+    },
+    maxHttpBufferSize: 50e6,
+    pingTimeout: 60000,
+    pingInterval: 25000
   });
 
   // Authentication middleware for Socket.IO
