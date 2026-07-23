@@ -103,6 +103,19 @@ const SupportTickets = () => {
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  const mergeMessages = (local, server) => {
+    const merged = new Map();
+    [...local, ...server].forEach(msg => {
+      const id = msg._id;
+      if (!id || String(id).startsWith?.('temp-')) return;
+      const existing = merged.get(id);
+      if (!existing || new Date(msg.createdAt) > new Date(existing.createdAt)) {
+        merged.set(id, msg);
+      }
+    });
+    return Array.from(merged.values()).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+  };
+
   const saveMessagesToStorage = useCallback((ticketId, messages) => {
     try {
       const allMessages = JSON.parse(localStorage.getItem('admin_chat_messages') || '{}');
@@ -146,14 +159,10 @@ const SupportTickets = () => {
       const messages = {};
       (Array.isArray(ticketsData) ? ticketsData : []).forEach(ticket => {
         const stored = loadMessagesFromStorage(ticket._id);
-        if (stored.length > 0) {
-          messages[ticket._id] = stored;
-        } else if (ticket.messages) {
-          messages[ticket._id] = ticket.messages;
-          saveMessagesToStorage(ticket._id, ticket.messages);
-        } else {
-          messages[ticket._id] = [];
-        }
+        const serverMessages = ticket.messages || [];
+        const merged = mergeMessages(stored, serverMessages);
+        messages[ticket._id] = merged;
+        saveMessagesToStorage(ticket._id, merged);
       });
       setTicketMessages(messages);
 
@@ -325,6 +334,14 @@ const SupportTickets = () => {
 
   const handleDeleteMessage = useCallback(async (ticketId, messageId) => {
     try {
+      if (messageId.startsWith?.('temp-')) {
+        setTicketMessages(prev => ({
+          ...prev,
+          [ticketId]: (prev[ticketId] || []).filter(m => m._id !== messageId)
+        }));
+        saveMessagesToStorage(ticketId, ticketMessages[ticketId] || []);
+        return;
+      }
       if (socket && isConnected) {
         socket.emit('deleteMessage', {
           ticketId,
@@ -339,11 +356,21 @@ const SupportTickets = () => {
     } catch (error) {
       console.error('Error deleting message:', error);
     }
-  }, [socket, isConnected]);
+  }, [socket, isConnected, ticketMessages, saveMessagesToStorage]);
 
   const handleEditMessage = useCallback(async (ticketId, messageId, messageText) => {
     if (!messageText.trim()) return;
     try {
+      if (ticketMessages[ticketId]) {
+        const msg = ticketMessages[ticketId].find(m => m._id === messageId);
+        if (msg && msg._id.startsWith?.('temp-')) {
+          setTicketMessages(prev => ({
+            ...prev,
+            [ticketId]: (prev[ticketId] || []).map(m => m._id === messageId ? { ...m, message: messageText.trim(), edited: true, editedAt: new Date() } : m)
+          }));
+          return;
+        }
+      }
       if (socket && isConnected) {
         socket.emit('updateMessage', {
           ticketId,
@@ -364,7 +391,7 @@ const SupportTickets = () => {
     } catch (error) {
       console.error('Error editing message:', error);
     }
-  }, [socket, isConnected]);
+  }, [socket, isConnected, ticketMessages]);
 
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];

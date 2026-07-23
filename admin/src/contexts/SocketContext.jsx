@@ -12,61 +12,64 @@ export const SocketProvider = ({ children }) => {
   const socketRef = useRef(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('adminToken');
-    // Only connect if we have a valid token AND no existing socket connection
-    if (token && token !== 'undefined' && token !== 'null' && !socketRef.current) {
-      // Initialize socket connection - use production URL to avoid localhost connection errors
-      const socketUrl = 'https://established-vanny-digitz-b5fdc94b.koyeb.app';
-      const newSocket = io(socketUrl, {
-        auth: { token },
-        query: { token },
-        reconnection: true,
-        reconnectionAttempts: 5,
-        reconnectionDelay: 1000,
-        reconnectionDelayMax: 5000,
-        timeout: 20000
-      });
+    const createSocket = () => {
+      const token = localStorage.getItem('adminToken');
+      if (token && token !== 'undefined' && token !== 'null' && !socketRef.current) {
+        const socketUrl = 'https://established-vanny-digitz-b5fdc94b.koyeb.app';
+        const newSocket = io(socketUrl, {
+          auth: { token },
+          query: { token },
+          reconnection: true,
+          reconnectionAttempts: 5,
+          reconnectionDelay: 1000,
+          reconnectionDelayMax: 5000,
+          timeout: 20000
+        });
 
-      newSocket.on('connect', () => {
-        console.log('Admin socket connected:', newSocket.id);
-        setIsConnected(true);
-      });
+        newSocket.on('connect', () => {
+          console.log('Admin socket connected:', newSocket.id);
+          setIsConnected(true);
+        });
 
-      newSocket.on('disconnect', (reason) => {
-        console.log('Admin socket disconnected:', reason);
-        setIsConnected(false);
-        // If server disconnected us intentionally, clear socket ref to allow reconnection later
-        if (reason === 'io server disconnect') {
-          socketRef.current = null;
-          setSocket(null);
-        }
-      });
+        newSocket.on('disconnect', (reason) => {
+          console.log('Admin socket disconnected:', reason);
+          setIsConnected(false);
+          if (reason === 'io server disconnect') {
+            socketRef.current = null;
+            setSocket(null);
+          }
+        });
 
-      newSocket.on('connect_error', (error) => {
-        console.error('Admin socket connection error:', error);
-        setIsConnected(false);
-      });
+        newSocket.on('connect_error', (error) => {
+          console.error('Admin socket connection error:', error);
+          setIsConnected(false);
+        });
 
-      newSocket.on('reconnect', (attemptNumber) => {
-        console.log(`Admin reconnected after ${attemptNumber} attempts`);
-        setIsConnected(true);
-      });
+        newSocket.on('reconnect', (attemptNumber) => {
+          console.log(`Admin reconnected after ${attemptNumber} attempts`);
+          setIsConnected(true);
+        });
 
-      // Listen for support status updates
-      newSocket.on('supportStatus', (data) => {
-        setSupportOnlineAgents(data.agentCount || 0);
-      });
+        newSocket.on('supportStatus', (data) => {
+          setSupportOnlineAgents(data.agentCount || 0);
+        });
 
-      socketRef.current = newSocket;
-      setSocket(newSocket);
+        socketRef.current = newSocket;
+        setSocket(newSocket);
+      }
+    };
 
-      return () => {
-        if (newSocket) {
-          newSocket.disconnect();
-          socketRef.current = null;
-        }
-      };
-    }
+    createSocket();
+
+    const interval = setInterval(createSocket, 3000);
+
+    return () => {
+      clearInterval(interval);
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
+    };
   }, []);
 
   // Join a chat room

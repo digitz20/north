@@ -174,10 +174,11 @@ const initializeSocket = (server) => {
         // Broadcast message to everyone in the ticket room
         sendToTicket(ticketId, 'receiveMessage', {
           ticketId,
-          message: savedMessage
+          message: savedMessage,
+          tempId: data.tempId
         });
 
-        // Mark message as delivered
+        // Mark message as delivered (also deliver to sender)
         sendToTicket(ticketId, 'messageDelivered', {
           ticketId,
           messageId: newMessage._id,

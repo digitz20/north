@@ -74,15 +74,28 @@ const LiveSupportChat = () => {
   const ticketsCacheRef = useRef({ data: null, timestamp: 0 });
   const MIN_FETCH_INTERVAL = 3000;
 
-  const saveMessagesToStorage = (ticketId, messages) => {
-    try {
-      const allMessages = JSON.parse(localStorage.getItem('client_chat_messages') || '{}');
-      allMessages[ticketId] = messages.slice(-100);
-      localStorage.setItem('client_chat_messages', JSON.stringify(allMessages));
-    } catch (e) {
-      console.error('Error saving messages to localStorage:', e);
-    }
-  };
+   const mergeMessages = (local, server) => {
+     const merged = new Map();
+     [...local, ...server].forEach(msg => {
+       const id = msg._id || msg.tempId;
+       if (!id || String(id).startsWith?.('temp-')) return;
+       const existing = merged.get(id);
+       if (!existing || new Date(msg.createdAt) > new Date(existing.createdAt)) {
+         merged.set(id, msg);
+       }
+     });
+     return Array.from(merged.values()).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+   };
+
+   const saveMessagesToStorage = (ticketId, messages) => {
+     try {
+       const allMessages = JSON.parse(localStorage.getItem('client_chat_messages') || '{}');
+       allMessages[ticketId] = messages.slice(-100);
+       localStorage.setItem('client_chat_messages', JSON.stringify(allMessages));
+     } catch (e) {
+       console.error('Error saving messages to localStorage:', e);
+     }
+   };
 
   const loadMessagesFromStorage = (ticketId) => {
     try {
@@ -127,10 +140,10 @@ const LiveSupportChat = () => {
         if (!cancelled && activeTicket) {
           setCurrentTicket(activeTicket);
           const storedMessages = loadMessagesFromStorage(activeTicket._id);
-          setMessages(storedMessages.length > 0 ? storedMessages : (activeTicket.messages || []));
-          if (storedMessages.length > 0) {
-            saveMessagesToStorage(activeTicket._id, storedMessages);
-          }
+          const serverMessages = activeTicket.messages || [];
+          const mergedMessages = mergeMessages(storedMessages, serverMessages);
+          setMessages(mergedMessages);
+          saveMessagesToStorage(activeTicket._id, mergedMessages);
           setUnreadCount(0);
         }
       } catch (error) {
@@ -322,12 +335,15 @@ const LiveSupportChat = () => {
         
         const newTicket = createResponse.data?.data || createResponse.data;
         if (newTicket && newTicket._id) {
+          const newTicketId = newTicket._id;
           setCurrentTicket(newTicket);
           setMessages(newTicket.messages || []);
           
           if (socket && isConnected) {
-            joinChat(newTicket._id);
+            joinChat(newTicketId);
           }
+          
+          currentTicketRef.current = newTicket;
         }
       } catch (error) {
         console.error('Error creating ticket:', error);
@@ -335,7 +351,7 @@ const LiveSupportChat = () => {
       }
     }
 
-    const ticketId = currentTicket?._id;
+    const ticketId = currentTicket?._id || currentTicketRef.current?._id;
     if (!ticketId) return;
 
     const localMessage = {
@@ -367,21 +383,33 @@ const LiveSupportChat = () => {
         attachments: localMessage.attachments,
         tempId: localMessage._id
       });
-    } else {
-      try {
-        const response = await api.post(`/support/tickets/${ticketId}/messages`, {
-          message: messageText,
-          attachments: localMessage.attachments
-        });
-        
-        const savedMessage = response.data?.data;
-        if (savedMessage) {
-          setMessages(prev => [...prev, { ...savedMessage, _id: savedMessage._id || `temp-${Date.now()}` }]);
+      } else {
+        try {
+          const response = await api.post(`/support/tickets/${ticketId}/messages`, {
+            message: messageText,
+            attachments: localMessage.attachments
+          });
+
+          const savedMessage = response.data?.data;
+          if (savedMessage) {
+            setMessages(prev => {
+              const tempIndex = prev.findIndex(msg => msg._id === localMessage._id);
+              const replacement = { ...savedMessage, _id: savedMessage._id || localMessage._id };
+              if (tempIndex !== -1) {
+                const updated = [...prev];
+                updated[tempIndex] = replacement;
+                saveMessagesToStorage(ticketId, updated);
+                return updated;
+              }
+              const updated = [...prev, replacement];
+              saveMessagesToStorage(ticketId, updated);
+              return updated;
+            });
+          }
+        } catch (error) {
+          console.error('Error sending message:', error);
         }
-      } catch (error) {
-        console.error('Error sending message:', error);
       }
-    }
   };
 
   // Handle image upload
@@ -498,11 +526,15 @@ const LiveSupportChat = () => {
 
   const handleDeleteMessage = async (messageId) => {
     if (!currentTicket) return;
+    if (messageId.startsWith?.('temp-')) {
+      setMessages(prev => {
+        const updated = prev.filter(msg => msg._id !== messageId);
+        if (currentTicket?._id) saveMessagesToStorage(currentTicket._id, updated);
+        return updated;
+      });
+      return;
+    }
     try {
-      if (messageId.startsWith?.('temp-')) {
-        setMessages(prev => prev.filter(msg => msg._id !== messageId));
-        return;
-      }
       if (socket && isConnected) {
         socket.emit('deleteMessage', {
           ticketId: currentTicket._id,
@@ -519,6 +551,12 @@ const LiveSupportChat = () => {
   const handleEditMessage = async (messageId, messageText) => {
     if (!messageText.trim() || !currentTicket) return;
     try {
+      if (messageId.startsWith?.('temp-')) {
+        setMessages(prev => prev.map(msg => msg._id === messageId ? { ...msg, message: messageText.trim(), edited: true, editedAt: new Date() } : msg));
+        setEditingMessageId(null);
+        setEditText('');
+        return;
+      }
       if (socket && isConnected) {
         socket.emit('updateMessage', {
           ticketId: currentTicket._id,
@@ -563,19 +601,19 @@ const LiveSupportChat = () => {
     const markMessageAsReadRef = markMessageAsRead;
 
     const handleReceiveMessage = (data) => {
-      const { message } = data;
+      const { message, tempId } = data;
       if (!message) return;
 
       const ticketId = currentTicketRef.current?._id;
       
       setMessages(prev => {
         // Check if this message replaces a temporary message (sent by this user)
-        if (message.tempId) {
-          const tempIndex = prev.findIndex(msg => msg._id === message.tempId);
+        if (tempId) {
+          const tempIndex = prev.findIndex(msg => msg._id === tempId);
           if (tempIndex !== -1) {
             // Replace the temporary message with the server-confirmed message
             const updated = [...prev];
-            updated[tempIndex] = { ...message, _id: message._id || message.tempId };
+            updated[tempIndex] = { ...message, _id: message._id || tempId };
             if (ticketId) saveMessagesToStorage(ticketId, updated);
             return updated;
           }
