@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { getCurrentUser } from '../store/slices/authSlice';
 import { CircularProgress, Box } from '@mui/material';
 
@@ -10,11 +10,23 @@ const isSessionExpired = () => {
   return Date.now() > parseInt(sessionExpiry);
 };
 
+const FROZEN_RESTRICTED_PATHS = [
+  '/transfer',
+  '/transfer/local',
+  '/transfer/international',
+  '/deposit',
+  '/cards',
+  '/investments',
+  '/loans',
+  '/beneficiaries'
+];
+
 const ProtectedRoute = ({ isAuthenticated }) => {
   const location = useLocation();
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(true);
   const token = localStorage.getItem('token');
+  const { user } = useSelector(state => state.auth);
 
   useEffect(() => {
     const verifyAuth = async () => {
@@ -55,6 +67,11 @@ const ProtectedRoute = ({ isAuthenticated }) => {
 
   if (!isAuthenticated || !token || isSessionExpired()) {
     return <Navigate to="/" state={{ from: location }} replace />;
+  }
+
+  // Block frozen users from restricted action pages
+  if (user?.isFrozen && FROZEN_RESTRICTED_PATHS.includes(location.pathname)) {
+    return <Navigate to="/dashboard" state={{ frozenRedirect: true }} replace />;
   }
 
   return <Outlet />;

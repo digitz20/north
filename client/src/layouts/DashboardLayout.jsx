@@ -99,6 +99,13 @@ const DashboardLayout = () => {
   }, [location.pathname, user?.isFrozen, navigate]);
 
   useEffect(() => {
+    // Show frozen modal when redirected from a restricted page
+    if (location.state?.frozenRedirect && user?.isFrozen) {
+      setFrozenModalOpen(true);
+    }
+  }, [location.state?.frozenRedirect, user?.isFrozen]);
+
+  useEffect(() => {
     const handleFrozenAccount = () => {
       setFrozenModalOpen(true);
     };
