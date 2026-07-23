@@ -32,7 +32,8 @@ const auditLogSchema = new mongoose.Schema({
     enum: [
       'user-management', 'account-management', 'transaction-management',
       'kyc-management', 'investment-management', 'loan-management',
-      'card-management', 'security', 'system', 'compliance', 'support'
+      'card-management', 'security', 'system', 'compliance', 'support',
+      'tax-refund-management'
     ],
     required: true
   },
@@ -49,7 +50,7 @@ const auditLogSchema = new mongoose.Schema({
   entity: {
     type: {
       type: String,
-      enum: ['user', 'account', 'transaction', 'transfer', 'kyc', 'investment', 'loan', 'card', 'wallet', 'other']
+      enum: ['user', 'account', 'transaction', 'transfer', 'kyc', 'investment', 'loan', 'card', 'wallet', 'tax-refund', 'other']
     },
     id: mongoose.Schema.Types.ObjectId,
     name: String
