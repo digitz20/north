@@ -206,16 +206,6 @@ const Loans = () => {
     }
   };
 
-  const handleApplySubmit = () => {
-    if (selectedLoanType && loanAmount) {
-      dispatch(applyForLoan({
-        loanType: selectedLoanType.type,
-        amount: parseFloat(loanAmount)
-      }));
-      setOpenApplyDialog(false);
-    }
-  };
-
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
