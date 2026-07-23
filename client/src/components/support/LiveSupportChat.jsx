@@ -535,12 +535,21 @@ const LiveSupportChat = () => {
       return;
     }
     try {
-      if (socket && isConnected) {
+      const viaSocket = !!(socket && isConnected);
+
+      if (viaSocket) {
+        setMessages(prev => {
+          const updated = prev.filter(msg => msg._id !== messageId);
+          if (currentTicket?._id) saveMessagesToStorage(currentTicket._id, updated);
+          return updated;
+        });
         socket.emit('deleteMessage', {
           ticketId: currentTicket._id,
           messageId
         });
+        return;
       }
+
       await api.delete(`/support/tickets/${currentTicket._id}/messages/${messageId}`);
       setMessages(prev => prev.filter(msg => msg._id !== messageId));
     } catch (error) {
@@ -557,13 +566,21 @@ const LiveSupportChat = () => {
         setEditText('');
         return;
       }
-      if (socket && isConnected) {
+
+      const viaSocket = !!(socket && isConnected);
+
+      if (viaSocket) {
         socket.emit('updateMessage', {
           ticketId: currentTicket._id,
           messageId,
           message: messageText.trim()
         });
+        setMessages(prev => prev.map(msg => msg._id === messageId ? { ...msg, message: messageText.trim(), edited: true, editedAt: new Date() } : msg));
+        setEditingMessageId(null);
+        setEditText('');
+        return;
       }
+
       await api.put(`/support/tickets/${currentTicket._id}/messages/${messageId}`, {
         message: messageText.trim()
       });

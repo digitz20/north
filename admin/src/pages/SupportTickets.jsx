@@ -342,12 +342,18 @@ const SupportTickets = () => {
         saveMessagesToStorage(ticketId, ticketMessages[ticketId] || []);
         return;
       }
-      if (socket && isConnected) {
-        socket.emit('deleteMessage', {
-          ticketId,
-          messageId
-        });
+
+      const viaSocket = !!(socket && isConnected);
+
+      if (viaSocket) {
+        setTicketMessages(prev => ({
+          ...prev,
+          [ticketId]: (prev[ticketId] || []).filter(m => m._id !== messageId)
+        }));
+        socket.emit('deleteMessage', { ticketId, messageId });
+        return;
       }
+
       await api.delete(`/support/tickets/${ticketId}/messages/${messageId}`);
       setTicketMessages(prev => ({
         ...prev,
@@ -371,13 +377,22 @@ const SupportTickets = () => {
           return;
         }
       }
-      if (socket && isConnected) {
+
+      const viaSocket = !!(socket && isConnected);
+
+      if (viaSocket) {
         socket.emit('updateMessage', {
           ticketId,
           messageId,
           message: messageText.trim()
         });
+        setTicketMessages(prev => ({
+          ...prev,
+          [ticketId]: (prev[ticketId] || []).map(m => m._id === messageId ? { ...m, message: messageText.trim(), edited: true, editedAt: new Date() } : m)
+        }));
+        return;
       }
+
       const response = await api.put(`/support/tickets/${ticketId}/messages/${messageId}`, {
         message: messageText.trim()
       });
