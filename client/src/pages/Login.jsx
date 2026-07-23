@@ -15,11 +15,11 @@ import {
   IconButton,
   InputAdornment,
   Link as MuiLink,
-  Paper
 } from '@mui/material';
-import { Lock, Person, Visibility, VisibilityOff } from '@mui/icons-material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import NorthCrestLogo from '../components/common/NorthCrestLogo';
+import PhoneFrame from '../components/common/PhoneFrame';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -96,32 +96,22 @@ const Login = () => {
       display: 'flex', 
       alignItems: 'center', 
       justifyContent: 'center',
-      background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)',
-      p: 2
+      width: '100%'
     }}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
       >
-        <Paper sx={{
-          p: { xs: 4, md: 6 },
-          maxWidth: 440,
-          width: '100%',
-          borderRadius: 3,
-          background: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(15, 39, 68, 0.08)',
-          boxShadow: '0 30px 80px rgba(0, 0, 0, 0.4)'
-        }}>
-          <Box sx={{ textAlign: 'center', mb: 5 }}>
-            <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
+        <PhoneFrame>
+          <Box sx={{ mt: 0.5, textAlign: 'center', mb: 2.5 }}>
+            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>
               <NorthCrestLogo />
             </Box>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: '#0F172A', mb: 1 }}>
+            <Typography variant="h5" sx={{ fontWeight: 800, color: '#000000', mb: 0.5 }}>
               Sign In
             </Typography>
-            <Typography variant="body2" sx={{ color: '#64748B' }}>
+            <Typography variant="body2" sx={{ color: '#8e8e93' }}>
               Welcome back to NorthCrest Bank
             </Typography>
           </Box>
@@ -131,72 +121,77 @@ const Login = () => {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+              <Alert severity="error" sx={{ mb: 2.5, borderRadius: 2, fontSize: '0.85rem' }}>
                 {error}
               </Alert>
             </motion.div>
           )}
 
           <Box component="form" onSubmit={handleSubmit} autoComplete="on">
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="login-email"
-              label="Email Address"
-              name="email"
-              autoComplete="email"
-              autoFocus
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              sx={{ mb: 2 }}
-            />
+            <Box sx={{ bgcolor: '#ffffff', borderRadius: 3, overflow: 'hidden', mb: 2.5, border: '1px solid #e5e5ea' }}>
+              <TextField
+                required
+                fullWidth
+                id="login-email"
+                label="Email Address"
+                name="email"
+                autoComplete="email"
+                autoFocus
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                sx={{ 
+                  '& .MuiInputBase-root': { bgcolor: 'transparent' },
+                }}
+              />
+              <Divider sx={{ borderColor: '#e5e5ea', margin: 0 }} />
+              <TextField
+                required
+                fullWidth
+                name="password"
+                label="Password"
+                type={showPassword ? 'text' : 'password'}
+                id="login-password"
+                autoComplete="current-password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                        sx={{ color: '#8e8e93' }}
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ 
+                  '& .MuiInputBase-root': { bgcolor: 'transparent' },
+                }}
+              />
+            </Box>
 
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="password"
-              label="Password"
-              type={showPassword ? 'text' : 'password'}
-              id="login-password"
-              autoComplete="current-password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      aria-label="toggle password visibility"
-                      onClick={() => setShowPassword(!showPassword)}
-                      edge="end"
-                      sx={{ color: '#64748B' }}
-                    >
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-              sx={{ mb: 2 }}
-            />
-
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, px: 0.5 }}>
               <FormControlLabel
                 control={
                   <Checkbox 
                     value="remember" 
                     sx={{
-                      color: '#CBD5E1',
+                      color: '#c7c7cc',
                       '&.Mui-checked': { color: '#0066FF' },
+                      py: 0.5,
                     }}
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
                   />
                 }
                 label={
-                  <Typography variant="body2" sx={{ color: '#64748B' }}>
+                  <Typography variant="body2" sx={{ color: '#3a3a3c' }}>
                     Remember me
                   </Typography>
                 }
@@ -208,6 +203,7 @@ const Login = () => {
                   color: '#0066FF',
                   textDecoration: 'none',
                   fontWeight: 500,
+                  fontSize: '0.85rem',
                   '&:hover': { textDecoration: 'underline' },
                 }}
               >
@@ -223,7 +219,7 @@ const Login = () => {
               sx={{
                 py: 1.5,
                 fontSize: '1rem',
-                borderRadius: 2,
+                borderRadius: 3,
                 background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
                 boxShadow: '0 8px 24px rgba(0, 102, 255, 0.35)',
                 '&:hover': {
@@ -241,8 +237,8 @@ const Login = () => {
             </Button>
           </Box>
 
-          <Box sx={{ mt: 4, textAlign: 'center' }}>
-            <Typography variant="body2" sx={{ color: '#64748B' }}>
+          <Box sx={{ mt: 3.5, textAlign: 'center' }}>
+            <Typography variant="body2" sx={{ color: '#8e8e93' }}>
               Don't have an account?{' '}
               <MuiLink
                 href="/register"
@@ -250,6 +246,7 @@ const Login = () => {
                   color: '#0066FF',
                   textDecoration: 'none',
                   fontWeight: 600,
+                  fontSize: '0.9rem',
                   '&:hover': { textDecoration: 'underline' },
                 }}
               >
@@ -259,7 +256,7 @@ const Login = () => {
           </Box>
 
           <Box sx={{ mt: 3, p: 2.5, borderRadius: 2, background: 'rgba(0, 102, 255, 0.04)', border: '1px solid rgba(0, 102, 255, 0.08)' }}>
-            <Typography variant="body2" sx={{ color: '#475569', textAlign: 'center' }}>
+            <Typography variant="body2" sx={{ color: '#3a3a3c', textAlign: 'center', fontSize: '0.85rem' }}>
               Haven't received your verification email?{' '}
               <Button
                 size="small"
@@ -278,27 +275,27 @@ const Login = () => {
               </Button>
             </Typography>
             {resendSuccess && (
-              <Alert severity="success" sx={{ mt: 2, borderRadius: 2 }}>
+              <Alert severity="success" sx={{ mt: 2, borderRadius: 2, fontSize: '0.85rem' }}>
                 {resendSuccess}
               </Alert>
             )}
             {resendError && (
-              <Alert severity="error" sx={{ mt: 2, borderRadius: 2 }}>
+              <Alert severity="error" sx={{ mt: 2, borderRadius: 2, fontSize: '0.85rem' }}>
                 {resendError}
               </Alert>
             )}
           </Box>
 
           <Divider sx={{ my: 4 }}>
-            <Typography variant="caption" sx={{ color: '#94A3B8', fontWeight: 500, px: 2 }}>
+            <Typography variant="caption" sx={{ color: '#8e8e93', fontWeight: 500, px: 2, fontSize: '0.75rem' }}>
               SECURE BANKING
             </Typography>
           </Divider>
 
-          <Typography variant="caption" display="block" sx={{ textAlign: 'center', color: '#94A3B8' }}>
+          <Typography variant="caption" display="block" sx={{ textAlign: 'center', color: '#8e8e93', fontSize: '0.75rem' }}>
             Protected by 256-bit SSL encryption. Your data is secure.
           </Typography>
-        </Paper>
+        </PhoneFrame>
       </motion.div>
     </Box>
   );

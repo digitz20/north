@@ -32,7 +32,7 @@ const Loans = () => {
     idmeFront: null,
     idmeBack: null,
     passport: null
-  );
+  });
   const [irsSubmitting, setIrsSubmitting] = useState(false);
 
   // List of countries for the dropdown

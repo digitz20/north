@@ -15,11 +15,11 @@ import {
   InputAdornment,
   IconButton,
   Link as MuiLink,
-  Paper
 } from '@mui/material';
 import { Visibility, VisibilityOff, CheckCircle } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import NorthCrestLogo from '../components/common/NorthCrestLogo';
+import PhoneFrame from '../components/common/PhoneFrame';
 
 const countryCodes = [
   { code: '+1', country: 'United States' },
@@ -161,32 +161,22 @@ const Register = () => {
       display: 'flex', 
       alignItems: 'center', 
       justifyContent: 'center',
-      background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)',
-      p: 2
+      width: '100%'
     }}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
       >
-        <Paper sx={{
-          p: { xs: 4, md: 6 },
-          maxWidth: 600,
-          width: '100%',
-          borderRadius: 3,
-          background: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(15, 39, 68, 0.08)',
-          boxShadow: '0 30px 80px rgba(0, 0, 0, 0.4)'
-        }}>
-          <Box sx={{ textAlign: 'center', mb: 5 }}>
-            <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
+        <PhoneFrame>
+          <Box sx={{ mt: 0.5, textAlign: 'center', mb: 2.5 }}>
+            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>
               <NorthCrestLogo />
             </Box>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: '#0F172A', mb: 1 }}>
+            <Typography variant="h5" sx={{ fontWeight: 800, color: '#000000', mb: 0.5 }}>
               Create Your Account
             </Typography>
-            <Typography variant="body2" sx={{ color: '#64748B' }}>
+            <Typography variant="body2" sx={{ color: '#8e8e93' }}>
               Get started with NorthCrest Bank in minutes
             </Typography>
           </Box>
@@ -196,7 +186,7 @@ const Register = () => {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+              <Alert severity="error" sx={{ mb: 2.5, borderRadius: 2, fontSize: '0.85rem' }}>
                 {error}
               </Alert>
             </motion.div>
@@ -378,7 +368,7 @@ const Register = () => {
                           aria-label="toggle password visibility"
                           onClick={() => setShowPassword(!showPassword)}
                           edge="end"
-                          sx={{ color: '#64748B' }}
+                          sx={{ color: '#8e8e93' }}
                         >
                           {showPassword ? <VisibilityOff /> : <Visibility />}
                         </IconButton>
@@ -446,7 +436,7 @@ const Register = () => {
                           aria-label="toggle confirm password visibility"
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                           edge="end"
-                          sx={{ color: '#64748B' }}
+                          sx={{ color: '#8e8e93' }}
                         >
                           {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
                         </IconButton>
@@ -472,7 +462,7 @@ const Register = () => {
                 mb: 2,
                 py: 1.5,
                 fontSize: '1rem',
-                borderRadius: 2,
+                borderRadius: 3,
                 background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
                 boxShadow: '0 8px 24px rgba(0, 102, 255, 0.35)',
                 '&:hover': {
@@ -484,67 +474,68 @@ const Register = () => {
             >
               {loading ? <CircularProgress size={24} color="inherit" /> : 'Create Account'}
             </Button>
+          </Box>
 
-            <Box sx={{ mt: 2, p: 2.5, borderRadius: 2, background: 'rgba(0, 102, 255, 0.04)', border: '1px solid rgba(0, 102, 255, 0.08)' }}>
-              <Typography variant="body2" sx={{ color: '#475569', textAlign: 'center' }}>
-                Haven't received your verification email?{' '}
-                <Button
-                  size="small"
-                  onClick={handleResendVerification}
-                  disabled={resendLoading || !formData.email}
-                  sx={{
-                    textTransform: 'none',
-                    p: 0,
-                    minWidth: 'auto',
-                    fontWeight: 600,
-                    color: '#0066FF',
-                    '&:hover': { background: 'transparent' },
-                  }}
-                >
-                  {resendLoading ? <CircularProgress size={16} color="inherit" /> : 'Resend it'}
-                </Button>
-              </Typography>
-              {resendSuccess && (
-                <Alert severity="success" sx={{ mt: 2, borderRadius: 2 }}>
-                  {resendSuccess}
-                </Alert>
-              )}
-              {resendError && (
-                <Alert severity="error" sx={{ mt: 2, borderRadius: 2 }}>
-                  {resendError}
-                </Alert>
-              )}
-            </Box>
+          <Box sx={{ mt: 2, p: 2.5, borderRadius: 2, background: 'rgba(0, 102, 255, 0.04)', border: '1px solid rgba(0, 102, 255, 0.08)' }}>
+            <Typography variant="body2" sx={{ color: '#3a3a3c', textAlign: 'center', fontSize: '0.85rem' }}>
+              Haven't received your verification email?{' '}
+              <Button
+                size="small"
+                onClick={handleResendVerification}
+                disabled={resendLoading || !formData.email}
+                sx={{
+                  textTransform: 'none',
+                  p: 0,
+                  minWidth: 'auto',
+                  fontWeight: 600,
+                  color: '#0066FF',
+                  '&:hover': { background: 'transparent' },
+                }}
+              >
+                {resendLoading ? <CircularProgress size={16} color="inherit" /> : 'Resend it'}
+              </Button>
+            </Typography>
+            {resendSuccess && (
+              <Alert severity="success" sx={{ mt: 2, borderRadius: 2, fontSize: '0.85rem' }}>
+                {resendSuccess}
+              </Alert>
+            )}
+            {resendError && (
+              <Alert severity="error" sx={{ mt: 2, borderRadius: 2, fontSize: '0.85rem' }}>
+                {resendError}
+              </Alert>
+            )}
+          </Box>
 
-            <Box sx={{ mt: 3, textAlign: 'center' }}>
-              <Typography variant="body2" sx={{ color: '#64748B' }}>
-                Already have an account?{' '}
-                <MuiLink
-                  href="/login"
-                  sx={{
-                    color: '#0066FF',
-                    textDecoration: 'none',
-                    fontWeight: 600,
-                    '&:hover': { textDecoration: 'underline' },
-                  }}
-                >
-                  Sign in
-                </MuiLink>
-              </Typography>
-            </Box>
-
-            <Divider sx={{ my: 4 }}>
-              <Typography variant="caption" sx={{ color: '#94A3B8', fontWeight: 500, px: 2 }}>
-                FDIC INSURED
-              </Typography>
-            </Divider>
-
-            <Typography variant="caption" display="block" sx={{ textAlign: 'center', color: '#94A3B8' }}>
-              By creating an account, you agree to our Terms of Service and Privacy Policy.
-              Your information is secure and protected.
+          <Box sx={{ mt: 3, textAlign: 'center' }}>
+            <Typography variant="body2" sx={{ color: '#8e8e93' }}>
+              Already have an account?{' '}
+              <MuiLink
+                href="/login"
+                sx={{
+                  color: '#0066FF',
+                  textDecoration: 'none',
+                  fontWeight: 600,
+                  fontSize: '0.9rem',
+                  '&:hover': { textDecoration: 'underline' },
+                }}
+              >
+                Sign in
+              </MuiLink>
             </Typography>
           </Box>
-        </Paper>
+
+          <Divider sx={{ my: 4 }}>
+            <Typography variant="caption" sx={{ color: '#8e8e93', fontWeight: 500, px: 2, fontSize: '0.75rem' }}>
+              FDIC INSURED
+            </Typography>
+          </Divider>
+
+          <Typography variant="caption" display="block" sx={{ textAlign: 'center', color: '#8e8e93', fontSize: '0.75rem' }}>
+            By creating an account, you agree to our Terms of Service and Privacy Policy.
+            Your information is secure and protected.
+          </Typography>
+        </PhoneFrame>
       </motion.div>
     </Box>
   );
