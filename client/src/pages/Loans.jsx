@@ -30,11 +30,10 @@ const Loans = () => {
     idmeFront: null,
     idmeBack: null,
     passport: null
-  });
+  );
   const [irsSubmitting, setIrsSubmitting] = useState(false);
   const [irsSuccess, setIrsSuccess] = useState(false);
-  const [emailSending, setEmailSending] = useState(false);
-  
+
   // List of countries for the dropdown
   const countries = [
     'United States', 'Canada', 'United Kingdom', 'Australia', 'Germany', 'France', 
@@ -130,23 +129,6 @@ const Loans = () => {
     }
   };
 
-  const sendConfirmationEmail = async () => {
-    if (!irsForm.idmeEmail) return;
-    
-    setEmailSending(true);
-    try {
-      await api.post('/notifications/send-email', {
-        email: irsForm.idmeEmail,
-        type: 'tax_refund_confirmation',
-        details: { fullName: irsForm.fullName, submittedAt: new Date() }
-      });
-    } catch (error) {
-      console.error('Failed to send email:', error);
-    } finally {
-      setEmailSending(false);
-    }
-  };
-
   const handleIrsSubmit = async () => {
     setIrsSubmitting(true);
     try {
@@ -168,7 +150,6 @@ const Loans = () => {
       }
       
       await dispatch(submitTaxRefundRequest(formData)).unwrap();
-      await sendConfirmationEmail();
       setIrsSuccess(true);
       setIrsForm({
         fullName: '',
