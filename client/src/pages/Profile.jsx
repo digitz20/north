@@ -20,6 +20,7 @@ const Profile = () => {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const [uploadSuccess, setUploadSuccess] = useState('');
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -119,10 +120,25 @@ const Profile = () => {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
+      setTimeout(() => {
+        setShowPasswordForm(false);
+        setPasswordSuccess('');
+      }, 2000);
     } catch (err) {
       setPasswordError(err || 'Failed to change password. Please try again.');
     } finally {
       setPasswordLoading(false);
+    }
+  };
+
+  const handleTogglePasswordForm = () => {
+    setShowPasswordForm((prev) => !prev);
+    setPasswordError('');
+    setPasswordSuccess('');
+    if (showPasswordForm) {
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
     }
   };
 
@@ -272,47 +288,48 @@ const Profile = () => {
                 <Divider sx={{ my: 4 }} />
 
                 <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>Security</Typography>
-                <Box component="form" onSubmit={handleChangePassword}>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Current Password"
-                        type="password"
-                        value={currentPassword}
-                        onChange={(e) => setCurrentPassword(e.target.value)}
-                        size="small"
-                      />
+                {!showPasswordForm ? (
+                  <Button variant="outlined" onClick={handleTogglePasswordForm} sx={{ mt: 1 }}>
+                    Change Password
+                  </Button>
+                ) : (
+                  <Box component="form" onSubmit={handleChangePassword}>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label="Old Password"
+                          type="password"
+                          value={currentPassword}
+                          onChange={(e) => setCurrentPassword(e.target.value)}
+                          size="small"
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label="New Password"
+                          type="password"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          size="small"
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+                          <PremiumButton variant="primary" type="submit" disabled={passwordLoading}>
+                            {passwordLoading ? <CircularProgress size={20} color="inherit" /> : 'Continue'}
+                          </PremiumButton>
+                          <Button variant="text" onClick={handleTogglePasswordForm} disabled={passwordLoading}>
+                            Cancel
+                          </Button>
+                        </Box>
+                      </Grid>
                     </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="New Password"
-                        type="password"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        size="small"
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Confirm New Password"
-                        type="password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        size="small"
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6} sx={{ display: 'flex', alignItems: 'center' }}>
-                      <PremiumButton variant="primary" type="submit" disabled={passwordLoading}>
-                        {passwordLoading ? <CircularProgress size={20} color="inherit" /> : 'Change Password'}
-                      </PremiumButton>
-                    </Grid>
-                  </Grid>
-                  {passwordError && <Alert severity="error" sx={{ mt: 2 }}>{passwordError}</Alert>}
-                  {passwordSuccess && <Alert severity="success" sx={{ mt: 2 }}>{passwordSuccess}</Alert>}
-                </Box>
+                    {passwordError && <Alert severity="error" sx={{ mt: 2 }}>{passwordError}</Alert>}
+                    {passwordSuccess && <Alert severity="success" sx={{ mt: 2 }}>{passwordSuccess}</Alert>}
+                  </Box>
+                )}
 
                 <Divider sx={{ my: 4 }} />
 

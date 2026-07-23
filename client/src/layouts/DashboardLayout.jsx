@@ -80,7 +80,7 @@ const DashboardLayout = () => {
   }, [location.pathname]);
 
   const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
+    setMobileOpen((prev) => !prev);
   };
 
   const handleProfileMenuOpen = (event) => {
@@ -115,7 +115,6 @@ const DashboardLayout = () => {
             key={item.text}
             component={Link}
             to={item.path}
-            onClick={() => setMobileOpen(false)}
             selected={location.pathname === item.path}
             sx={{
               mx: 1,
@@ -253,16 +252,26 @@ const DashboardLayout = () => {
           open={mobileOpen}
           onClose={() => setMobileOpen(false)}
           ModalProps={{
-            closeAfterTransition: true,
-            onClose: () => setMobileOpen(false),
             disableScrollLock: true,
+            disableEnforceFocus: true,
+            disableAutoFocus: true,
+            closeAfterTransition: true,
+          }}
+          BackdropProps={{
+            sx: {
+              backgroundColor: 'transparent !important',
+              opacity: '0 !important',
+            },
           }}
           sx={{
             display: { xs: 'block', sm: 'none' },
             '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
-            '& .MuiBackdrop-root': { backgroundColor: 'rgba(0,0,0,0)' },
+            '& .MuiBackdrop-root': {
+              backgroundColor: 'transparent !important',
+              opacity: '0 !important',
+            },
           }}
-          TransitionProps={{ timeout: 300 }}
+          TransitionProps={{ timeout: 250 }}
         >
           {drawer}
         </Drawer>

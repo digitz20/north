@@ -151,14 +151,24 @@ const DashboardLayout = () => {
           open={mobileOpen}
           onClose={handleDrawerToggle}
           ModalProps={{
-            closeAfterTransition: true,
-            onClose: () => setMobileOpen(false),
             disableScrollLock: true,
+            disableEnforceFocus: true,
+            disableAutoFocus: true,
+            closeAfterTransition: true,
+          }}
+          BackdropProps={{
+            sx: {
+              backgroundColor: 'transparent !important',
+              opacity: '0 !important',
+            },
           }}
           sx={{
             display: { xs: 'block', sm: 'none' },
             '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
-            '& .MuiBackdrop-root': { backgroundColor: 'rgba(0,0,0,0)' },
+            '& .MuiBackdrop-root': {
+              backgroundColor: 'transparent !important',
+              opacity: '0 !important',
+            },
           }}
           TransitionProps={{ timeout: 250 }}
         >

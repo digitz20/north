@@ -29,7 +29,7 @@ const PhoneFrame = ({ children }) => {
         <Box
           sx={{
             position: 'absolute',
-            top: 10,
+            top: -38,
             left: '50%',
             transform: 'translateX(-50%)',
             width: 100,

@@ -128,7 +128,7 @@ const Login = () => {
           )}
 
           <Box component="form" onSubmit={handleSubmit} autoComplete="on">
-            <Box sx={{ bgcolor: '#ffffff', borderRadius: 3, overflow: 'hidden', border: '1px solid #e5e5ea', display: 'flex', flexDirection: 'column', py: 2 }}>
+            <Box sx={{ bgcolor: '#ffffff', borderRadius: 3, overflow: 'hidden', border: '1px solid #e5e5ea', display: 'flex', flexDirection: 'column', py: 3 }}>
               <TextField
                 required
                 fullWidth
@@ -142,6 +142,7 @@ const Login = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 sx={{
                   '& .MuiInputBase-root': { bgcolor: 'transparent' },
+                  '& .MuiOutlinedInput-root': { borderRadius: '6px' },
                 }}
               />
               <Divider sx={{ borderColor: '#e5e5ea', margin: 0 }} />
@@ -172,6 +173,7 @@ const Login = () => {
                 }}
                 sx={{
                   '& .MuiInputBase-root': { bgcolor: 'transparent' },
+                  mt: 3,
                 }}
               />
             </Box>
