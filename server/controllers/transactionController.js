@@ -169,6 +169,17 @@ exports.deposit = async (req, res, next) => {
       });
     }
 
+    // Check if user is frozen
+    if (req.user?.isFrozen) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(403).json({
+        success: false,
+        message: 'Your account is frozen. Please contact live support for assistance.',
+        code: 'ACCOUNT_FROZEN'
+      });
+    }
+
     // Create transaction record
     const transaction = await Transaction.create([{
       user: req.user.id,

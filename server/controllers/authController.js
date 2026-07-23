@@ -347,14 +347,6 @@ exports.login = async (req, res, next) => {
       });
     }
 
-    // Check if user is frozen
-    if (user.isFrozen) {
-      return res.status(403).json({
-        success: false,
-        message: 'Account is frozen, please contact support'
-      });
-    }
-
     // Update last login
     user.lastLogin = new Date();
     await user.save();

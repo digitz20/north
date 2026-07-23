@@ -40,14 +40,6 @@ exports.protect = async (req, res, next) => {
       });
     }
 
-    // Check if user is frozen
-    if (user.isFrozen) {
-      return res.status(403).json({
-        success: false,
-        message: 'Account is frozen, please contact support'
-      });
-    }
-
     // Get active session
     const session = await Session.findOne({
       user: decoded.id,
