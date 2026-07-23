@@ -244,9 +244,9 @@ const initializeSocket = (server) => {
         const ticket = await SupportTicket.findById(ticketId);
         
         if (ticket) {
-          const message = ticket.messages.id(messageId);
-          if (message) {
-            ticket.messages.id(messageId).remove();
+          const exists = ticket.messages.some(m => m._id.toString() === messageId);
+          if (exists) {
+            ticket.messages = ticket.messages.filter(m => m._id.toString() !== messageId);
             await ticket.save();
             
             // Broadcast deletion to everyone in the ticket room

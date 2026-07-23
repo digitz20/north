@@ -102,7 +102,7 @@ app.get('/api/health', (req, res) => {
 app.use('/uploads', (req, res, next) => {
   const path = require('path');
   const fs = require('fs');
-  const uploadsRoot = path.join(__dirname, 'server', 'uploads');
+  const uploadsRoot = path.join(__dirname, 'uploads');
 
   if (req.method === 'OPTIONS') {
     res.header('Access-Control-Allow-Origin', '*');
