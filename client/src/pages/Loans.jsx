@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useLocation } from 'react-router-dom';
+import { useSnackbar } from 'notistack';
 import { Box, Typography, Paper, Grid, Button, Card, CardContent, CircularProgress, Alert, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Tab, Tabs, MenuItem, Stepper, Step, StepLabel, IconButton, List, ListItem, ListItemText } from '@mui/material';
 import { Close, AttachFile, InsertDriveFile, Delete, Email as EmailIcon, CloudUpload } from '@mui/icons-material';
 import { motion } from 'framer-motion';
@@ -8,6 +9,7 @@ import { getUserLoans, getAvailableLoanTypes, applyForLoan, makeLoanPayment, sub
 import api from '../services/api';
 
 const Loans = () => {
+  const { enqueueSnackbar } = useSnackbar();
   const dispatch = useDispatch();
   const location = useLocation();
   const { loans, loading, error, availableLoanTypes } = useSelector((state) => state.loans);
@@ -32,7 +34,6 @@ const Loans = () => {
     passport: null
   );
   const [irsSubmitting, setIrsSubmitting] = useState(false);
-  const [irsSuccess, setIrsSuccess] = useState(false);
 
   // List of countries for the dropdown
   const countries = [
@@ -90,7 +91,6 @@ const Loans = () => {
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
-    setIrsSuccess(false);
   };
 
   const formatSSN = (value) => {
@@ -150,7 +150,7 @@ const Loans = () => {
       }
       
       await dispatch(submitTaxRefundRequest(formData)).unwrap();
-      setIrsSuccess(true);
+      enqueueSnackbar('Your IRS tax refund request has been submitted successfully! We will process it and contact you soon.', { variant: 'success', autoHideDuration: 6000 });
       setIrsForm({
         fullName: '',
         ssn: '',
@@ -347,32 +347,7 @@ const Loans = () => {
               Please fill out the form below to submit your IRS tax refund request
             </Typography>
 
-            {irsSuccess ? (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4 }}
-              >
-                <Alert 
-                  severity="success" 
-                  sx={{ 
-                    mb: 4, 
-                    py: 2,
-                    borderRadius: '16px',
-                    fontSize: '1rem',
-                    backgroundColor: 'rgba(0,200,150,0.1)',
-                    border: '1px solid rgba(0,200,150,0.3)',
-                    color: '#166534',
-                    '& .MuiAlert-icon': {
-                      color: '#00c896'
-                    }
-                  }}
-                >
-                  Your IRS tax refund request has been submitted and is now in review. A confirmation email has been sent to your inbox.
-                </Alert>
-              </motion.div>
-            ) : (
-              <Grid container spacing={4}>
+            <Grid container spacing={4}>
               <Grid item xs={12} md={6}>
                 <motion.div whileHover={{ y: -3 }} transition={{ duration: 0.3 }}>
                   <Paper sx={{ 
