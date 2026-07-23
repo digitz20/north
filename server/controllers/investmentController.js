@@ -145,9 +145,13 @@ exports.createInvestment = async (req, res, next) => {
     }
 
     // Find the investment plan
-    let plan = await InvestmentPlan.findById(planId).session(session);
+    let plan = null;
+    try {
+      plan = await InvestmentPlan.findById(planId).session(session);
+    } catch (error) {
+      plan = null;
+    }
     
-    // If plan not found, try to find by name or create a default plan based on category
     if (!plan || !plan.isActive) {
       // Try to find a plan by name (frontend uses plan names like 'btc-growth')
       plan = await InvestmentPlan.findOne({ name: planId, isActive: true }).session(session);
