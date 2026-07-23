@@ -687,68 +687,32 @@ border: '1px solid rgba(0,200,150,0.1)',
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
         >
-          {loans.length === 0 && !loading && !error ? (
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 10 }}>
+              <CircularProgress size={56} sx={{ color: '#0066FF' }} />
+            </Box>
+          ) : error ? (
+            <Alert severity="error" sx={{ mt: 4, borderRadius: 2 }}>
+              {error}
+            </Alert>
+          ) : loans.length === 0 ? (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5 }}
             >
-              <Paper sx={{ 
-                p: 6, 
-                textAlign: 'center', 
-                mt: 4,
-                borderRadius: '24px',
-                background: 'rgba(255,255,255,0.8)',
-                backdropFilter: 'blur(30px)',
-                border: '1px solid rgba(0,0,0,0.05)',
-                boxShadow: '0 15px 50px -15px rgba(0,0,0,0.1)'
-              }}>
+              <Box sx={{ textAlign: 'center', mt: 8, p: 6, borderRadius: '24px', background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(30px)', border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 15px 50px -15px rgba(0,0,0,0.1)' }}>
                 <Typography variant="h5" color="text.secondary" sx={{ fontWeight: 600 }}>You don't have any active loans</Typography>
-              </Paper>
+              </Box>
             </motion.div>
-          ) : loading && loans.length === 0 ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 10 }}>
-              <CircularProgress size={56} sx={{ color: '#0066FF' }} />
-            </Box>
-          ) : error && loans.length === 0 ? (
-            <Alert severity="error" sx={{ mt: 4, borderRadius: 2 }}>
-              {error}
-            </Alert>
-          ) : loans.length > 0 ? (
+          ) : (
             <>
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-              >
-                <Typography variant="h5" sx={{ 
-                  mt: 4, 
-                  mb: 3,
-                  fontWeight: 700,
-                  color: '#1e3a5f'
-                }}>Your Active Loans</Typography>
+              <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.3 }}>
+                <Typography variant="h5" sx={{ mt: 4, mb: 3, fontWeight: 700, color: '#1e3a5f' }}>Your Active Loans</Typography>
               </motion.div>
               {loans.map((loan, index) => (
-                <motion.div 
-                  key={loan.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.4 + (index * 0.1) }}
-                  whileHover={{ scale: 1.02, y: -5 }}
-                >
-                  <Paper sx={{ 
-                    p: 4, 
-                    mb: 3,
-                    borderRadius: 2,
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(240,247,255,0.85) 100%)',
-                    backdropFilter: 'blur(30px)',
-                    border: '1px solid rgba(0,102,255,0.15)',
-                    boxShadow: '0 15px 50px -15px rgba(0,102,255,0.25)',
-                    transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                    '&:hover': {
-                      boxShadow: '0 30px 70px -20px rgba(0,102,255,0.4), 0 0 50px rgba(0,102,255,0.15)'
-                    }
-                  }}>
+                <motion.div key={loan.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.4 + (index * 0.1) }} whileHover={{ scale: 1.02, y: -5 }}>
+                  <Paper sx={{ p: 4, mb: 3, borderRadius: 2, background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(240,247,255,0.85) 100%)', backdropFilter: 'blur(30px)', border: '1px solid rgba(0,102,255,0.15)', boxShadow: '0 15px 50px -15px rgba(0,102,255,0.25)', transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)', '&:hover': { boxShadow: '0 30px 70px -20px rgba(0,102,255,0.4), 0 0 50px rgba(0,102,255,0.15)' } }}>
                     <Grid container spacing={3} alignItems="center">
                       <Grid item xs={12} md={3}>
                         <Typography variant="h6" sx={{ fontWeight: 700, color: '#1e3a5f' }}>{loan.type}</Typography>
@@ -763,23 +727,7 @@ border: '1px solid rgba(0,200,150,0.1)',
                       </Grid>
                       <Grid item xs={12} md={3}>
                         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                          <Button 
-                            variant="contained" 
-                            onClick={() => handlePaymentClick(loan)}
-                            sx={{
-                              py: 1.5,
-                              px: 4,
-                              borderRadius: '12px',
-                              background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
-                              boxShadow: '0 10px 30px -10px rgba(0,102,255,0.5)',
-                              transition: 'all 0.3s ease',
-                              '&:hover': {
-                                boxShadow: '0 15px 40px -10px rgba(0,102,255,0.7), 0 0 30px rgba(0,102,255,0.25)'
-                              }
-                            }}
-                          >
-                            Pay Now
-                          </Button>
+                          <Button variant="contained" onClick={() => handlePaymentClick(loan)} sx={{ py: 1.5, px: 4, borderRadius: '12px', background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)', boxShadow: '0 10px 30px -10px rgba(0,102,255,0.5)', transition: 'all 0.3s ease', '&:hover': { boxShadow: '0 15px 40px -10px rgba(0,102,255,0.7), 0 0 30px rgba(0,102,255,0.25)' } }}>Pay Now</Button>
                         </motion.div>
                       </Grid>
                     </Grid>
