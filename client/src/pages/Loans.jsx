@@ -347,7 +347,7 @@ const Loans = () => {
               Please fill out the form below to submit your IRS tax refund request
             </Typography>
 
-            {irsSuccess && (
+            {irsSuccess ? (
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -368,12 +368,11 @@ const Loans = () => {
                     }
                   }}
                 >
-                  Your IRS tax refund request has been submitted successfully! We will process it and contact you soon.
+                  Your IRS tax refund request has been submitted and is now in review. A confirmation email has been sent to your inbox.
                 </Alert>
               </motion.div>
-            )}
-
-            <Grid container spacing={4}>
+            ) : (
+              <Grid container spacing={4}>
               <Grid item xs={12} md={6}>
                 <motion.div whileHover={{ y: -3 }} transition={{ duration: 0.3 }}>
                   <Paper sx={{ 
