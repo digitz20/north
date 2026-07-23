@@ -29,7 +29,8 @@ import {
   Mic as MicIcon,
   Stop as StopIcon,
   Edit as EditIcon,
-  InsertDriveFile as FileIcon
+  InsertDriveFile as FileIcon,
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
 import { useSelector } from 'react-redux';
 import { useSocket } from '../../contexts/SocketContext';
@@ -64,6 +65,7 @@ const LiveSupportChat = () => {
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editText, setEditText] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const mediaRecorderRef = useRef(null);
@@ -575,6 +577,23 @@ const LiveSupportChat = () => {
       setMessages(prev => prev.filter(msg => msg._id !== messageId));
     } catch (error) {
       console.error('Error deleting message:', error);
+    }
+  };
+
+  const handleRefreshTicket = async () => {
+    if (!currentTicket?._id) return;
+    setRefreshing(true);
+    try {
+      const response = await api.get(`/support/tickets/${currentTicket._id}`);
+      const ticketData = response.data?.data || response.data;
+      if (ticketData && ticketData.messages) {
+        setMessages(ticketData.messages);
+        saveMessagesToStorage(currentTicket._id, ticketData.messages);
+      }
+    } catch (error) {
+      console.error('Error refreshing ticket:', error);
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -1119,6 +1138,9 @@ const LiveSupportChat = () => {
                                   }}>
                                     <EditIcon fontSize="small" sx={{ fontSize: 14, opacity: 0.7 }} />
                                   </IconButton>
+                                  <IconButton size="small" sx={{ padding: 0, minWidth: 24, height: 24, animation: refreshing ? 'spin 1s linear infinite' : 'none' }} onClick={handleRefreshTicket}>
+                                    <RefreshIcon fontSize="small" sx={{ fontSize: 14, opacity: 0.7 }} />
+                                  </IconButton>
                                   <IconButton size="small" sx={{ padding: 0, minWidth: 24, height: 24 }} onClick={() => handleDeleteMessage(message._id)}>
                                     <DeleteIcon fontSize="small" sx={{ fontSize: 14, opacity: 0.7 }} />
                                   </IconButton>
@@ -1284,6 +1306,10 @@ const LiveSupportChat = () => {
         @keyframes pulse {
           0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
           40% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
       `}</style>
     </>
