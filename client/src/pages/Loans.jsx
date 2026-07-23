@@ -687,7 +687,15 @@ border: '1px solid rgba(0,200,150,0.1)',
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
         >
-          {loans.length > 0 && (
+          {loading && loans.length === 0 ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 10 }}>
+              <CircularProgress size={56} sx={{ color: '#0066FF' }} />
+            </Box>
+          ) : error && loans.length === 0 ? (
+            <Alert severity="error" sx={{ mt: 4, borderRadius: 2 }}>
+              {error}
+            </Alert>
+          ) : loans.length > 0 ? (
             <>
               <motion.div
                 initial={{ opacity: 0, x: -20 }}

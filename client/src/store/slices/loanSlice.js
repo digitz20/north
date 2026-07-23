@@ -25,8 +25,10 @@ export const getAvailableLoanTypes = createAsyncThunk(
   'loans/getTypes',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get('/loans/types');
-      return response.data.data;
+      const response = await api.get('/loans/types', {
+        params: { _t: Date.now() }
+      });
+      return response.data?.data || [];
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch loan types');
     }
@@ -38,8 +40,10 @@ export const getUserLoans = createAsyncThunk(
   'loans/getAll',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get('/loans');
-      const formattedLoans = (response.data.data || []).map(formatLoanForUI);
+      const response = await api.get('/loans', {
+        params: { _t: Date.now() }
+      });
+      const formattedLoans = ((response.data?.data) || []).map(formatLoanForUI);
       return { loans: formattedLoans };
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch loans');
@@ -116,7 +120,7 @@ const loanSlice = createSlice({
       })
       .addCase(getAvailableLoanTypes.fulfilled, (state, action) => {
         state.loanTypesLoading = false;
-        state.availableLoanTypes = action.payload;
+        state.availableLoanTypes = action.payload || [];
       })
       .addCase(getAvailableLoanTypes.rejected, (state, action) => {
         state.loanTypesLoading = false;
@@ -128,7 +132,7 @@ const loanSlice = createSlice({
       })
       .addCase(getUserLoans.fulfilled, (state, action) => {
         state.loading = false;
-        state.loans = action.payload.loans;
+        state.loans = action.payload?.loans || [];
       })
       .addCase(getUserLoans.rejected, (state, action) => {
         state.loading = false;
