@@ -131,8 +131,7 @@ const cardSchema = new mongoose.Schema({
   toJSON: { 
     virtuals: true,
     transform: function(doc, ret) {
-      // Only return last 4 digits of card number in API responses
-      if (ret.cardNumber) {
+      if (ret.cardNumber && typeof ret.cardNumber.slice === 'function') {
         ret.lastFourDigits = ret.cardNumber.slice(-4);
         delete ret.cardNumber;
       }
@@ -177,6 +176,7 @@ cardSchema.virtual('formattedExpiry').get(function() {
 
 // Virtual for masked card number
 cardSchema.virtual('maskedCardNumber').get(function() {
+  if (!this.cardNumber) return '****-****-****-****';
   return `****-****-****-${this.cardNumber.slice(-4)}`;
 });
 

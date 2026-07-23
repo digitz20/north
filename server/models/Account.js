@@ -98,6 +98,7 @@ accountSchema.pre('save', async function(next) {
 
 // Virtual to get formatted account number
 accountSchema.virtual('formattedAccountNumber').get(function() {
+  if (!this.accountNumber) return '****';
   return `****${this.accountNumber.slice(-4)}`;
 });
 

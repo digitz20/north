@@ -190,7 +190,7 @@ exports.createCard = async (req, res, next) => {
       action: 'Card Created',
       category: 'card-management',
       severity: 'medium',
-      description: `New ${cardNetwork} ${cardType} card created for account ending in ${account.accountNumber.slice(-4)}`,
+      description: `New ${cardNetwork} ${cardType} card created for account ending in ${(account.accountNumber || '').slice(-4)}`,
       entity: {
         type: 'card',
         id: card[0]._id
