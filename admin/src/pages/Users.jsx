@@ -47,7 +47,9 @@ import {
   TrendingUp as TrendingUpIcon,
   Receipt as ReceiptIcon,
   Save as SaveIcon,
-  Close as CloseIcon
+  Close as CloseIcon,
+  Lock as LockIcon,
+  LockOpen as LockOpenIcon
 } from '@mui/icons-material';
 import api from '../services/api';
 
@@ -195,6 +197,17 @@ const Users = () => {
       netSavings: user.netSavings || 0
     });
     setOpenDialog(true);
+  };
+
+  const handleFreezeUser = async (user) => {
+    try {
+      await api.put(`/admin/users/${user._id}`, {
+        isFrozen: !user.isFrozen
+      });
+      setUsers(users.map(u => u._id === user._id ? { ...u, isFrozen: !user.isFrozen } : u));
+    } catch (error) {
+      console.error('Error toggling freeze:', error);
+    }
   };
 
   const handleViewDetails = async (user) => {
@@ -1253,6 +1266,15 @@ const Users = () => {
                       <Tooltip title="View Details">
                         <IconButton onClick={() => handleViewDetails(user)} size="small" sx={{ color: 'primary.main' }}>
                           <VisibilityIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title={user.isFrozen ? "Unfreeze User" : "Freeze User"}>
+                        <IconButton 
+                          onClick={() => handleFreezeUser(user)} 
+                          size="small" 
+                          sx={{ color: user.isFrozen ? 'warning.main' : 'default' }}
+                        >
+                          {user.isFrozen ? <LockIcon fontSize="small" /> : <LockOpenIcon fontSize="small" />}
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="Edit">
