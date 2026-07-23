@@ -687,7 +687,26 @@ border: '1px solid rgba(0,200,150,0.1)',
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
         >
-          {loading && loans.length === 0 ? (
+          {loans.length === 0 && !loading && !error ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              <Paper sx={{ 
+                p: 6, 
+                textAlign: 'center', 
+                mt: 4,
+                borderRadius: '24px',
+                background: 'rgba(255,255,255,0.8)',
+                backdropFilter: 'blur(30px)',
+                border: '1px solid rgba(0,0,0,0.05)',
+                boxShadow: '0 15px 50px -15px rgba(0,0,0,0.1)'
+              }}>
+                <Typography variant="h5" color="text.secondary" sx={{ fontWeight: 600 }}>You don't have any active loans</Typography>
+              </Paper>
+            </motion.div>
+          ) : loading && loans.length === 0 ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 10 }}>
               <CircularProgress size={56} sx={{ color: '#0066FF' }} />
             </Box>
@@ -768,27 +787,6 @@ border: '1px solid rgba(0,200,150,0.1)',
                 </motion.div>
               ))}
             </>
-          )}
-
-          {loans.length === 0 && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5 }}
-            >
-              <Paper sx={{ 
-                p: 6, 
-                textAlign: 'center', 
-                mt: 4,
-                borderRadius: '24px',
-                background: 'rgba(255,255,255,0.8)',
-                backdropFilter: 'blur(30px)',
-                border: '1px solid rgba(0,0,0,0.05)',
-                boxShadow: '0 15px 50px -15px rgba(0,0,0,0.1)'
-              }}>
-                <Typography variant="h5" color="text.secondary" sx={{ fontWeight: 600 }}>You don't have any active loans</Typography>
-              </Paper>
-            </motion.div>
           )}
 
           <motion.div

@@ -1,22 +1,22 @@
-﻿node.exe : [31mx[39m Build failed in 3.27s
+﻿node.exe : [31mx[39m Build failed in 11.33s
 At line:1 char:1
 + & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
 + ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: ([31mx[39m Build failed in 3.27s:String) [], RemoteException
+    + CategoryInfo          : NotSpecified: ([31mx[39m Build failed in 11.33s:String) [], RemoteException
     + FullyQualifiedErrorId : NativeCommandError
  
 [31merror during build:
 [31m[vite:esbuild] Transform failed with 1 error:
-C:/Users/Tush/Desktop/NorthCrestBankOfUSA/client/src/pages/Loans.jsx:771:11: ERROR: Expected ":" but found "}"[31m
-file: [36mC:/Users/Tush/Desktop/NorthCrestBankOfUSA/client/src/pages/Loans.jsx:771:11[31m
+C:/Users/Tush/Desktop/NorthCrestBankOfUSA/client/src/pages/Loans.jsx:790:11: ERROR: Expected ":" but found "}"[31m
+file: [36mC:/Users/Tush/Desktop/NorthCrestBankOfUSA/client/src/pages/Loans.jsx:790:11[31m
 [33m
 [33mExpected ":" but found "}"[33m
-769|                ))}
-770|              </>
-771|            )}
+788|                ))}
+789|              </>
+790|            )}
    |             ^
-772|  
-773|            {loans.length === 0 && (
+791|  
+792|            <motion.div
 [31m
     at failureErrorWithLog (C:\Users\Tush\Desktop\NorthCrestBankOfUSA\client\node_modules\esbuild\lib\main.js:1472:15)
     at C:\Users\Tush\Desktop\NorthCrestBankOfUSA\client\node_modules\esbuild\lib\main.js:755:50
