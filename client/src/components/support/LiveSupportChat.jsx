@@ -779,9 +779,35 @@ const LiveSupportChat = () => {
             position: 'fixed',
             bottom: 24,
             right: 24,
-            zIndex: 1000
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1
           }}
         >
+          <Typography
+            variant="body2"
+            sx={{
+              bgcolor: 'rgba(255,255,255,0.95)',
+              color: '#0066ff',
+              px: 1.5,
+              py: 0.5,
+              borderRadius: 2,
+              fontWeight: 600,
+              fontSize: '0.8rem',
+              whiteSpace: 'nowrap',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              display: { xs: 'none', sm: 'block' }
+            }}
+          >
+            Chat with NorthCrest Support
+          </Typography>
+          <Box
+            sx={{
+              position: 'relative',
+              display: 'inline-flex'
+            }}
+          >
           <Badge 
             badgeContent={unreadCount} 
             color="error"
@@ -819,6 +845,7 @@ const LiveSupportChat = () => {
               boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
             }}
           />
+          </Box>
         </Box>
       )}
 
