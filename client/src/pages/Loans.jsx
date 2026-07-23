@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useLocation } from 'react-router-dom';
-import { useSnackbar } from 'notistack';
-import { Box, Typography, Paper, Grid, Button, Card, CardContent, CircularProgress, Alert, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Tab, Tabs, MenuItem, Stepper, Step, StepLabel, IconButton, List, ListItem, ListItemText } from '@mui/material';
+import { Box, Typography, Paper, Grid, Button, Card, CardContent, CircularProgress, Alert, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Tab, Tabs, MenuItem, Stepper, Step, StepLabel, IconButton, List, ListItem, ListItemText, Snackbar } from '@mui/material';
 import { Close, AttachFile, InsertDriveFile, Delete, Email as EmailIcon, CloudUpload } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { getUserLoans, getAvailableLoanTypes, applyForLoan, makeLoanPayment, submitTaxRefundRequest } from '../store/slices/loanSlice';
 import api from '../services/api';
 
 const Loans = () => {
-  const { enqueueSnackbar } = useSnackbar();
   const dispatch = useDispatch();
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
   const location = useLocation();
   const { loans, loading, error, availableLoanTypes } = useSelector((state) => state.loans);
   const [openPaymentDialog, setOpenPaymentDialog] = useState(false);
@@ -150,7 +150,8 @@ const Loans = () => {
       }
       
       await dispatch(submitTaxRefundRequest(formData)).unwrap();
-      enqueueSnackbar('Your IRS tax refund request has been submitted successfully! We will process it and contact you soon.', { variant: 'success', autoHideDuration: 6000 });
+      setSnackbarMessage('Your IRS tax refund request has been submitted successfully! We will process it and contact you soon.');
+      setSnackbarOpen(true);
       setIrsForm({
         fullName: '',
         ssn: '',
@@ -1275,6 +1276,17 @@ border: '1px solid rgba(0,200,150,0.1)',
       </Dialog>
       </motion.div>
       </Box>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        sx={{ zIndex: 99999 }}
+      >
+        <Alert onClose={() => setSnackbarOpen(false)} severity="success" sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
