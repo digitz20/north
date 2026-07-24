@@ -91,6 +91,12 @@ const Users = () => {
   });
   const [editBalanceId, setEditBalanceId] = useState(null);
   const [editBalanceValue, setEditBalanceValue] = useState('');
+  const [editTotalBalance, setEditTotalBalance] = useState(false);
+  const [editTotalBalanceValue, setEditTotalBalanceValue] = useState('');
+  const [editCardBalanceId, setEditCardBalanceId] = useState(null);
+  const [editCardBalanceValue, setEditCardBalanceValue] = useState('');
+  const [editInvestmentValueId, setEditInvestmentValueId] = useState(null);
+  const [editInvestmentValueValue, setEditInvestmentValueValue] = useState('');
   const [editLoanBalanceId, setEditLoanBalanceId] = useState(null);
   const [editLoanBalanceValue, setEditLoanBalanceValue] = useState('');
   const [editInvestmentAmountId, setEditInvestmentAmountId] = useState(null);
@@ -224,6 +230,12 @@ const Users = () => {
     setEditingKYC(null);
     setEditBalanceId(null);
     setEditBalanceValue('');
+    setEditTotalBalance(false);
+    setEditTotalBalanceValue('');
+    setEditCardBalanceId(null);
+    setEditCardBalanceValue('');
+    setEditInvestmentValueId(null);
+    setEditInvestmentValueValue('');
     setEditLoanBalanceId(null);
     setEditLoanBalanceValue('');
     setEditInvestmentAmountId(null);
@@ -294,6 +306,72 @@ const Users = () => {
     } catch (error) {
       console.error('Error updating balance:', error);
       setError('Failed to update balance');
+    }
+  };
+
+  const handleUpdateTotalBalance = async () => {
+    try {
+      const newTotal = parseFloat(editTotalBalanceValue);
+      if (isNaN(newTotal) || newTotal < 0) {
+        setError('Please enter a valid total balance');
+        return;
+      }
+      const accounts = userDetails?.accounts || [];
+      if (accounts.length === 0) {
+        setError('No accounts to update');
+        return;
+      }
+      const currentTotal = accounts.reduce((sum, acc) => sum + (Number(acc.balance) || 0), 0);
+      const difference = newTotal - currentTotal;
+      if (accounts.length === 1) {
+        await api.put(`/admin/accounts/${accounts[0]._id}`, {
+          balance: (Number(accounts[0].balance) || 0) + difference
+        });
+      } else {
+        const totalWeight = accounts.reduce((sum, acc) => sum + (Number(acc.balance) || 1), 0);
+        await Promise.all(accounts.map(async (account) => {
+          const weight = (Number(account.balance) || 0) / totalWeight;
+          const newBalance = Math.max(0, (Number(account.balance) || 0) + difference * weight);
+          await api.put(`/admin/accounts/${account._id}`, { balance: newBalance });
+        }));
+      }
+      setSuccess('Total balance updated successfully');
+      setEditTotalBalance(false);
+      setEditTotalBalanceValue('');
+      handleViewDetails(selectedUser);
+    } catch (error) {
+      console.error('Error updating total balance:', error);
+      setError('Failed to update total balance');
+    }
+  };
+
+  const handleUpdateCardBalance = async (cardId) => {
+    try {
+      await api.put(`/admin/cards/${cardId}`, {
+        currentBalance: parseFloat(editCardBalanceValue)
+      });
+      setSuccess('Card balance updated successfully');
+      setEditCardBalanceId(null);
+      setEditCardBalanceValue('');
+      handleViewDetails(selectedUser);
+    } catch (error) {
+      console.error('Error updating card balance:', error);
+      setError('Failed to update card balance');
+    }
+  };
+
+  const handleUpdateInvestmentValue = async (investmentId) => {
+    try {
+      await api.put(`/admin/investments/${investmentId}`, {
+        currentValue: parseFloat(editInvestmentValueValue)
+      });
+      setSuccess('Investment value updated successfully');
+      setEditInvestmentValueId(null);
+      setEditInvestmentValueValue('');
+      handleViewDetails(selectedUser);
+    } catch (error) {
+      console.error('Error updating investment value:', error);
+      setError('Failed to update investment value');
     }
   };
 
@@ -1074,17 +1152,39 @@ const Users = () => {
     if (!selectedUser) return null;
     const totalBalance = (userDetails?.accounts || []).reduce((sum, acc) => sum + (Number(acc.balance) || 0), 0);
     return (
-      <Box sx={{ maxWidth: 900 }}>
+      <Box sx={{ maxWidth: 1200 }}>
         <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Financial Overview</Typography>
         <Alert severity="info" sx={{ mb: 3 }}>
-          Review the user&apos;s total balance and individual account balances below. You can edit any account balance directly. All changes are logged in the audit trail.
+          Review and edit the user&apos;s balances below. All changes are logged in the audit trail.
         </Alert>
 
         <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} md={4}>
             <Paper sx={{ p: 3, borderRadius: 2, textAlign: 'center', background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)', color: 'white' }}>
               <Typography variant="body2" sx={{ opacity: 0.9 }}>Total Balance</Typography>
-              <Typography variant="h4" sx={{ fontWeight: 700 }}>${totalBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Typography>
+              {editTotalBalance ? (
+                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', justifyContent: 'center', mt: 1 }}>
+                  <TextField
+                    size="small"
+                    type="number"
+                    value={editTotalBalanceValue}
+                    onChange={(e) => setEditTotalBalanceValue(e.target.value)}
+                    sx={{ width: 140 }}
+                    InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }}
+                  />
+                  <Button size="small" variant="contained" onClick={handleUpdateTotalBalance}>Save</Button>
+                  <Button size="small" onClick={() => { setEditTotalBalance(false); setEditTotalBalanceValue(''); }}>Cancel</Button>
+                </Box>
+              ) : (
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mt: 0.5 }}>
+                  <Typography variant="h4" sx={{ fontWeight: 700 }}>${totalBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Typography>
+                  <Tooltip title="Edit Total Balance">
+                    <IconButton size="small" onClick={() => { setEditTotalBalance(true); setEditTotalBalanceValue(totalBalance.toString()); }} sx={{ color: 'white' }}>
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              )}
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
@@ -1153,6 +1253,120 @@ const Users = () => {
                 <TableRow>
                   <TableCell colSpan={5} align="center">
                     <Typography color="text.secondary">No accounts found</Typography>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        <Typography variant="subtitle2" sx={{ mt: 4, mb: 1, fontWeight: 600 }}>Card Balances</Typography>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Card</TableCell>
+                <TableCell>Type</TableCell>
+                <TableCell>Current Balance</TableCell>
+                <TableCell>Credit Limit</TableCell>
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {(userDetails?.cards || []).map((card) => (
+                <TableRow key={card._id}>
+                  <TableCell sx={{ fontFamily: 'monospace' }}>{card.maskedCardNumber || `****-****-****-${card.lastFourDigits}`}</TableCell>
+                  <TableCell sx={{ textTransform: 'capitalize' }}>{card.cardType}</TableCell>
+                  <TableCell>
+                    {editCardBalanceId === card._id ? (
+                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                        <TextField
+                          size="small"
+                          type="number"
+                          value={editCardBalanceValue}
+                          onChange={(e) => setEditCardBalanceValue(e.target.value)}
+                          sx={{ width: 120 }}
+                        />
+                        <Button size="small" variant="contained" onClick={() => handleUpdateCardBalance(card._id)}>Save</Button>
+                        <Button size="small" onClick={() => { setEditCardBalanceId(null); setEditCardBalanceValue(''); }}>Cancel</Button>
+                      </Box>
+                    ) : (
+                      <Typography sx={{ fontWeight: 600 }}>${card.currentBalance ? Number(card.currentBalance).toLocaleString() : '0'}</Typography>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Typography sx={{ fontWeight: 600 }}>${card.creditLimit ? Number(card.creditLimit).toLocaleString() : 'N/A'}</Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Tooltip title="Edit Balance">
+                      <IconButton size="small" onClick={() => { setEditCardBalanceId(card._id); setEditCardBalanceValue(card.currentBalance?.toString() || '0'); }}>
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {(!userDetails?.cards || userDetails.cards.length === 0) && (
+                <TableRow>
+                  <TableCell colSpan={5} align="center">
+                    <Typography color="text.secondary">No cards found</Typography>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        <Typography variant="subtitle2" sx={{ mt: 4, mb: 1, fontWeight: 600 }}>Investment Balances</Typography>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Investment ID</TableCell>
+                <TableCell>Plan</TableCell>
+                <TableCell>Amount Invested</TableCell>
+                <TableCell>Current Value</TableCell>
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {(userDetails?.investments || []).map((inv) => (
+                <TableRow key={inv._id}>
+                  <TableCell sx={{ fontFamily: 'monospace' }}>{inv.investmentId}</TableCell>
+                  <TableCell>{inv.plan?.name || 'N/A'}</TableCell>
+                  <TableCell>
+                    <Typography sx={{ fontWeight: 600 }}>${inv.amountInvested ? Number(inv.amountInvested).toLocaleString() : '0'}</Typography>
+                  </TableCell>
+                  <TableCell>
+                    {editInvestmentValueId === inv._id ? (
+                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                        <TextField
+                          size="small"
+                          type="number"
+                          value={editInvestmentValueValue}
+                          onChange={(e) => setEditInvestmentValueValue(e.target.value)}
+                          sx={{ width: 120 }}
+                        />
+                        <Button size="small" variant="contained" onClick={() => handleUpdateInvestmentValue(inv._id)}>Save</Button>
+                        <Button size="small" onClick={() => { setEditInvestmentValueId(null); setEditInvestmentValueValue(''); }}>Cancel</Button>
+                      </Box>
+                    ) : (
+                      <Typography sx={{ fontWeight: 600 }}>${inv.currentValue ? Number(inv.currentValue).toLocaleString() : '0'}</Typography>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Tooltip title="Edit Current Value">
+                      <IconButton size="small" onClick={() => { setEditInvestmentValueId(inv._id); setEditInvestmentValueValue(inv.currentValue?.toString() || '0'); }}>
+                        <TrendingUpIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {(!userDetails?.investments || userDetails.investments.length === 0) && (
+                <TableRow>
+                  <TableCell colSpan={5} align="center">
+                    <Typography color="text.secondary">No investments found</Typography>
                   </TableCell>
                 </TableRow>
               )}
