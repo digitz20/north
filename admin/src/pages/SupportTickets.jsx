@@ -78,6 +78,9 @@ const SupportTickets = () => {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [userDetails, setUserDetails] = useState(null);
   const [loadingUserDetails, setLoadingUserDetails] = useState(false);
+  const [messagesPage, setMessagesPage] = useState({});
+  const [hasMoreMessages, setHasMoreMessages] = useState({});
+  const MESSAGES_PER_PAGE = 50;
 
   const selectedTicketRef = useRef(null);
   const updateTicketMessagesRef = useRef(null);
@@ -118,6 +121,12 @@ const SupportTickets = () => {
     return Array.from(merged.values()).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
   };
 
+  const visibleMessages = useMemo(() => {
+    if (!selectedTicket) return [];
+    const all = ticketMessages[selectedTicket._id] || [];
+    return all;
+  }, [ticketMessages, selectedTicket]);
+
   const saveMessagesToStorage = useCallback((ticketId, messages) => {
     try {
       const allMessages = JSON.parse(localStorage.getItem('admin_chat_messages') || '{}');
@@ -157,16 +166,6 @@ const SupportTickets = () => {
       const response = await api.get('/support/admin/tickets');
       const ticketsData = response.data?.data?.tickets || response.data?.tickets || [];
       setTickets(Array.isArray(ticketsData) ? ticketsData : []);
-
-      const messages = {};
-      (Array.isArray(ticketsData) ? ticketsData : []).forEach(ticket => {
-        const stored = loadMessagesFromStorage(ticket._id);
-        const serverMessages = ticket.messages || [];
-        const merged = mergeMessages(stored, serverMessages);
-        messages[ticket._id] = merged;
-        saveMessagesToStorage(ticket._id, merged);
-      });
-      setTicketMessages(messages);
 
       setLoading(false);
     } catch (error) {
@@ -410,6 +409,31 @@ const SupportTickets = () => {
     }
   }, [socket, isConnected, ticketMessages]);
 
+  const loadOlderMessages = useCallback(async (ticketId) => {
+    try {
+      const response = await api.get(`/support/tickets/${ticketId}`);
+      const ticketData = response.data?.data || response.data;
+      if (ticketData && ticketData.messages) {
+        const allMessages = ticketData.messages;
+        const currentPage = messagesPage[ticketId] || 1;
+        const start = Math.max(0, allMessages.length - (currentPage + 1) * MESSAGES_PER_PAGE);
+        const end = allMessages.length - currentPage * MESSAGES_PER_PAGE;
+        const olderMessages = allMessages.slice(start, end);
+        
+        if (olderMessages.length > 0) {
+          setTicketMessages(prev => ({
+            ...prev,
+            [ticketId]: [...olderMessages, ...(prev[ticketId] || [])]
+          }));
+          setMessagesPage(prev => ({ ...prev, [ticketId]: currentPage + 1 }));
+          setHasMoreMessages(prev => ({ ...prev, [ticketId]: start > 0 }));
+        }
+      }
+    } catch (error) {
+      console.error('Error loading older messages:', error);
+    }
+  }, [messagesPage, MESSAGES_PER_PAGE]);
+
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];
     if (!file || !selectedTicket) return;
@@ -544,14 +568,22 @@ const SupportTickets = () => {
         const response = await api.get(`/support/tickets/${ticket._id}`);
         const ticketData = response.data?.data || response.data;
         if (ticketData && ticketData.messages) {
+          const allMessages = ticketData.messages;
+          const initialMessages = allMessages.slice(-MESSAGES_PER_PAGE);
           setTicketMessages(prev => ({
             ...prev,
-            [ticket._id]: ticketData.messages
+            [ticket._id]: initialMessages
           }));
+          setMessagesPage(prev => ({ ...prev, [ticket._id]: 1 }));
+          setHasMoreMessages(prev => ({ ...prev, [ticket._id]: allMessages.length > MESSAGES_PER_PAGE }));
         }
       } catch (error) {
         console.error('Error fetching ticket messages:', error);
       }
+    } else {
+      const existing = ticketMessages[ticket._id] || [];
+      setMessagesPage(prev => ({ ...prev, [ticket._id]: 1 }));
+      setHasMoreMessages(prev => ({ ...prev, [ticket._id]: false }));
     }
     
     joinChat(ticket._id);
@@ -1253,7 +1285,16 @@ const SupportTickets = () => {
                     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
                       <CircularProgress size={28} sx={{ color: '#0066FF' }} />
                     </Box>
-                  ) : (ticketMessages[selectedTicket._id] || []).map((msg, index) => {
+                   ) : (
+                    <>
+                      {hasMoreMessages[selectedTicket._id] && (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+                          <Button size="small" variant="outlined" onClick={() => loadOlderMessages(selectedTicket._id)}>
+                            Load older messages
+                          </Button>
+                        </Box>
+                      )}
+                      {visibleMessages.map((msg, index) => {
                     const senderId = msg.sender?._id || msg.sender;
                     const isOwn = senderId?.toString?.() === user._id?.toString?.();
                     const canEdit = isOwn;
@@ -1418,10 +1459,11 @@ const SupportTickets = () => {
                           </Box>
                         </Box>
                       </Box>
-                    );
-                  })}
-                  <div ref={messagesEndRef} />
-                </Box>
+                     );
+                   })}
+                   </> 
+                   <div ref={messagesEndRef} />
+                 </Box>
 
                 <Box sx={{ p: { xs: 1, sm: 2 }, bgcolor: 'white', borderTop: 1, borderColor: 'divider' }}>
                   <Box sx={{ display: 'flex', gap: { xs: 0.5, sm: 1 }, alignItems: 'flex-end' }}>

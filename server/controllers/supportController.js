@@ -485,7 +485,6 @@ exports.getAllTickets = async (req, res, next) => {
     const tickets = await SupportTicket.find(query)
       .populate('user', 'firstName lastName email phone')
       .populate('assignedTo', 'firstName lastName email')
-      .populate('messages.sender', 'firstName lastName email role')
       .sort({ createdAt: -1 })
       .skip(startIndex)
       .limit(limit);
