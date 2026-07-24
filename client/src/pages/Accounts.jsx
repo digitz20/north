@@ -88,7 +88,13 @@ const Accounts = () => {
           boxShadow: '0 25px 50px rgba(0,102,255,0.3)'
         }}>
           <Box sx={{ position: 'relative', zIndex: 2 }}>
-            <Typography variant="h3" sx={{ fontWeight: 800, mb: 2 }}>
+            <Typography variant="h3" sx={{ 
+              fontWeight: 800, 
+              background: 'linear-gradient(90deg, #ffffff 0%, #00c896 30%, #00bfff 70%, #ffc857 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              mb: 2
+            }}>
               My Accounts
             </Typography>
             <Typography variant="h6" sx={{ mb: 3, opacity: 0.9 }}>
@@ -291,34 +297,51 @@ const Accounts = () => {
             Quick Actions
           </Typography>
           <Grid container spacing={3}>
-            {[
-              { title: 'Transfer Money', icon: <SwapHoriz sx={{ fontSize: 32 }} />, color: '#0066FF', path: '/transfer' },
-              { title: 'View Transactions', icon: <CreditCard sx={{ fontSize: 32 }} />, color: '#00C896', path: '/transactions' },
-              { title: 'Add Beneficiary', icon: <Person sx={{ fontSize: 32 }} />, color: '#00BFFF', path: '/beneficiaries' },
-              { title: 'Account Settings', icon: <Settings sx={{ fontSize: 32 }} />, color: '#FFC857', path: '/settings' },
-            ].map((action, index) => (
-              <Grid item xs={12} sm={6} md={3} key={index}>
-                <motion.div
-                  whileHover={{ y: -3 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <PremiumCard
-                    onClick={() => navigate(action.path)}
-                    sx={{ 
-                      textAlign: 'center', 
-                      cursor: 'pointer',
-                      '&:hover': { borderColor: action.color }
-                    }}
-                    action={action.icon}
-                  >
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      {action.title}
-                    </Typography>
-                  </PremiumCard>
-                </motion.div>
-              </Grid>
-            ))}
-          </Grid>
+             {[
+               { title: 'Transfer Money', icon: <SwapHoriz />, color: '#0066FF', path: '/transfer' },
+               { title: 'View Transactions', icon: <CreditCard />, color: '#00C896', path: '/transactions' },
+               { title: 'Add Beneficiary', icon: <Person />, color: '#00BFFF', path: '/beneficiaries' },
+               { title: 'Account Settings', icon: <Settings />, color: '#FFC857', path: '/settings' },
+             ].map((action, index) => (
+               <Grid item xs={12} sm={6} md={3} key={index}>
+                 <motion.div
+                   whileHover={{ y: -3 }}
+                   transition={{ duration: 0.2 }}
+                 >
+                   <PremiumCard
+                     onClick={() => navigate(action.path)}
+                     sx={{ 
+                       textAlign: 'center', 
+                       cursor: 'pointer',
+                       '&:hover': { borderColor: action.color }
+                     }}
+                   >
+                     <Box sx={{ 
+                       width: 72, 
+                       height: 72, 
+                       borderRadius: '20px', 
+                       background: `linear-gradient(135deg, ${action.color}, ${action.color}88)`,
+                       display: 'flex',
+                       alignItems: 'center',
+                       justifyContent: 'center',
+                       margin: '0 auto 16px',
+                       boxShadow: `0 10px 30px ${action.color}44`,
+                       color: 'white',
+                       transition: 'transform 0.3s ease',
+                       '&:hover': {
+                         transform: 'scale(1.08) rotate(-4deg)'
+                       }
+                     }}>
+                       {action.icon}
+                     </Box>
+                     <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                       {action.title}
+                     </Typography>
+                   </PremiumCard>
+                 </motion.div>
+               </Grid>
+             ))}
+           </Grid>
         </Box>
       </motion.div>
     </motion.div>

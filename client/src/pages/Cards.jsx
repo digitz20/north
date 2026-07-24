@@ -141,7 +141,13 @@ const Cards = () => {
           <Box sx={{ position: 'relative', zIndex: 2 }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={3}>
               <Box>
-                <Typography variant="h3" sx={{ fontWeight: 800, mb: 2 }}>
+                <Typography variant="h3" sx={{ 
+                  fontWeight: 800, 
+                  background: 'linear-gradient(90deg, #ffffff 0%, #00c896 30%, #00bfff 70%, #ffc857 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  mb: 2
+                }}>
                   My Cards
                 </Typography>
                 <Typography variant="h6" sx={{ mb: 3, opacity: 0.9 }}>

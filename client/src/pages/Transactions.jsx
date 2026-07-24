@@ -154,7 +154,13 @@ const Transactions = () => {
           boxShadow: '0 25px 50px rgba(0,102,255,0.3)'
         }}>
           <Box sx={{ position: 'relative', zIndex: 2 }}>
-            <Typography variant="h3" sx={{ fontWeight: 800, mb: 2 }}>
+            <Typography variant="h3" sx={{ 
+              fontWeight: 800, 
+              background: 'linear-gradient(90deg, #ffffff 0%, #00c896 30%, #00bfff 70%, #ffc857 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              mb: 2
+            }}>
               Transaction History
             </Typography>
             <Typography variant="h6" sx={{ mb: 4, opacity: 0.9 }}>

@@ -17,7 +17,8 @@ import {
   Tooltip,
   Menu,
   MenuItem,
-  Divider
+  Divider,
+  SvgIcon
 } from '@mui/material';
 
 // Lazy load the chat widget to implement code splitting
@@ -49,18 +50,18 @@ import { useNavigationWithSplash } from '../hooks/useNavigationWithSplash';
 const drawerWidth = 260;
 
 const menuItems = [
-  { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
-  { text: 'Accounts', icon: <AccountsIcon />, path: '/accounts' },
-  { text: 'Transactions', icon: <TransactionsIcon />, path: '/transactions' },
-  { text: 'Transfer', icon: <TransferIcon />, path: '/transfer' },
-  { text: 'Deposit', icon: <DepositIcon />, path: '/deposit' },
-  { text: 'Cards', icon: <CardsIcon />, path: '/cards' },
-  { text: 'Investments', icon: <InvestmentsIcon />, path: '/investments' },
-  { text: 'Loan/IRS Taxrefund', icon: <LoansIcon />, path: '/loans' },
-  { text: 'Beneficiaries', icon: <BeneficiariesIcon />, path: '/beneficiaries' },
-  { text: 'Notifications', icon: <NotificationsIcon />, path: '/notifications' },
-  { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
-  { text: 'Profile', icon: <ProfileIcon />, path: '/profile' }
+  { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard', color: '#0066FF' },
+  { text: 'Accounts', icon: <AccountsIcon />, path: '/accounts', color: '#00C896' },
+  { text: 'Transactions', icon: <TransactionsIcon />, path: '/transactions', color: '#00BFFF' },
+  { text: 'Transfer', icon: <TransferIcon />, path: '/transfer', color: '#7C4DFF' },
+  { text: 'Deposit', icon: <WithdrawIcon />, path: '/deposit', color: '#FF6B6B' },
+  { text: 'Cards', icon: <CardsIcon />, path: '/cards', color: '#FF9100' },
+  { text: 'Investments', icon: <InvestmentsIcon />, path: '/investments', color: '#00E5FF' },
+  { text: 'Loan/IRS Taxrefund', icon: <LoansIcon />, path: '/loans', color: '#FFC857' },
+  { text: 'Beneficiaries', icon: <BeneficiariesIcon />, path: '/beneficiaries', color: '#E040FB' },
+  { text: 'Notifications', icon: <NotificationsIcon />, path: '/notifications', color: '#FF4081' },
+  { text: 'Settings', icon: <SettingsIcon />, path: '/settings', color: '#B0BEC5' },
+  { text: 'Profile', icon: <ProfileIcon />, path: '/profile', color: '#64FFDA' }
 ];
 
 const DashboardLayout = () => {
@@ -183,8 +184,25 @@ const DashboardLayout = () => {
                 }
               }}
             >
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <Typography variant="body1">{item.text}</Typography>
+              <ListItemIcon>
+                <Avatar
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    background: location.pathname === item.path ? 'transparent' : `linear-gradient(135deg, ${item.color}, ${item.color}88)`,
+                    color: 'white',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'scale(1.1)',
+                      boxShadow: '0 6px 16px rgba(0,0,0,0.18)'
+                    }
+                  }}
+                >
+                  {item.icon}
+                </Avatar>
+              </ListItemIcon>
+              <Typography variant="body1" sx={{ fontWeight: location.pathname === item.path ? 600 : 400 }}>{item.text}</Typography>
             </ListItem>
           );
         })}
@@ -343,14 +361,45 @@ const DashboardLayout = () => {
           flexGrow: 1,
           p: { xs: 2, sm: 3 },
           width: { sm: `calc(100% - ${drawerWidth}px)` },
-          backgroundColor: '#f7fafc',
+          background: 'linear-gradient(135deg, #0c1445 0%, #1a237e 25%, #283593 50%, #303f9f 75%, #3949ab 100%)',
+          position: 'relative',
           minHeight: '100vh',
           overflowX: 'hidden'
         }}
         onClick={() => setMobileOpen(false)}
       >
+        <Box
+          sx={{
+            position: 'fixed',
+            top: '-10%',
+            right: '-15%',
+            width: 700,
+            height: 700,
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(0,200,150,0.25) 0%, rgba(0,200,150,0) 70%)',
+            filter: 'blur(80px)',
+            pointerEvents: 'none',
+            zIndex: 0,
+            display: { xs: 'none', md: 'block' }
+          }}
+        />
+        <Box
+          sx={{
+            position: 'fixed',
+            bottom: '-15%',
+            left: '-10%',
+            width: 800,
+            height: 800,
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(0,102,255,0.2) 0%, rgba(0,102,255,0) 70%)',
+            filter: 'blur(90px)',
+            pointerEvents: 'none',
+            zIndex: 0,
+            display: { xs: 'none', md: 'block' }
+          }}
+        />
         <Toolbar />
-        <Box sx={{ width: '100%', maxWidth: '100%', overflowX: 'hidden' }}>
+        <Box sx={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '100%', overflowX: 'hidden' }}>
           <Outlet key={location.pathname} />
         </Box>
       </Box>

@@ -290,12 +290,11 @@ const Loans = () => {
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
           <Typography variant="h3" sx={{ 
-            fontWeight: 800, 
-            background: 'linear-gradient(135deg, #0f2744 0%, #1e4d8a 30%, #0066ff 60%, #00c896 100%)',
+            fontWeight: 700, 
+            background: 'linear-gradient(135deg, #0f2744 0%, #1e4d8a 50%, #0066ff 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
-            mb: 2,
-            mt: 4
+            mb: 1
           }}>Loans & IRS Tax Refunds</Typography>
         </motion.div>
         
