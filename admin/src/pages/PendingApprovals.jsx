@@ -19,6 +19,8 @@ const PendingApprovals = () => {
   const [actionType, setActionType] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
   const [processing, setProcessing] = useState(false);
+  const [rejectAllOpen, setRejectAllOpen] = useState(false);
+  const [rejectAllReason, setRejectAllReason] = useState('');
 
   const tabLabels = ['Deposits', 'Withdrawals', 'Transfers', 'Investments', 'Loans'];
 
@@ -113,6 +115,35 @@ const PendingApprovals = () => {
       setRejectionReason('');
     } catch (err) {
       setError(err.response?.data?.message || 'Action failed');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleRejectAll = async () => {
+    const items = getCurrentItems();
+    if (!items.length) return;
+    setProcessing(true);
+    try {
+      const endpointMap = {
+        0: '/transactions/admin',
+        1: '/transactions/admin',
+        2: '/transfers/admin',
+        3: '/investments/admin',
+        4: '/loans/admin'
+      };
+      const baseEndpoint = endpointMap[activeTab];
+      const reason = rejectAllReason || 'Rejected by admin';
+      await Promise.allSettled(
+        items.map((item) =>
+          api.put(`${baseEndpoint}/${item._id}/reject`, { reason }).catch((err) => err.response?.data || err)
+        )
+      );
+      await fetchPendingItems();
+      setRejectAllOpen(false);
+      setRejectAllReason('');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Bulk reject failed');
     } finally {
       setProcessing(false);
     }
@@ -226,12 +257,23 @@ const PendingApprovals = () => {
         </Grid>
       </Box>
 
-      <Box sx={{ mb: 3 }}>
+      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Tabs value={activeTab} onChange={(e, newVal) => setActiveTab(newVal)} variant="scrollable" scrollButtons="auto">
           {tabLabels.map((label, index) => (
             <Tab key={label} label={`${label} (${pendingItems[Object.keys(pendingItems)[index]]?.length || 0})`} />
           ))}
         </Tabs>
+        {currentItems.length > 0 && (
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<Cancel />}
+            onClick={() => { setRejectAllOpen(true); setRejectAllReason(''); }}
+            sx={{ ml: 2, whiteSpace: 'nowrap' }}
+          >
+            Reject All
+          </Button>
+        )}
       </Box>
 
       {currentItems.length === 0 ? (
@@ -316,6 +358,32 @@ const PendingApprovals = () => {
               {processing ? <CircularProgress size={24} color="inherit" /> : 'Reject'}
             </Button>
           )}
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={rejectAllOpen} onClose={() => setRejectAllOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Reject All {tabLabels[activeTab]}</DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 1 }}>
+            <Typography variant="body2" sx={{ mb: 2 }}>
+              You are about to reject all pending {tabLabels[activeTab].toLowerCase()} in this tab. This action cannot be undone.
+            </Typography>
+            <TextField
+              fullWidth
+              label="Rejection Reason"
+              multiline
+              rows={3}
+              value={rejectAllReason}
+              onChange={(e) => setRejectAllReason(e.target.value)}
+              placeholder="Enter reason for rejection..."
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setRejectAllOpen(false)} disabled={processing}>Cancel</Button>
+          <Button variant="contained" color="error" onClick={handleRejectAll} disabled={processing || !rejectAllReason.trim()}>
+            {processing ? <CircularProgress size={24} color="inherit" /> : `Reject All (${currentItems.length})`}
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>
