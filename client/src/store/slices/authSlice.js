@@ -56,7 +56,15 @@ export const login = createAsyncThunk(
       if (!error.response) {
         return rejectWithValue('Network error: Unable to reach the server. Please check your connection and try again.');
       }
-      return rejectWithValue(error.response?.data?.message || 'Login failed');
+      const status = error.response?.status;
+      const message = error.response?.data?.message || 'Login failed';
+      if (status === 401) {
+        return rejectWithValue('Invalid email or password. If you recently registered, please verify your email before logging in.');
+      }
+      if (status === 404) {
+        return rejectWithValue('Login service is temporarily unavailable. Please try again later.');
+      }
+      return rejectWithValue(message);
     }
   }
 );
@@ -114,7 +122,15 @@ export const resendVerificationEmail = createAsyncThunk(
       const response = await axios.post('/auth/resend-verification', { email });
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to resend verification email');
+      const status = error.response?.status;
+      const message = error.response?.data?.message || 'Failed to resend verification email';
+      if (status === 404) {
+        return rejectWithValue('Email verification service is temporarily unavailable. Please contact support or try again later.');
+      }
+      if (status === 429) {
+        return rejectWithValue('Too many requests. Please wait a few minutes before trying again.');
+      }
+      return rejectWithValue(message);
     }
   }
 );
