@@ -64,16 +64,16 @@ const PendingApprovals = () => {
       let payload = {};
 
       if (activeTab === 0) {
-        endpoint = `/admin/transactions/${selectedItem._id}/approve`;
+        endpoint = `/transactions/admin/${selectedItem._id}/approve`;
       } else if (activeTab === 1) {
-        endpoint = `/admin/transactions/${selectedItem._id}/approve`;
+        endpoint = `/transactions/admin/${selectedItem._id}/approve`;
       } else if (activeTab === 2) {
-        endpoint = `/admin/transfers/${selectedItem._id}/approve`;
+        endpoint = `/transfers/admin/${selectedItem._id}/approve`;
         payload = { status: 'approved' };
       } else if (activeTab === 3) {
-        endpoint = `/admin/investments/${selectedItem._id}/approve`;
+        endpoint = `/investments/admin/${selectedItem._id}/approve`;
       } else if (activeTab === 4) {
-        endpoint = `/admin/loans/${selectedItem._id}/approve`;
+        endpoint = `/loans/admin/${selectedItem._id}/approve`;
       }
 
       await api.put(endpoint, payload);
@@ -95,15 +95,15 @@ const PendingApprovals = () => {
       let endpoint = '';
 
       if (activeTab === 0) {
-        endpoint = `/admin/transactions/${selectedItem._id}/reject`;
+        endpoint = `/transactions/admin/${selectedItem._id}/reject`;
       } else if (activeTab === 1) {
-        endpoint = `/admin/transactions/${selectedItem._id}/reject`;
+        endpoint = `/transactions/admin/${selectedItem._id}/reject`;
       } else if (activeTab === 2) {
-        endpoint = `/admin/transfers/${selectedItem._id}/reject`;
+        endpoint = `/transfers/admin/${selectedItem._id}/reject`;
       } else if (activeTab === 3) {
-        endpoint = `/admin/investments/${selectedItem._id}/reject`;
+        endpoint = `/investments/admin/${selectedItem._id}/reject`;
       } else if (activeTab === 4) {
-        endpoint = `/admin/loans/${selectedItem._id}/reject`;
+        endpoint = `/loans/admin/${selectedItem._id}/reject`;
       }
 
       await api.put(endpoint, { reason: rejectionReason || 'Rejected by admin' });
