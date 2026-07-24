@@ -58,11 +58,14 @@ export const login = createAsyncThunk(
       }
       const status = error.response?.status;
       const message = error.response?.data?.message || 'Login failed';
+      if (status === 400) {
+        return rejectWithValue(message);
+      }
       if (status === 401) {
-        return rejectWithValue('Invalid email or password.');
+        return rejectWithValue(message);
       }
       if (status === 403) {
-        return rejectWithValue('Please verify your email before logging in.');
+        return rejectWithValue(message);
       }
       if (status === 404) {
         return rejectWithValue('Login service is temporarily unavailable. Please try again later.');
