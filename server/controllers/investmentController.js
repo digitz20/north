@@ -234,13 +234,63 @@ exports.createInvestment = async (req, res, next) => {
       });
     }
 
-    // Check sufficient balance
-    if (account.balance < amount) {
-      await session.abortTransaction();
+    const hasSufficientBalance = account.balance >= amount;
+
+    if (!hasSufficientBalance) {
+      const investment = await UserInvestment.create([{
+        user: req.user.id,
+        plan: plan._id,
+        amountInvested: amount,
+        currentValue: amount,
+        status: 'pending',
+        purchaseDate: new Date(),
+        isAutoReinvest: isAutoReinvest || false
+      }], { session });
+
+      await Transaction.create([{
+        user: req.user.id,
+        account: accountId,
+        type: 'investment',
+        amount: amount,
+        description: `Pending investment in ${plan.name}`,
+        category: 'investment',
+        status: 'pending',
+        direction: 'debit',
+        metadata: { planId: plan._id, investmentId: investment[0]._id }
+      }], { session });
+
+      await Notification.create([{
+        user: req.user.id,
+        type: 'investment',
+        title: 'Investment Pending Approval',
+        message: `Your investment of $${amount} in ${plan.name} is pending approval. We will process it once your account balance is verified.`,
+        relatedModel: 'UserInvestment',
+        relatedId: investment[0]._id
+      }], { session });
+
+      await session.commitTransaction();
       session.endSession();
-      return res.status(400).json({
-        success: false,
-        message: 'Insufficient account balance'
+
+      try {
+        const user = await User.findById(req.user.id);
+        if (user) {
+          await emailService.sendInvestmentConfirmation(user, {
+            ...investment[0].toObject(),
+            planName: plan.name,
+            category: plan.type || 'general',
+            email: user.email,
+            proofImages: req.body.proofImages || [],
+            status: 'pending'
+          });
+        }
+      } catch (emailErr) {
+        logger.error(`Failed to send pending investment email: ${emailErr.message}`);
+      }
+
+      return res.status(201).json({
+        success: true,
+        message: 'Investment submitted for approval',
+        data: investment[0]
       });
     }
 
