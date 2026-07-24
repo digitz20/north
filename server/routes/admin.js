@@ -39,7 +39,7 @@ router.route('/users')
 router.route('/users/:id')
   .get(protect, authorize('admin', 'super-admin'), getUser)
   .put(protect, authorize('admin', 'super-admin'), updateUser)
-  .delete(protect, authorize('super-admin'), deleteUser);
+  .delete(protect, authorize('admin', 'super-admin'), deleteUser);
 
 router.route('/users/:id/details')
   .get(protect, authorize('admin', 'super-admin'), getUserDetails);
