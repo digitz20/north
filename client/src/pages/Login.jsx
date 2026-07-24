@@ -87,6 +87,16 @@ const Login = () => {
     };
   }, [isAuthenticated, navigate, redirectTo, dispatch, error]);
 
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value);
+    if (error) dispatch(clearError());
+  };
+
+  const handlePasswordChange = (e) => {
+    setPassword(e.target.value);
+    if (error) dispatch(clearError());
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (email && password) {
@@ -171,7 +181,7 @@ const Login = () => {
                   autoFocus
                   placeholder="you@example.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={handleEmailChange}
                   sx={{
                     '& .MuiInputBase-root': { bgcolor: 'transparent' },
                     '& .MuiOutlinedInput-root': { borderRadius: '10px' },
@@ -191,7 +201,7 @@ const Login = () => {
                   autoComplete="current-password"
                   placeholder="Enter your password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={handlePasswordChange}
                   InputProps={{
                     endAdornment: (
                       <InputAdornment position="end">
