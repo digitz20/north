@@ -905,7 +905,7 @@ const Users = () => {
             {userDetails.loans.map((loan) => (
               <TableRow key={loan._id}>
                 <TableCell sx={{ fontFamily: 'monospace' }}>{loan.loanId || loan._id}</TableCell>
-                <TableCell>{loan.loanProduct?.name || 'Loan'}</TableCell>
+                <TableCell>{loan.loanProduct ? loan.loanProduct.name : 'Loan'}</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>${loan.amount?.toLocaleString()}</TableCell>
                 <TableCell>
                   {editLoanBalanceId === loan._id ? (
@@ -1099,11 +1099,11 @@ const Users = () => {
               <TableCell sx={{ px: { xs: 1, sm: 2 } }}>Actions</TableCell>
             </TableRow>
           </TableHead>
-          <TableBody>
+              <TableBody>
             {userDetails.investments.map((inv) => (
               <TableRow key={inv._id}>
                 <TableCell sx={{ fontFamily: 'monospace', display: { xs: 'none', sm: 'table-cell' } }}>{inv._id}</TableCell>
-                <TableCell sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' }}>{inv.plan?.name || 'Investment'}</TableCell>
+                <TableCell sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' }}}>{inv.plan ? inv.plan.name : 'Investment'}</TableCell>
                 <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
                   {editInvestmentAmountId === inv._id ? (
                     <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
@@ -1347,7 +1347,7 @@ const Users = () => {
               {(userDetails?.investments || []).map((inv) => (
                 <TableRow key={inv._id}>
                   <TableCell sx={{ fontFamily: 'monospace' }}>{inv.investmentId}</TableCell>
-                  <TableCell>{inv.plan?.name || 'N/A'}</TableCell>
+                  <TableCell>{inv.plan ? inv.plan.name : 'N/A'}</TableCell>
                   <TableCell>
                     <Typography sx={{ fontWeight: 600 }}>${inv.amountInvested ? Number(inv.amountInvested).toLocaleString() : '0'}</Typography>
                   </TableCell>
@@ -1880,7 +1880,7 @@ const Users = () => {
                   {(userDetails?.investments || []).map((inv) => (
                     <Grid item xs={12} key={inv._id}>
                       <TextField
-                        label={`${inv.plan?.name || 'Investment'} (${inv.investmentId})`}
+                         label={`${inv.plan ? inv.plan.name : 'Investment'} (${inv.investmentId})`}
                         type="number"
                         fullWidth
                         value={editInvestmentValueId === inv._id ? editInvestmentValueValue : (inv.currentValue || 0)}
