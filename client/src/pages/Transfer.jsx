@@ -12,7 +12,7 @@ const Transfer = () => {
     <Box sx={{ 
       position: 'relative', 
       overflow: 'hidden', 
-      background: 'linear-gradient(135deg, #0c1445 0%, #1a237e 25%, #283593 50%, #303f9f 75%, #3949ab 100%)', 
+      background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)', 
       minHeight: '100vh', 
       p: { xs: 2, md: 0 } 
     }}>

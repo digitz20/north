@@ -92,7 +92,7 @@ const Beneficiaries = () => {
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      style={{ width: '100%' }}
+      style={{ width: '100%', minHeight: '100vh', background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)' }}
     >
       <Box sx={{ mb: 6 }}>
         <motion.div variants={itemVariants}>

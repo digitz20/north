@@ -84,8 +84,8 @@ const Cards = () => {
   };
 
   const cardActions = [
-    { title: 'Request New Card', icon: <Add sx={{ fontSize: 32 }} />, color: '#0066FF', action: () => setOpen(true) },
-    { title: 'Card Settings', icon: <Security sx={{ fontSize: 32 }} />, color: '#FFC857', action: () => navigate('/settings') },
+    { title: 'Request New Card', icon: <Add sx={{ fontSize: 32, color: '#0066FF' }} />, color: '#0066FF', action: () => setOpen(true) },
+    { title: 'Card Settings', icon: <Security sx={{ fontSize: 32, color: '#FFC857' }} />, color: '#FFC857', action: () => navigate('/settings') },
   ];
 
   const containerVariants = {
@@ -124,7 +124,7 @@ const Cards = () => {
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      style={{ minHeight: '100vh' }}
+      style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)' }}
     >
       {/* Hero Section */}
       <motion.div variants={itemVariants}>

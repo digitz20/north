@@ -57,14 +57,13 @@ const noBlueBgItems = [
 ];
 
 const lightBlueBgItems = [
-  { text: 'Investments', icon: <InvestmentsIcon />, path: '/investments', color: '#00E5FF' },
-  { text: 'Beneficiaries', icon: <BeneficiariesIcon />, path: '/beneficiaries', color: '#E040FB' },
-  { text: 'Profile', icon: <ProfileIcon />, path: '/profile', color: '#64FFDA' },
   { text: 'Transfer', icon: <TransferIcon />, path: '/transfer', color: '#7C4DFF' },
-  { text: 'Transaction', icon: <TransactionsIcon />, path: '/transactions', color: '#00BFFF' },
   { text: 'Deposit', icon: <DepositIcon />, path: '/deposit', color: '#FF6B6B' },
   { text: 'Cards', icon: <CardsIcon />, path: '/cards', color: '#FF9100' },
-  { text: 'Loan/IRS Taxrefund', icon: <LoansIcon />, path: '/loans', color: '#FFC857' }
+  { text: 'Investments', icon: <InvestmentsIcon />, path: '/investments', color: '#00E5FF' },
+  { text: 'Loans/IRS Taxrefund', icon: <LoansIcon />, path: '/loans', color: '#FFC857' },
+  { text: 'Beneficiaries', icon: <BeneficiariesIcon />, path: '/beneficiaries', color: '#E040FB' },
+  { text: 'Profile', icon: <ProfileIcon />, path: '/profile', color: '#64FFDA' }
 ];
 
 const allMenuItems = [...noBlueBgItems, ...lightBlueBgItems];

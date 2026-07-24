@@ -73,7 +73,7 @@ const Accounts = () => {
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      style={{ minHeight: '100vh' }}
+      style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%)' }}
     >
       {/* Hero Section */}
       <motion.div variants={itemVariants}>

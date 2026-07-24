@@ -433,7 +433,8 @@ const Investments = () => {
       position: 'relative', 
       overflow: 'hidden',
       minHeight: '100vh',
-      p: { xs: 2, md: 0 }
+      p: { xs: 2, md: 0 },
+      background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)'
     }}>
       {/* Premium ambient background effects */}
       <Box sx={{

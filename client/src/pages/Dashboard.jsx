@@ -345,7 +345,7 @@ const Dashboard = () => {
         width: '600px',
         height: '600px',
         borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(0,102,255,0.12) 0%, rgba(0,102,255,0) 70%)',
+        background: 'radial-gradient(circle, rgba(100,116,139,0.12) 0%, rgba(100,116,139,0) 70%)',
         filter: 'blur(60px)',
         pointerEvents: 'none',
         zIndex: 0,

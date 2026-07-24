@@ -226,7 +226,7 @@ const Loans = () => {
     <Box sx={{ 
       position: 'relative', 
       overflow: 'hidden',
-      background: 'linear-gradient(135deg, #f0f4ff 0%, #f8fafc 30%, #f0fdf4 70%, #f8fafc 100%)',
+      background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
       minHeight: '100vh',
       p: { xs: 2, md: 0 }
     }}>

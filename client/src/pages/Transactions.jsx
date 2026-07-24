@@ -139,7 +139,7 @@ const Transactions = () => {
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      style={{ minHeight: '100vh' }}
+      style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)' }}
     >
       {/* Hero Section */}
       <motion.div variants={itemVariants}>
