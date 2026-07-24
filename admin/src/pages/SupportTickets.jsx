@@ -1460,8 +1460,9 @@ const SupportTickets = () => {
                         </Box>
                       </Box>
                      );
-                   })}
-                   </> 
+                   })
+                   </>
+                  )}
                    <div ref={messagesEndRef} />
                  </Box>
 
