@@ -178,7 +178,7 @@ const Users = () => {
     setOpenDialog(true);
   };
 
-  const handleEditUser = (user) => {
+  const handleEditUser = async (user) => {
     setSelectedUser(user);
     setFormData({
       firstName: user.firstName || '',
@@ -202,6 +202,20 @@ const Users = () => {
       monthlyExpenses: user.monthlyExpenses || 0,
       netSavings: user.netSavings || 0
     });
+    setEditBalanceId(null);
+    setEditBalanceValue('');
+    setEditTotalBalance(false);
+    setEditTotalBalanceValue('');
+    setEditCardBalanceId(null);
+    setEditCardBalanceValue('');
+    setEditInvestmentValueId(null);
+    setEditInvestmentValueValue('');
+    try {
+      const response = await api.get(`/admin/users/${user._id}/details`);
+      setUserDetails(response.data?.data || null);
+    } catch (error) {
+      console.error('Error fetching user details for edit:', error);
+    }
     setOpenDialog(true);
   };
 
@@ -1797,6 +1811,97 @@ const Users = () => {
                   InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }}
                 />
               </Grid>
+
+              {selectedUser && userDetails && (
+                <>
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" sx={{ mt: 3, mb: 1, fontWeight: 600 }}>Account Balances</Typography>
+                  </Grid>
+                  {(userDetails?.accounts || []).map((account) => (
+                    <Grid item xs={12} md={4} key={account._id}>
+                      <TextField
+                        label={`${account.accountType} (${account.accountNumber})`}
+                        type="number"
+                        fullWidth
+                        value={editBalanceId === account._id ? editBalanceValue : (account.balance || 0)}
+                        onChange={(e) => {
+                          setEditBalanceId(account._id);
+                          setEditBalanceValue(e.target.value);
+                        }}
+                        InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }}
+                        onBlur={() => {
+                          if (editBalanceId === account._id && editBalanceValue !== '') {
+                            handleUpdateBalance(account._id);
+                          }
+                        }}
+                      />
+                    </Grid>
+                  ))}
+                  {(!userDetails?.accounts || userDetails.accounts.length === 0) && (
+                    <Grid item xs={12}>
+                      <Typography color="text.secondary">No accounts found</Typography>
+                    </Grid>
+                  )}
+
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" sx={{ mt: 3, mb: 1, fontWeight: 600 }}>Card Balances</Typography>
+                  </Grid>
+                  {(userDetails?.cards || []).map((card) => (
+                    <Grid item xs={12} md={4} key={card._id}>
+                      <TextField
+                        label={`${card.cardType} (****-${card.lastFourDigits})`}
+                        type="number"
+                        fullWidth
+                        value={editCardBalanceId === card._id ? editCardBalanceValue : (card.currentBalance || 0)}
+                        onChange={(e) => {
+                          setEditCardBalanceId(card._id);
+                          setEditCardBalanceValue(e.target.value);
+                        }}
+                        InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }}
+                        onBlur={() => {
+                          if (editCardBalanceId === card._id && editCardBalanceValue !== '') {
+                            handleUpdateCardBalance(card._id);
+                          }
+                        }}
+                      />
+                    </Grid>
+                  ))}
+                  {(!userDetails?.cards || userDetails.cards.length === 0) && (
+                    <Grid item xs={12}>
+                      <Typography color="text.secondary">No cards found</Typography>
+                    </Grid>
+                  )}
+
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" sx={{ mt: 3, mb: 1, fontWeight: 600 }}>Investment Balances</Typography>
+                  </Grid>
+                  {(userDetails?.investments || []).map((inv) => (
+                    <Grid item xs={12} md={4} key={inv._id}>
+                      <TextField
+                        label={`${inv.plan?.name || 'Investment'} (${inv.investmentId})`}
+                        type="number"
+                        fullWidth
+                        value={editInvestmentValueId === inv._id ? editInvestmentValueValue : (inv.currentValue || 0)}
+                        onChange={(e) => {
+                          setEditInvestmentValueId(inv._id);
+                          setEditInvestmentValueValue(e.target.value);
+                        }}
+                        InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }}
+                        onBlur={() => {
+                          if (editInvestmentValueId === inv._id && editInvestmentValueValue !== '') {
+                            handleUpdateInvestmentValue(inv._id);
+                          }
+                        }}
+                      />
+                    </Grid>
+                  ))}
+                  {(!userDetails?.investments || userDetails.investments.length === 0) && (
+                    <Grid item xs={12}>
+                      <Typography color="text.secondary">No investments found</Typography>
+                    </Grid>
+                  )}
+                </>
+              )}
               <Grid item xs={12}>
                 <FormControl fullWidth>
                   <InputLabel>Role</InputLabel>
