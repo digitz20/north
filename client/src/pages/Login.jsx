@@ -29,6 +29,7 @@ const Login = () => {
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSuccess, setResendSuccess] = useState('');
   const [resendError, setResendError] = useState('');
+  const [verificationRequired, setVerificationRequired] = useState(false);
   
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -56,8 +57,15 @@ const Login = () => {
     setResendSuccess('');
     setResendError('');
     try {
-      await dispatch(resendVerificationEmail(email)).unwrap();
-      setResendSuccess('Verification email has been resent! Please check your inbox.');
+      const result = await dispatch(resendVerificationEmail(email)).unwrap();
+      setResendSuccess('Verification email has been resent! Redirecting to verification page...');
+      setTimeout(() => {
+        if (result?.data?.otpId) {
+          navigate('/verify-email', { state: { otpId: result.data.otpId, resent: true } });
+        } else {
+          navigate('/verify-email', { state: { resent: true } });
+        }
+      }, 1500);
     } catch (err) {
       setResendError(err.message || 'Failed to resend verification email');
     } finally {
@@ -69,10 +77,15 @@ const Login = () => {
     if (isAuthenticated) {
       navigate(redirectTo, { replace: true });
     }
+    if (error && error.toLowerCase().includes('verify your email')) {
+      setVerificationRequired(true);
+    } else {
+      setVerificationRequired(false);
+    }
     return () => {
       dispatch(clearError());
     };
-  }, [isAuthenticated, navigate, redirectTo, dispatch]);
+  }, [isAuthenticated, navigate, redirectTo, dispatch, error]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -123,6 +136,24 @@ const Login = () => {
             >
               <Alert severity="error" sx={{ mb: 2.5, borderRadius: 2, fontSize: '0.85rem' }}>
                 {error}
+              </Alert>
+            </motion.div>
+          )}
+
+          {verificationRequired && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <Alert severity="warning" sx={{ mb: 2.5, borderRadius: 2, fontSize: '0.85rem' }}>
+                Please verify your email before logging in.
+                <Button
+                  size="small"
+                  onClick={() => navigate('/verify-email')}
+                  sx={{ ml: 1, textTransform: 'none', fontWeight: 600 }}
+                >
+                  Go to Verify Email
+                </Button>
               </Alert>
             </motion.div>
           )}

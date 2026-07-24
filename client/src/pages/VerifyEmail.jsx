@@ -16,6 +16,7 @@ const VerifyEmail = () => {
   const [error, setError] = useState('');
   const [otpCode, setOtpCode] = useState('');
   const [otpId, setOtpId] = useState('');
+  const [resentMessage, setResentMessage] = useState('');
 
   useEffect(() => {
     if (location.state?.otpId) {
@@ -23,6 +24,9 @@ const VerifyEmail = () => {
     } else {
       const id = searchParams.get('otpId');
       if (id) setOtpId(id);
+    }
+    if (location.state?.resent) {
+      setResentMessage('A new verification code has been sent to your email. Please enter it below.');
     }
   }, [searchParams, location]);
 
@@ -87,6 +91,8 @@ const VerifyEmail = () => {
               <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
                 We sent a verification code to your email. Enter the 6-digit code below to verify your account.
               </Typography>
+              
+              {resentMessage && <Alert severity="success" sx={{ mb: 3 }}>{resentMessage}</Alert>}
               
               {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
               

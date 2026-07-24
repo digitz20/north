@@ -151,8 +151,8 @@ exports.register = async (req, res, next) => {
       logger.error(`Failed to send welcome email: ${emailErr.message}`);
     }
 
-    // Generate verification OTP
-    const otp = await OTP.generate(user._id, 'email-verification', 60 * 60 * 1000);
+    // Generate verification OTP (15 minutes expiration)
+    const otp = await OTP.generate(user._id, 'email-verification', 15 * 60 * 1000);
     
     // Send verification email
     try {
@@ -344,6 +344,15 @@ exports.login = async (req, res, next) => {
       return res.status(401).json({
         success: false,
         message: 'Account has been disabled'
+      });
+    }
+
+    // Check if user is verified
+    if (!user.isVerified) {
+      return res.status(403).json({
+        success: false,
+        message: 'Please verify your email address before logging in',
+        code: 'EMAIL_NOT_VERIFIED'
       });
     }
 
@@ -590,8 +599,8 @@ exports.resendVerificationEmail = async (req, res, next) => {
       });
     }
 
-    // Generate new verification OTP (1 hour expiration)
-    const otp = await OTP.generate(user._id, 'email-verification', 60 * 60 * 1000);
+    // Generate new verification OTP (15 minutes expiration)
+    const otp = await OTP.generate(user._id, 'email-verification', 15 * 60 * 1000);
     
     // Send new verification email
     try {
