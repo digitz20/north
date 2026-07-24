@@ -58,6 +58,7 @@ const Users = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showUnverified, setShowUnverified] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
@@ -144,7 +145,11 @@ const Users = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await api.get('/admin/users');
+      const params = new URLSearchParams();
+      if (!showUnverified) {
+        params.append('verified', 'true');
+      }
+      const response = await api.get(`/admin/users?${params.toString()}`);
       setUsers(response.data?.data || response.data || []);
       setLoading(false);
     } catch (error) {
@@ -1483,21 +1488,37 @@ const Users = () => {
       {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>}
       {success && <Alert severity="success" sx={{ mb: 2, borderRadius: 2 }}>{success}</Alert>}
 
-      <Paper sx={{ borderRadius: 3, overflow: 'hidden' }}>
-        <Box sx={{ p: 3, pb: 2 }}>
-          <TextField
-            label="Search users"
-            variant="outlined"
-            fullWidth
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            sx={{ maxWidth: 400 }}
-            placeholder="Search by email or name..."
-            InputProps={{
-              sx: { borderRadius: 2 },
-            }}
-          />
-        </Box>
+       <Paper sx={{ borderRadius: 3, overflow: 'hidden' }}>
+         <Box sx={{ p: 3, pb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+           <TextField
+             label="Search users"
+             variant="outlined"
+             value={searchTerm}
+             onChange={(e) => setSearchTerm(e.target.value)}
+             sx={{ maxWidth: 400, flex: 1, minWidth: 200 }}
+             placeholder="Search by email or name..."
+             InputProps={{
+               sx: { borderRadius: 2 },
+             }}
+           />
+           <FormControlLabel
+             control={
+               <Switch
+                 checked={showUnverified}
+                 onChange={(e) => {
+                   setShowUnverified(e.target.checked);
+                   fetchUsers();
+                 }}
+                 size="small"
+               />
+             }
+             label={
+               <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                 Show unverified users
+               </Typography>
+             }
+           />
+         </Box>
         <TableContainer>
           <Table>
             <TableHead>
