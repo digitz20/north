@@ -146,7 +146,9 @@ const Users = () => {
   const fetchUsers = async () => {
     try {
       const params = new URLSearchParams();
-      if (!showUnverified) {
+      if (showUnverified) {
+        params.append('verified', 'all');
+      } else {
         params.append('verified', 'true');
       }
       const response = await api.get(`/admin/users?${params.toString()}`);

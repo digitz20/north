@@ -51,14 +51,14 @@ exports.getDashboardStats = async (req, res, next) => {
 // @access  Private/Admin
 exports.getUsers = async (req, res, next) => {
   try {
-    const filters = {};
+    const filters = { isVerified: true };
     
-    if (req.query.verified === 'true') {
-      filters.isVerified = true;
+    if (req.query.verified === 'all') {
+      delete filters.isVerified;
     } else if (req.query.verified === 'false') {
       filters.isVerified = false;
     }
-    // If verified is 'all' or not provided, don't filter by verification status
+    // Default: only verified users
 
     const users = await User.find(filters)
       .select('-password -ssnLastFour -twoFactorSecret');
