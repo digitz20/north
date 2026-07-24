@@ -161,8 +161,8 @@ const PendingApprovals = () => {
         <Typography variant="body2" sx={{ mb: 1 }}><strong>Amount:</strong> ${item.amount?.toLocaleString()}</Typography>
         <Typography variant="body2" sx={{ mb: 1 }}><strong>Description:</strong> {item.description}</Typography>
         <Typography variant="body2" sx={{ mb: 1 }}><strong>User:</strong> {item.user?.firstName} {item.user?.lastName}</Typography>
-        {item.sourceAccount && <Typography variant="body2" sx={{ mb: 1 }}><strong>Source Account:</strong> {item.sourceAccount?.accountNumber || item.sourceAccount}</Typography>}
-        {item.destinationAccount && <Typography variant="body2" sx={{ mb: 1 }}><strong>Destination Account:</strong> {item.destinationAccount?.accountNumber || item.destinationAccount}</Typography>}
+         {item.sourceAccount && <Typography variant="body2" sx={{ mb: 1 }}><strong>Source Account:</strong> {typeof item.sourceAccount === 'string' ? item.sourceAccount : item.sourceAccount?.accountNumber || item.sourceAccount?.formattedAccountNumber || item.sourceAccount?._id || 'N/A'}</Typography>}
+         {item.destinationAccount && <Typography variant="body2" sx={{ mb: 1 }}><strong>Destination Account:</strong> {typeof item.destinationAccount === 'string' ? item.destinationAccount : item.destinationAccount?.accountNumber || item.destinationAccount?.formattedAccountNumber || item.destinationAccount?._id || 'N/A'}</Typography>}
       </Box>
     );
   };

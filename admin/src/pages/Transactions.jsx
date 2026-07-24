@@ -223,12 +223,12 @@ const Transactions = () => {
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2" color="text.secondary">
-                        {transaction.sourceAccount?.accountNumber || 'N/A'}
+                         {typeof transaction.sourceAccount === 'string' ? transaction.sourceAccount : transaction.sourceAccount?.accountNumber || transaction.sourceAccount?.formattedAccountNumber || transaction.sourceAccount?._id || 'N/A'}
                       </Typography>
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2" color="text.secondary">
-                        {transaction.destinationAccount?.accountNumber || 'N/A'}
+                         {typeof transaction.destinationAccount === 'string' ? transaction.destinationAccount : transaction.destinationAccount?.accountNumber || transaction.destinationAccount?.formattedAccountNumber || transaction.destinationAccount?._id || 'N/A'}
                       </Typography>
                     </TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>
