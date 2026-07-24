@@ -234,111 +234,34 @@ exports.createInvestment = async (req, res, next) => {
       });
     }
 
-    const hasSufficientBalance = account.balance >= amount;
-
-    if (!hasSufficientBalance) {
-      const investment = await UserInvestment.create([{
-        user: req.user.id,
-        plan: plan._id,
-        amountInvested: amount,
-        currentValue: amount,
-        status: 'pending',
-        purchaseDate: new Date(),
-        isAutoReinvest: isAutoReinvest || false
-      }], { session });
-
-      await Transaction.create([{
-        user: req.user.id,
-        account: accountId,
-        type: 'investment',
-        amount: amount,
-        description: `Pending investment in ${plan.name}`,
-        category: 'investment',
-        status: 'pending',
-        direction: 'debit',
-        metadata: { planId: plan._id, investmentId: investment[0]._id }
-      }], { session });
-
-      await Notification.create([{
-        user: req.user.id,
-        type: 'investment',
-        title: 'Investment Pending Approval',
-        message: `Your investment of $${amount} in ${plan.name} is pending approval. We will process it once your account balance is verified.`,
-        relatedModel: 'UserInvestment',
-        relatedId: investment[0]._id
-      }], { session });
-
-      await session.commitTransaction();
-      session.endSession();
-
-      try {
-        const user = await User.findById(req.user.id);
-        if (user) {
-          await emailService.sendInvestmentConfirmation(user, {
-            ...investment[0].toObject(),
-            planName: plan.name,
-            category: plan.type || 'general',
-            email: user.email,
-            proofImages: req.body.proofImages || [],
-            status: 'pending'
-          });
-        }
-      } catch (emailErr) {
-        logger.error(`Failed to send pending investment email: ${emailErr.message}`);
-      }
-
-      return res.status(201).json({
-        success: true,
-        message: 'Investment submitted for approval',
-        data: investment[0]
-      });
-    }
-
-    // Deduct amount from account
-    await Account.findByIdAndUpdate(accountId, { $inc: { balance: -amount } }, { session });
-
-    // Create transaction record
-    const transaction = await Transaction.create([{
-      user: req.user.id,
-      account: accountId,
-      type: 'investment',
-      amount: amount,
-      description: `Investment in ${plan.name}`,
-      category: 'investment',
-      status: 'completed',
-      direction: 'debit',
-      metadata: { planId: plan._id }
-    }], { session });
-
-    // Create user investment
+    // Create investment as pending - admin will approve and deduct balance
     const investment = await UserInvestment.create([{
       user: req.user.id,
       plan: plan._id,
       amountInvested: amount,
       currentValue: amount,
-      transaction: transaction[0]._id,
+      status: 'pending',
+      purchaseDate: new Date(),
       isAutoReinvest: isAutoReinvest || false
     }], { session });
 
-    // Update plan's total invested
-    await InvestmentPlan.findByIdAndUpdate(plan._id, { $inc: { totalInvested: amount } }, { session });
+    await Transaction.create([{
+      user: req.user.id,
+      account: accountId,
+      type: 'investment',
+      amount: amount,
+      description: `Pending investment in ${plan.name}`,
+      category: 'investment',
+      status: 'pending',
+      direction: 'debit',
+      metadata: { planId: plan._id, investmentId: investment[0]._id }
+    }], { session });
 
-    // Create audit log
-    await AuditLog.log({
-      actor: { user: req.user.id, role: 'user', ip: req.ip, userAgent: req.get('User-Agent') },
-      action: 'investment_created',
-      category: 'investment-management',
-      description: `User created new investment of $${amount} in ${plan.name}`,
-      entity: { type: 'investment', id: investment[0]._id, name: investment[0].investmentId },
-      metadata: { planId, amount, accountId }
-    });
-
-    // Create notification
     await Notification.create([{
       user: req.user.id,
       type: 'investment',
-      title: 'Investment Successful',
-      message: `You've successfully invested $${amount} in ${plan.name}. Your investment ID is ${investment[0].investmentId}.`,
+      title: 'Investment Pending Approval',
+      message: `Your investment of $${amount} in ${plan.name} is pending admin approval.`,
       relatedModel: 'UserInvestment',
       relatedId: investment[0]._id
     }], { session });
@@ -346,27 +269,25 @@ exports.createInvestment = async (req, res, next) => {
     await session.commitTransaction();
     session.endSession();
 
-    // Send investment confirmation email
     try {
       const user = await User.findById(req.user.id);
       if (user) {
-        const investmentData = {
+        await emailService.sendInvestmentConfirmation(user, {
           ...investment[0].toObject(),
           planName: plan.name,
           category: plan.type || 'general',
           email: user.email,
-          proofImages: req.body.proofImages || []
-        };
-        await emailService.sendInvestmentConfirmation(user, investmentData);
-        logger.info(`Investment confirmation email sent to: ${user.email}`);
+          proofImages: req.body.proofImages || [],
+          status: 'pending'
+        });
       }
     } catch (emailErr) {
-      logger.error(`Failed to send investment confirmation email: ${emailErr.message}`);
+      logger.error(`Failed to send pending investment email: ${emailErr.message}`);
     }
 
     res.status(201).json({
       success: true,
-      message: 'Investment created successfully',
+      message: 'Investment submitted for approval',
       data: investment[0]
     });
   } catch (error) {
@@ -736,6 +657,171 @@ exports.getInvestmentStats = async (req, res, next) => {
       }
     });
   } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Approve pending investment (admin only)
+// @route   PUT /api/v1/admin/investments/:id/approve
+// @access  Private/Admin
+exports.approveInvestment = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const investment = await UserInvestment.findById(req.params.id).session(session);
+    if (!investment) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({
+        success: false,
+        message: 'Investment not found'
+      });
+    }
+
+    if (investment.status !== 'pending') {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        success: false,
+        message: 'Only pending investments can be approved'
+      });
+    }
+
+    const plan = await InvestmentPlan.findById(investment.plan).session(session);
+    const account = await Account.findOne({ _id: investment.user, user: investment.user }).session(session);
+
+    // Deduct from user's account
+    if (account) {
+      await Account.findByIdAndUpdate(
+        account._id,
+        { $inc: { balance: -investment.amountInvested } },
+        { session }
+      );
+    }
+
+    // Update investment status
+    investment.status = 'active';
+    investment.approvedAt = new Date();
+    investment.approvedBy = req.user.id;
+    await investment.save({ session });
+
+    // Update plan's total invested
+    await InvestmentPlan.findByIdAndUpdate(investment.plan, { $inc: { totalInvested: investment.amountInvested } }, { session });
+
+    // Create transaction record
+    await Transaction.create([{
+      user: investment.user,
+      account: account?._id,
+      type: 'investment',
+      amount: investment.amountInvested,
+      description: `Investment in ${plan?.name || 'Investment Plan'}`,
+      category: 'investment',
+      status: 'completed',
+      direction: 'debit',
+      metadata: { planId: investment.plan, investmentId: investment._id }
+    }], { session });
+
+    await AuditLog.create([{
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
+      action: 'investment_approved',
+      category: 'investment-management',
+      description: `Admin approved investment ${investment.investmentId} of $${investment.amountInvested}`,
+      entity: { type: 'investment', id: investment._id }
+    }], { session });
+
+    await Notification.create([{
+      user: investment.user,
+      type: 'investment',
+      title: 'Investment Approved',
+      message: `Your investment of $${investment.amountInvested.toFixed(2)} has been approved and is now active.`,
+      relatedModel: 'UserInvestment',
+      relatedId: investment._id
+    }], { session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(200).json({
+      success: true,
+      message: 'Investment approved successfully',
+      data: investment
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    next(error);
+  }
+};
+
+// @desc    Reject pending investment (admin only)
+// @route   PUT /api/v1/admin/investments/:id/reject
+// @access  Private/Admin
+exports.rejectInvestment = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const investment = await UserInvestment.findById(req.params.id).session(session);
+    if (!investment) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({
+        success: false,
+        message: 'Investment not found'
+      });
+    }
+
+    if (investment.status !== 'pending') {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        success: false,
+        message: 'Only pending investments can be rejected'
+      });
+    }
+
+    investment.status = 'rejected';
+    investment.rejectionReason = req.body.reason || 'Rejected by administrator';
+    await investment.save({ session });
+
+    await AuditLog.create([{
+      actor: {
+        user: req.user.id,
+        role: req.user.role,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      },
+      action: 'investment_rejected',
+      category: 'investment-management',
+      description: `Admin rejected investment ${investment.investmentId}`,
+      entity: { type: 'investment', id: investment._id }
+    }], { session });
+
+    await Notification.create([{
+      user: investment.user,
+      type: 'investment',
+      title: 'Investment Rejected',
+      message: `Your investment of $${investment.amountInvested.toFixed(2)} has been rejected. Reason: ${investment.rejectionReason}`,
+      relatedModel: 'UserInvestment',
+      relatedId: investment._id
+    }], { session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(200).json({
+      success: true,
+      message: 'Investment rejected successfully'
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     next(error);
   }
 };

@@ -28,6 +28,8 @@ import HistoryIcon from '@mui/icons-material/History';
 import CreditScoreIcon from '@mui/icons-material/CreditScore';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import LogoutIcon from '@mui/icons-material/Logout';
+import PendingActionsIcon from '@mui/icons-material/PendingActions';
+import EmailIcon from '@mui/icons-material/Email';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../store/slices/authSlice';
 
@@ -62,6 +64,7 @@ const DashboardLayout = () => {
 
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
+    { text: 'Pending Approvals', icon: <PendingActionsIcon />, path: '/pending-approvals' },
     { text: 'Users', icon: <PeopleIcon />, path: '/users' },
     { text: 'KYC Review', icon: <DescriptionIcon />, path: '/kyc' },
     { text: 'Transactions', icon: <MoneyTransferIcon />, path: '/transactions' },
@@ -70,6 +73,7 @@ const DashboardLayout = () => {
     { text: 'Loans', icon: <CreditScoreIcon />, path: '/loans' },
     { text: 'Investments', icon: <TrendingUpIcon />, path: '/investments' },
     { text: 'Support Tickets', icon: <SupportAgentIcon />, path: '/support' },
+    { text: 'Email Logs', icon: <EmailIcon />, path: '/email-logs' },
     { text: 'Reports', icon: <DescriptionIcon />, path: '/reports' },
     { text: 'Audit Logs', icon: <HistoryIcon />, path: '/audit-logs' },
     { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },

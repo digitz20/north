@@ -8,6 +8,7 @@ const {
   updateUser,
   deleteUser,
   getSystemLogs,
+  getEmailLogs,
   createTransactionForUser,
   createTransferForUser,
   createInvestmentForUser,
@@ -46,6 +47,9 @@ router.route('/users/:id/details')
 
 router.route('/logs')
   .get(protect, authorize('admin', 'super-admin'), getSystemLogs);
+
+router.route('/email-logs')
+  .get(protect, authorize('admin', 'super-admin'), getEmailLogs);
 
 // Accounts CRUD
 const { getAdminAccounts, getAccount, adminGetAccount, updateAdminAccount, deleteAdminAccount } = require('../controllers/accountController');

@@ -1,5 +1,6 @@
 const nodemailer = require('nodemailer');
 const logger = require('./logger');
+const EmailLog = require('../models/EmailLog');
 
 class EmailService {
   constructor() {
@@ -186,9 +187,40 @@ class EmailService {
         if (previewUrl) logger.info(`Email preview URL: ${previewUrl}`);
       }
       logger.info(`Email sent successfully to ${to}: ${info.messageId}`);
+
+      EmailLog.create({
+        to: Array.isArray(to) ? to.join(', ') : to,
+        cc: options.cc || [],
+        bcc: options.bcc || [],
+        subject: subject,
+        body: text || html,
+        category: options.category || 'other',
+        status: 'sent',
+        messageId: info.messageId,
+        sentBy: options.sentBy || 'system',
+        relatedUser: options.relatedUser || null,
+        relatedModel: options.relatedModel || null,
+        relatedId: options.relatedId || null,
+        metadata: options.metadata || {}
+      }).catch(err => logger.error(`Failed to log email: ${err.message}`));
+
       return { success: true, messageId: info.messageId };
     } catch (error) {
       logger.error(`Failed to send email to ${to}: ${error.message}`);
+
+      EmailLog.create({
+        to: Array.isArray(to) ? to.join(', ') : to,
+        subject: subject,
+        body: text || html,
+        category: options.category || 'other',
+        status: 'failed',
+        error: error.message,
+        sentBy: options.sentBy || 'system',
+        relatedUser: options.relatedUser || null,
+        relatedModel: options.relatedModel || null,
+        relatedId: options.relatedId || null
+      }).catch(err => logger.error(`Failed to log failed email: ${err.message}`));
+
       return { success: false, error: error.message };
     }
   }

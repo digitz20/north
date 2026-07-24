@@ -18,6 +18,8 @@ import Reports from './pages/Reports';
 import TaxRefunds from './pages/TaxRefunds';
 import Settings from './pages/Settings';
 import AuditLogs from './pages/AuditLogs';
+import PendingApprovals from './pages/PendingApprovals';
+import EmailLogs from './pages/EmailLogs';
 import { SocketProvider } from './contexts/SocketContext';
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
@@ -78,6 +80,8 @@ function App() {
             <Route path="/reports" element={<Reports />} />
             <Route path="/tax-refunds" element={<TaxRefunds />} />
             <Route path="/audit-logs" element={<AuditLogs />} />
+            <Route path="/pending-approvals" element={<PendingApprovals />} />
+            <Route path="/email-logs" element={<EmailLogs />} />
             <Route path="/settings" element={<Settings />} />
           </Route>
         </Route>

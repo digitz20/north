@@ -422,18 +422,13 @@ exports.withdraw = async (req, res, next) => {
       type: 'withdrawal',
       amount,
       currency: 'USD',
-      status: 'completed',
+      status: 'pending',
       description: description || `Withdrawal from ${account.nickname}`,
       sourceAccount: accountId,
-      destinationAccount: null,
-      completedAt: Date.now()
+      destinationAccount: null
     }], { session });
 
-    // Update account balance
-    await Account.findByIdAndUpdate(
-      accountId,
-      { $inc: { balance: -amount } }
-    );
+    // DO NOT deduct balance until admin approves
 
     await AuditLog.create([{
       actor: {
@@ -442,17 +437,17 @@ exports.withdraw = async (req, res, next) => {
         ip: req.ip,
         userAgent: req.get('User-Agent')
       },
-      action: 'withdrawal_completed',
+      action: 'withdrawal_requested',
       category: 'transaction-management',
-      description: `User withdrew $${amount} from ${account.nickname}`,
-      entity: { type: 'transaction', id: transaction._id }
+      description: `User requested withdrawal of $${amount} from ${account.nickname}`,
+      entity: { type: 'transaction', id: transaction[0]._id }
     }], { session });
 
     await Notification.create([{
       user: req.user.id,
       type: 'transaction',
-      title: 'Withdrawal Successful',
-      message: `$${amount.toFixed(2)} has been withdrawn from your ${account.nickname}. New balance: $${(account.balance - amount).toFixed(2)}`,
+      title: 'Withdrawal Pending Approval',
+      message: `Your withdrawal request of $${amount.toFixed(2)} from ${account.nickname} is pending admin approval.`,
       relatedModel: 'Transaction',
       relatedId: transaction[0]._id
     }], { session });
@@ -465,7 +460,7 @@ exports.withdraw = async (req, res, next) => {
       await emailService.sendTransactionAlert(req.user, {
         amount: amount,
         type: 'withdrawal',
-        status: 'completed',
+        status: 'pending',
         transactionId: transaction[0]._id,
         description: description || `Withdrawal from ${account.nickname}`,
         direction: 'debit'
@@ -477,7 +472,7 @@ exports.withdraw = async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      message: 'Withdrawal completed successfully',
+      message: 'Withdrawal request submitted for approval',
       data: transaction[0]
     });
   } catch (error) {
@@ -682,6 +677,24 @@ exports.approveTransaction = async (req, res, next) => {
       await Account.findByIdAndUpdate(
         transaction.destinationAccount,
         { $inc: { balance: transaction.amount } },
+        { session }
+      );
+    }
+
+    // If it's a withdrawal, deduct from source account
+    if (transaction.type === 'withdrawal' && transaction.sourceAccount) {
+      const sourceAccount = await Account.findById(transaction.sourceAccount).session(session);
+      if (!sourceAccount || sourceAccount.balance < transaction.amount) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(400).json({
+          success: false,
+          message: 'Insufficient balance to complete withdrawal'
+        });
+      }
+      await Account.findByIdAndUpdate(
+        transaction.sourceAccount,
+        { $inc: { balance: -transaction.amount } },
         { session }
       );
     }

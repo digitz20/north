@@ -9,6 +9,7 @@ const { UserLoan, LoanProduct } = require('../models/Loan');
 const { UserInvestment } = require('../models/Investment');
 const KYC = require('../models/KYC');
 const Card = require('../models/Card');
+const EmailLog = require('../models/EmailLog');
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 const logger = require('../utils/logger');
@@ -612,6 +613,46 @@ exports.getSystemLogs = async (req, res, next) => {
       success: true,
       message: 'Get system logs endpoint - functionality not yet implemented',
       data: []
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get email logs
+// @route   GET /api/v1/admin/email-logs
+// @access  Private/Admin
+exports.getEmailLogs = async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 50;
+    const startIndex = (page - 1) * limit;
+
+    const filters = {};
+    if (req.query.to) filters.to = new RegExp(req.query.to, 'i');
+    if (req.query.subject) filters.subject = new RegExp(req.query.subject, 'i');
+    if (req.query.category) filters.category = req.query.category;
+    if (req.query.status) filters.status = req.query.status;
+    if (req.query.relatedUser) filters.relatedUser = req.query.relatedUser;
+
+    const total = await EmailLog.countDocuments(filters);
+    const emailLogs = await EmailLog.find(filters)
+      .sort({ createdAt: -1 })
+      .skip(startIndex)
+      .limit(limit)
+      .populate('relatedUser', 'firstName lastName email');
+
+    res.status(200).json({
+      success: true,
+      data: {
+        emailLogs,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit)
+        }
+      }
     });
   } catch (error) {
     next(error);
