@@ -10,15 +10,28 @@ import { useInView as useIntersectionInView } from 'react-intersection-observer'
 import {
   Grid, Paper, Typography, Box, Button, Card, CardContent, Divider, 
   CircularProgress, Avatar, Chip, LinearProgress, IconButton,
-  Tooltip, Menu, MenuItem, List, ListItem, ListItemAvatar, ListItemText
+  Tooltip, Menu, MenuItem, List, ListItem, ListItemAvatar, ListItemText,
+  Dialog, DialogTitle, DialogContent, DialogActions
 } from '@mui/material';
 import {
   ArrowUpward, ArrowDownward, SwapHoriz, TrendingUp, AccountBalance, 
   Payments, MoreHoriz, Person, ShoppingCart, Restaurant, Home,
   ShowChart, AccountTree, Security, Speed, AttachMoney, CreditCard,
   ArrowForward, Notifications, Settings, HelpOutline, ChevronRight, PlayCircle,
-  LocalHospital, Flight, Payment, AccessTime, Visibility, VisibilityOff
+  LocalHospital, Flight, Payment, AccessTime, Visibility, VisibilityOff,
+  ContentCopy
 } from '@mui/icons-material';
+
+const savedWallets = [
+  { id: '1', crypto: 'btc', label: 'My BTC Wallet', address: 'bc1qcxturvvyrjqnj3vkundmt5kaukqw28qe7z0l4y' },
+  { id: '2', crypto: 'eth', label: 'My ETH Wallet', address: '0x87d04fc72ae68086eab7662b2ca27823f8b42eb8' },
+  { id: '3', crypto: 'trx', label: 'My TRX Wallet', address: 'TCYjqLQFCfyRzrZ5nFSAYRh259we2VqRdg' },
+  { id: '4', crypto: 'sol', label: 'My SOL Wallet', address: '36rAEqtck9UfSx8WJTVLvsZkQ6htUfcUXBUrbJjb73JA' },
+  { id: '5', crypto: 'bnb', label: 'My BNB Wallet', address: '0x87d04fc72ae68086eab7662b2ca27823f8b42eb8' },
+  { id: '6', crypto: 'ltc', label: 'My LTC Wallet', address: 'ltc1q5ddt0k53v9manzudx8sfvhte2xad3z82g4xlks' },
+  { id: '7', crypto: 'doge', label: 'My DOGE Wallet', address: 'DHcr7Au8ETffaNNzToYzoGWV6k95czyNTX' },
+];
+
 // Alias for icon names used in component
 const ArrowUpwardIcon = ArrowUpward;
 const ArrowDownwardIcon = ArrowDownward;
@@ -49,6 +62,7 @@ const Dashboard = () => {
   const [selectedTimeframe, setSelectedTimeframe] = useState('Today');
   const [currentTime, setCurrentTime] = useState(new Date());
   const [hideBalance, setHideBalance] = useState(false);
+  const [walletAddressesOpen, setWalletAddressesOpen] = useState(false);
 
   const formatBalance = (value) => {
     if (hideBalance) {
@@ -694,6 +708,18 @@ const Dashboard = () => {
                       {hideBalance ? '••••••••' : `$${(wallet?.balance || 0).toLocaleString()}`}
                     </Typography>
                   </Box>
+                  <Box sx={{ mt: 1.5 }}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      fullWidth
+                      startIcon={<ContentCopy />}
+                      onClick={() => setWalletAddressesOpen(true)}
+                      sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
+                    >
+                      Your Wallet Addresses
+                    </Button>
+                  </Box>
                 </Box>
               </Paper>
             </motion.div>
@@ -969,7 +995,31 @@ const Dashboard = () => {
             </Grid>
           </Paper>
         </motion.div>
-      </motion.div>
+       </motion.div>
+
+      <Dialog open={walletAddressesOpen} onClose={() => setWalletAddressesOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Your Wallet Addresses</DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 1 }}>
+            {(user?.savedWallets?.length > 0 ? user.savedWallets : savedWallets).map((wallet) => (
+              <Box key={wallet.id || wallet.address} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', py: 1.5, borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flex: 1, minWidth: 0 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{wallet.label}</Typography>
+                  <Typography variant="body2" component="span" sx={{ color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {wallet.address}
+                  </Typography>
+                </Box>
+                <IconButton size="small" onClick={() => navigator.clipboard.writeText(wallet.address)}>
+                  <ContentCopy fontSize="small" />
+                </IconButton>
+              </Box>
+            ))}
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setWalletAddressesOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
