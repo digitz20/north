@@ -1,0 +1,33 @@
+﻿node.exe : [31mx[39m Build failed in 4.45s
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([31mx[39m Build failed in 4.45s:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[31merror during build:
+[31m[vite:esbuild] Transform failed with 1 error:
+C:/Users/Tush/Desktop/NorthCrestBankOfUSA/admin/src/pages/Users.jsx:1106:81: ERROR: Expected "}" but found "."[31m
+file: [36mC:/Users/Tush/Desktop/NorthCrestBankOfUSA/admin/src/pages/Users.jsx:1106:81[31m
+[33m
+[33mExpected "}" but found "."[33m
+1104|                <TableRow key={inv._id}>
+1105|                  <TableCell sx={{ fontFamily: 'monospace', display: { xs: 'none', sm: 'table-cell' } 
+}}>{inv._id}</TableCell>
+1106|                  <TableCell sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' }}>{inv.plan?.name || 
+'Investment'}</TableCell>
+   |                                                                                   ^
+1107|                  <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
+1108|                    {editInvestmentAmountId === inv._id ? (
+[31m
+    at failureErrorWithLog (C:\Users\Tush\Desktop\NorthCrestBankOfUSA\admin\node_modules\esbuild\lib\main.js:1472:15)
+    at C:\Users\Tush\Desktop\NorthCrestBankOfUSA\admin\node_modules\esbuild\lib\main.js:755:50
+    at responseCallbacks.<computed> 
+(C:\Users\Tush\Desktop\NorthCrestBankOfUSA\admin\node_modules\esbuild\lib\main.js:622:9)
+    at handleIncomingPacket (C:\Users\Tush\Desktop\NorthCrestBankOfUSA\admin\node_modules\esbuild\lib\main.js:677:12)
+    at Socket.readFromStdout (C:\Users\Tush\Desktop\NorthCrestBankOfUSA\admin\node_modules\esbuild\lib\main.js:600:7)
+    at Socket.emit (node:events:508:28)
+    at addChunk (node:internal/streams/readable:563:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+    at Readable.push (node:internal/streams/readable:394:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)[39m

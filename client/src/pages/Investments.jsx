@@ -663,37 +663,38 @@ const Investments = () => {
                 backdropFilter: 'blur(30px)',
                 border: '1px solid rgba(15,39,68,0.08)',
                 boxShadow: '0 20px 60px -15px rgba(0,0,0,0.1)',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                overflowX: 'auto'
               }}>
-                <Table>
+                <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell>Type</TableCell>
+                    <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Type</TableCell>
                     <TableCell>Name</TableCell>
-                    <TableCell>Invested</TableCell>
+                    <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Invested</TableCell>
                     <TableCell>Current Value</TableCell>
-                    <TableCell>Returns</TableCell>
-                    <TableCell>Actions</TableCell>
+                    <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Returns</TableCell>
+                    <TableCell sx={{ px: { xs: 1, sm: 2 } }}>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {investments.map((inv) => (
                     <TableRow key={inv._id || inv.investmentId}>
-                      <TableCell>{inv.investmentType || 'N/A'}</TableCell>
-                      <TableCell>{inv.investmentName || 'N/A'}</TableCell>
-                      <TableCell>${(inv.amountInvested || 0).toLocaleString()}</TableCell>
-                      <TableCell>${(inv.currentValue || 0).toLocaleString()}</TableCell>
-                      <TableCell>
+                      <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{inv.investmentType || 'N/A'}</TableCell>
+                      <TableCell sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>{inv.investmentName || 'N/A'}</TableCell>
+                      <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>${(inv.amountInvested || 0).toLocaleString()}</TableCell>
+                      <TableCell sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' }, fontWeight: 600 }}>${(inv.currentValue || 0).toLocaleString()}</TableCell>
+                      <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
                         <Typography color={(inv.currentValue || 0) >= (inv.amountInvested || 0) ? "success.main" : "error.main"}>
                           {inv.returnsEarned ? `$${inv.returnsEarned.toLocaleString()}` : '$0'}
                         </Typography>
                       </TableCell>
-                      <TableCell>
+                      <TableCell sx={{ px: { xs: 1, sm: 2 } }}>
                         <Button 
                           size="small" 
                           color="error"
                           onClick={() => handleSellInvestment(inv._id)}
-                          sx={{ textTransform: 'none' }}
+                          sx={{ textTransform: 'none', minWidth: { xs: 50, sm: 'auto' } }}
                         >
                           Sell
                         </Button>

@@ -164,31 +164,17 @@ const Investments = () => {
             InputProps={{ sx: { borderRadius: 2 } }}
           />
         </Box>
-        <TableContainer>
-          <Table>
+        <TableContainer sx={{ overflowX: 'auto' }}>
+          <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell sx={{ fontWeight: 600, textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em', color: 'text.secondary' }}>
-                  Investment ID
-                </TableCell>
-                <TableCell sx={{ fontWeight: 600, textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em', color: 'text.secondary' }}>
-                  Investor
-                </TableCell>
-                <TableCell sx={{ fontWeight: 600, textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em', color: 'text.secondary' }}>
-                  Type
-                </TableCell>
-                <TableCell sx={{ fontWeight: 600, textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em', color: 'text.secondary' }}>
-                  Amount Invested
-                </TableCell>
-                <TableCell sx={{ fontWeight: 600, textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em', color: 'text.secondary' }}>
-                  Current Value
-                </TableCell>
-                <TableCell sx={{ fontWeight: 600, textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em', color: 'text.secondary' }}>
-                  Status
-                </TableCell>
-                <TableCell sx={{ fontWeight: 600, textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em', color: 'text.secondary' }}>
-                  Start Date
-                </TableCell>
+                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Investment ID</TableCell>
+                <TableCell>Investor</TableCell>
+                <TableCell>Type</TableCell>
+                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Amount Invested</TableCell>
+                <TableCell>Current Value</TableCell>
+                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Status</TableCell>
+                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Start Date</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -209,26 +195,26 @@ const Investments = () => {
                       transition: 'background-color 0.2s',
                     }}
                   >
-                    <TableCell sx={{ fontFamily: 'monospace' }}>{investment.investmentId}</TableCell>
-                    <TableCell>
+                    <TableCell sx={{ fontFamily: 'monospace', display: { xs: 'none', sm: 'table-cell' } }}>{investment.investmentId}</TableCell>
+                    <TableCell sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
                       <Typography variant="body2" sx={{ fontWeight: 500 }}>
                         {investment.user?.firstName && investment.user?.lastName 
                           ? `${investment.user.firstName} ${investment.user.lastName}` 
                           : investment.user?.email || 'N/A'}
                       </Typography>
                     </TableCell>
-                    <TableCell>
+                    <TableCell sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
                       <Typography variant="body2" sx={{ textTransform: 'capitalize' }}>
                         {investment.plan?.type || 'N/A'}
                       </Typography>
                     </TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>
+                    <TableCell sx={{ fontWeight: 600, display: { xs: 'none', sm: 'table-cell' } }}>
                       ${investment.amountInvested ? Number(investment.amountInvested).toLocaleString() : '0'}
                     </TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>
+                    <TableCell sx={{ fontWeight: 600, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
                       ${investment.currentValue ? Number(investment.currentValue).toLocaleString() : '0'}
                     </TableCell>
-                    <TableCell>
+                    <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
                       <Chip
                         label={investment.status}
                         color={investment.status === 'active' ? 'success' : investment.status === 'sold' ? 'info' : 'default'}
@@ -236,7 +222,7 @@ const Investments = () => {
                         sx={{ fontWeight: 500 }}
                       />
                     </TableCell>
-                    <TableCell>
+                    <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
                       <Typography variant="body2" color="text.secondary">
                         {investment.purchaseDate ? new Date(investment.purchaseDate).toLocaleDateString() : 'N/A'}
                       </Typography>

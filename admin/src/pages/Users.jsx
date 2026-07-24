@@ -1086,25 +1086,25 @@ const Users = () => {
       return <Typography color="text.secondary">No investments found</Typography>;
     }
     return (
-      <TableContainer>
-        <Table>
+      <TableContainer sx={{ overflowX: 'auto' }}>
+        <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>ID</TableCell>
+              <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>ID</TableCell>
               <TableCell>Plan</TableCell>
-              <TableCell>Amount Invested</TableCell>
+              <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Amount Invested</TableCell>
               <TableCell>Current Value</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Date</TableCell>
-              <TableCell>Actions</TableCell>
+              <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Status</TableCell>
+              <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Date</TableCell>
+              <TableCell sx={{ px: { xs: 1, sm: 2 } }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {userDetails.investments.map((inv) => (
               <TableRow key={inv._id}>
-                <TableCell sx={{ fontFamily: 'monospace' }}>{inv._id}</TableCell>
-                <TableCell>{inv.plan?.name || 'Investment'}</TableCell>
-                <TableCell>
+                <TableCell sx={{ fontFamily: 'monospace', display: { xs: 'none', sm: 'table-cell' } }}>{inv._id}</TableCell>
+                <TableCell sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' }}>{inv.plan?.name || 'Investment'}</TableCell>
+                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
                   {editInvestmentAmountId === inv._id ? (
                     <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                       <TextField
@@ -1121,7 +1121,7 @@ const Users = () => {
                     <Typography sx={{ fontWeight: 600 }}>${inv.amountInvested?.toLocaleString() || '0'}</Typography>
                   )}
                 </TableCell>
-                <TableCell>
+                <TableCell sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' }, fontWeight: 600 }}>
                   {editInvestmentCurrentValueId === inv._id ? (
                     <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                       <TextField
@@ -1138,11 +1138,11 @@ const Users = () => {
                     <Typography sx={{ fontWeight: 600 }}>${inv.currentValue?.toLocaleString() || '0'}</Typography>
                   )}
                 </TableCell>
-                <TableCell>
+                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
                   <Chip label={inv.status} color={inv.status === 'active' ? 'success' : inv.status === 'pending' ? 'warning' : 'error'} size="small" />
                 </TableCell>
-                <TableCell>{new Date(inv.createdAt).toLocaleDateString()}</TableCell>
-                <TableCell>
+                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{new Date(inv.createdAt).toLocaleDateString()}</TableCell>
+                <TableCell sx={{ px: { xs: 1, sm: 2 } }}>
                   <Tooltip title="Edit Amount">
                     <IconButton size="small" onClick={() => { setEditInvestmentAmountId(inv._id); setEditInvestmentAmountValue(inv.amountInvested?.toString() || '0'); }}>
                       <EditIcon fontSize="small" />
