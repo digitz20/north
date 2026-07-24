@@ -143,9 +143,7 @@ const Cards = () => {
               <Box>
                 <Typography variant="h3" sx={{ 
                   fontWeight: 800, 
-                  background: 'linear-gradient(90deg, #ffffff 0%, #00c896 30%, #00bfff 70%, #ffc857 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
+                  color: '#0066FF',
                   mb: 2
                 }}>
                   My Cards
@@ -287,7 +285,7 @@ const Cards = () => {
                       sx={{
                         p: 0,
                         height: 320,
-                        borderRadius: 2,
+                        borderRadius: 4,
                         overflow: 'hidden',
                         boxShadow: '0 30px 60px rgba(0,0,0,0.2)',
                         backfaceVisibility: 'hidden'
@@ -408,7 +406,7 @@ const Cards = () => {
                         left: 0,
                         width: '100%',
                         height: 320,
-                        borderRadius: 2,
+                        borderRadius: 4,
                         overflow: 'hidden',
                         boxShadow: '0 30px 60px rgba(0,0,0,0.2)',
                         backfaceVisibility: 'hidden',
@@ -504,7 +502,7 @@ const Cards = () => {
       {/* Quick Actions Section */}
       <motion.div variants={itemVariants}>
         <Box sx={{ mt: 10, mb: 4 }}>
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: 4 }}>
+          <Typography variant="h4" sx={{ fontWeight: 700, mb: 4, color: '#0066FF' }}>
             Card Management
           </Typography>
           <Grid container spacing={3}>

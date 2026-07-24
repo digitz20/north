@@ -728,16 +728,16 @@ const Dashboard = () => {
                     </Typography>
                   </Box>
                   <Box sx={{ mt: 1.5 }}>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      fullWidth
-                      startIcon={<ContentCopy />}
-                      onClick={() => setWalletAddressesOpen(true)}
-                      sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
-                    >
-                      Your Wallet Addresses
-                    </Button>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    fullWidth
+                    startIcon={<ContentCopy />}
+                    onClick={() => setWalletAddressesOpen(true)}
+                    sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)', color: 'white', '&:hover': { background: 'linear-gradient(135deg, #0052cc 0%, #0099cc 100%)' } }}
+                  >
+                    Your Wallet Addresses
+                  </Button>
                   </Box>
                 </Box>
               </Paper>
@@ -1021,16 +1021,16 @@ const Dashboard = () => {
         <DialogContent>
           <Box sx={{ mt: 1 }}>
             {(user?.savedWallets?.length > 0 ? user.savedWallets : savedWallets).map((wallet) => (
-              <Box key={wallet.id || wallet.address} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', py: 1.5, borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flex: 1, minWidth: 0 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{wallet.label}</Typography>
+              <Box key={wallet.id || wallet.address} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+                <IconButton size="small" onClick={() => navigator.clipboard.writeText(wallet.address)}>
+                  <ContentCopy fontSize="small" />
+                </IconButton>
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>{wallet.label}</Typography>
                   <Typography variant="body2" component="span" sx={{ color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {wallet.address}
                   </Typography>
                 </Box>
-                <IconButton size="small" onClick={() => navigator.clipboard.writeText(wallet.address)}>
-                  <ContentCopy fontSize="small" />
-                </IconButton>
               </Box>
             ))}
           </Box>

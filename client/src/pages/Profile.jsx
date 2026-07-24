@@ -200,9 +200,7 @@ const Profile = () => {
         >
           <Typography variant="h3" sx={{ 
             fontWeight: 800, 
-            background: 'linear-gradient(90deg, #ffffff 0%, #00c896 30%, #00bfff 70%, #ffc857 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
+            color: '#0066FF',
             mb: 2,
             mt: 4
           }}>My Profile</Typography>
@@ -339,13 +337,13 @@ const Profile = () => {
                 <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>Account Summary</Typography>
                 <Grid container spacing={3}>
                   <Grid item xs={12} sm={6}>
-                    <Paper sx={{ p: 3, bgcolor: 'primary.light', color: 'white', borderRadius: 2 }}>
+                    <Paper sx={{ p: 3, bgcolor: 'primary.light', color: 'white', borderRadius: 4 }}>
                       <Typography variant="body2" sx={{ opacity: 0.9 }}>Total Accounts</Typography>
                       <Typography variant="h4">{totalAccounts}</Typography>
                     </Paper>
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <Paper sx={{ p: 3, bgcolor: 'secondary.main', color: 'white', borderRadius: 2 }}>
+                    <Paper sx={{ p: 3, bgcolor: 'secondary.main', color: 'white', borderRadius: 4 }}>
                       <Typography variant="body2" sx={{ opacity: 0.9 }}>Total Balance</Typography>
                       <Typography variant="h4">
                         <CountUp

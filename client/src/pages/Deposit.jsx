@@ -337,11 +337,8 @@ const Deposit = () => {
         >
           <Typography variant="h3" sx={{ 
             fontWeight: 800, 
-            background: 'linear-gradient(90deg, #ffffff 0%, #00c896 30%, #00bfff 70%, #ffc857 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            mb: 2,
-            color: 'white'
+            color: '#0066FF',
+            mb: 2
           }}>Deposit Funds</Typography>
         </motion.div>
         
@@ -352,7 +349,7 @@ const Deposit = () => {
         >
           <Paper sx={{ 
             p: { xs: 3, md: 5 },
-            borderRadius: '24px',
+            borderRadius: 4,
             background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(240,245,255,0.9) 100%)',
             backdropFilter: 'blur(40px) saturate(180%)',
             border: '1px solid rgba(255,255,255,0.3)',

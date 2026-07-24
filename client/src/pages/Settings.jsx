@@ -186,9 +186,7 @@ const Settings = () => {
         >
           <Typography variant="h3" sx={{ 
             fontWeight: 800, 
-            background: 'linear-gradient(90deg, #ffffff 0%, #00c896 30%, #00bfff 70%, #ffc857 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
+            color: '#0066FF',
             mb: 2,
             mt: 4
           }}>Settings</Typography>
@@ -202,7 +200,7 @@ const Settings = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <PremiumCard title="Account Settings" subtitle="Update your account information">
+          <PremiumCard title="Account Settings" subtitle="Update your account information" sx={{ borderRadius: 4 }}>
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <TextField
@@ -252,7 +250,7 @@ const Settings = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
         >
-          <PremiumCard title="Notifications" subtitle="Manage how you receive notifications">
+          <PremiumCard title="Notifications" subtitle="Manage how you receive notifications" sx={{ borderRadius: 4 }}>
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <FormControlLabel
@@ -281,7 +279,7 @@ const Settings = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          <PremiumCard title="Security" subtitle="Manage your account security settings">
+          <PremiumCard title="Security" subtitle="Manage your account security settings" sx={{ borderRadius: 4 }}>
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <FormControlLabel
@@ -298,7 +296,7 @@ const Settings = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
         >
-          <PremiumCard title="Preferences" subtitle="Customize your experience">
+          <PremiumCard title="Preferences" subtitle="Customize your experience" sx={{ borderRadius: 4 }}>
             <Grid item xs={12}>
               <FormControlLabel
                 control={<Switch checked={settings.darkMode} onChange={() => handleToggle('darkMode')} />}

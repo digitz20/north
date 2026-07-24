@@ -86,6 +86,7 @@ const Transfer = () => {
                   backdropFilter: 'blur(20px) saturate(120%)', 
                   border: '1px solid rgba(255,255,255,0.3)',
                   boxShadow: '0 15px 50px -15px rgba(0,102,255,0.4), 0 0 0 1px rgba(255,255,255,0.1) inset',
+                  borderRadius: 4,
                   '&:hover': {
                     boxShadow: '0 25px 70px -15px rgba(0,102,255,0.5), 0 0 0 1px rgba(255,255,255,0.2) inset'
                   }
@@ -93,7 +94,7 @@ const Transfer = () => {
               >
                 <Box sx={{ textAlign: 'center' }}>
                   <Typography variant="h1" sx={{ mb: 3, fontSize: '3rem' }}>🏠</Typography>
-                  <Typography variant="h5" sx={{ fontWeight: 800, mb: 2, color: '#0f2744', fontSize: '1.5rem' }}>
+                  <Typography variant="h5" sx={{ fontWeight: 800, mb: 2, color: '#0066FF', fontSize: '1.5rem' }}>
                     Local Transfer
                   </Typography>
                   <Typography variant="body1" color="text.secondary" sx={{ mb: 5, fontSize: '1.05rem', lineHeight: 1.7 }}>
@@ -131,6 +132,7 @@ const Transfer = () => {
                   backdropFilter: 'blur(20px) saturate(120%)', 
                   border: '1px solid rgba(255,255,255,0.3)',
                   boxShadow: '0 15px 50px -15px rgba(0,200,150,0.4), 0 0 0 1px rgba(255,255,255,0.1) inset',
+                  borderRadius: 4,
                   '&:hover': {
                     boxShadow: '0 25px 70px -15px rgba(0,200,150,0.5), 0 0 0 1px rgba(255,255,255,0.2) inset'
                   }
@@ -138,7 +140,7 @@ const Transfer = () => {
               >
                 <Box sx={{ textAlign: 'center' }}>
                   <Typography variant="h1" sx={{ mb: 3, fontSize: '3rem' }}>🌍</Typography>
-                  <Typography variant="h5" sx={{ fontWeight: 800, mb: 2, color: '#0f2744', fontSize: '1.5rem' }}>
+                  <Typography variant="h5" sx={{ fontWeight: 800, mb: 2, color: '#0066FF', fontSize: '1.5rem' }}>
                     International Transfer
                   </Typography>
                   <Typography variant="body1" color="text.secondary" sx={{ mb: 5, fontSize: '1.05rem', lineHeight: 1.7 }}>
@@ -168,6 +170,7 @@ const Transfer = () => {
             textAlign: 'center',
             background: 'linear-gradient(135deg, rgba(0,102,255,0.15) 0%, rgba(0,191,255,0.1) 100%)',
             border: '1px solid rgba(0,102,255,0.3)', 
+            borderRadius: 4,
           }}>
             <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.9)', fontWeight: 500, fontSize: '1.05rem' }}>
               Secure Transaction - All transfers are encrypted and processed securely. Never share your PIN with anyone.
