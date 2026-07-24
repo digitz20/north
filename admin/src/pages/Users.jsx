@@ -1072,77 +1072,159 @@ const Users = () => {
 
   const renderAdminToolsTab = () => {
     if (!selectedUser) return null;
+    const totalBalance = (userDetails?.accounts || []).reduce((sum, acc) => sum + (Number(acc.balance) || 0), 0);
     return (
-      <Box sx={{ maxWidth: 600 }}>
-        <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Financial Adjustments</Typography>
+      <Box sx={{ maxWidth: 900 }}>
+        <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Financial Overview</Typography>
         <Alert severity="info" sx={{ mb: 3 }}>
-          Use this section to directly modify the user&apos;s financial profile. All changes are logged in the audit trail.
+          Review the user&apos;s total balance and individual account balances below. You can edit any account balance directly. All changes are logged in the audit trail.
         </Alert>
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Monthly Summary</Typography>
+
+        <Grid container spacing={3} sx={{ mb: 4 }}>
+          <Grid item xs={12} md={4}>
+            <Paper sx={{ p: 3, borderRadius: 2, textAlign: 'center', background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)', color: 'white' }}>
+              <Typography variant="body2" sx={{ opacity: 0.9 }}>Total Balance</Typography>
+              <Typography variant="h4" sx={{ fontWeight: 700 }}>${totalBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Typography>
+            </Paper>
           </Grid>
-          <Grid item xs={4}>
-            <TextField
-              label="Monthly Income"
-              type="number"
-              fullWidth
-              value={selectedUser.monthlyIncome || 0}
-              onChange={(e) => {
-                const val = parseFloat(e.target.value) || 0;
-                handleEditUser({ ...selectedUser, monthlyIncome: val });
-              }}
-              InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }}
-            />
+          <Grid item xs={12} md={4}>
+            <Paper sx={{ p: 3, borderRadius: 2, textAlign: 'center' }}>
+              <Typography variant="body2" color="text.secondary">Accounts</Typography>
+              <Typography variant="h4" sx={{ fontWeight: 700 }}>{userDetails?.accounts?.length || 0}</Typography>
+            </Paper>
           </Grid>
-          <Grid item xs={4}>
-            <TextField
-              label="Monthly Expenses"
-              type="number"
-              fullWidth
-              value={selectedUser.monthlyExpenses || 0}
-              onChange={(e) => {
-                const val = parseFloat(e.target.value) || 0;
-                handleEditUser({ ...selectedUser, monthlyExpenses: val });
-              }}
-              InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }}
-            />
-          </Grid>
-          <Grid item xs={4}>
-            <TextField
-              label="Net Savings"
-              type="number"
-              fullWidth
-              value={selectedUser.netSavings || 0}
-              onChange={(e) => {
-                const val = parseFloat(e.target.value) || 0;
-                handleEditUser({ ...selectedUser, netSavings: val });
-              }}
-              InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }}
-            />
-          </Grid>
-          <Grid item xs={12} sx={{ mt: 2 }}>
-            <Button
-              variant="contained"
-              onClick={() => {
-                api.put(`/admin/users/${selectedUser._id}`, {
-                  monthlyIncome: selectedUser.monthlyIncome || 0,
-                  monthlyExpenses: selectedUser.monthlyExpenses || 0,
-                  netSavings: selectedUser.netSavings || 0
-                }).then(() => {
-                  setSuccess('Financial summary updated');
-                  handleViewDetails(selectedUser);
-                }).catch(() => setError('Failed to update financial summary'));
-              }}
-              sx={{
-                background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
-                '&:hover': { background: 'linear-gradient(135deg, #0052CC 0%, #0099CC 100%)' }
-              }}
-            >
-              Save Financial Summary
-            </Button>
+          <Grid item xs={12} md={4}>
+            <Paper sx={{ p: 3, borderRadius: 2, textAlign: 'center' }}>
+              <Typography variant="body2" color="text.secondary">Status</Typography>
+              <Typography variant="h4" sx={{ fontWeight: 700, color: selectedUser.isFrozen ? 'warning.main' : selectedUser.isActive ? 'success.main' : 'error.main' }}>
+                {selectedUser.isFrozen ? 'Frozen' : selectedUser.isActive ? 'Active' : 'Inactive'}
+              </Typography>
+            </Paper>
           </Grid>
         </Grid>
+
+        <Typography variant="subtitle2" sx={{ mt: 3, mb: 1, fontWeight: 600 }}>Account Balances</Typography>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Account Number</TableCell>
+                <TableCell>Type</TableCell>
+                <TableCell>Balance</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {(userDetails?.accounts || []).map((account) => (
+                <TableRow key={account._id}>
+                  <TableCell sx={{ fontFamily: 'monospace' }}>{account.accountNumber}</TableCell>
+                  <TableCell sx={{ textTransform: 'capitalize' }}>{account.accountType}</TableCell>
+                  <TableCell>
+                    {editBalanceId === account._id ? (
+                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                        <TextField
+                          size="small"
+                          type="number"
+                          value={editBalanceValue}
+                          onChange={(e) => setEditBalanceValue(e.target.value)}
+                          sx={{ width: 120 }}
+                        />
+                        <Button size="small" variant="contained" onClick={() => handleUpdateBalance(account._id)}>Save</Button>
+                        <Button size="small" onClick={() => { setEditBalanceId(null); setEditBalanceValue(''); }}>Cancel</Button>
+                      </Box>
+                    ) : (
+                      <Typography sx={{ fontWeight: 600 }}>${account.balance ? Number(account.balance).toLocaleString() : '0'}</Typography>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Chip label={account.isActive ? 'Active' : 'Inactive'} color={account.isActive ? 'success' : 'error'} size="small" />
+                  </TableCell>
+                  <TableCell>
+                    <Tooltip title="Edit Balance">
+                      <IconButton size="small" onClick={() => { setEditBalanceId(account._id); setEditBalanceValue(account.balance?.toString() || '0'); }}>
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {(!userDetails?.accounts || userDetails.accounts.length === 0) && (
+                <TableRow>
+                  <TableCell colSpan={5} align="center">
+                    <Typography color="text.secondary">No accounts found</Typography>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        <Box sx={{ mt: 4 }}>
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Monthly Summary</Typography>
+          <Grid container spacing={3}>
+            <Grid item xs={4}>
+              <TextField
+                label="Monthly Income"
+                type="number"
+                fullWidth
+                value={selectedUser.monthlyIncome || 0}
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value) || 0;
+                  handleEditUser({ ...selectedUser, monthlyIncome: val });
+                }}
+                InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }}
+              />
+            </Grid>
+            <Grid item xs={4}>
+              <TextField
+                label="Monthly Expenses"
+                type="number"
+                fullWidth
+                value={selectedUser.monthlyExpenses || 0}
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value) || 0;
+                  handleEditUser({ ...selectedUser, monthlyExpenses: val });
+                }}
+                InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }}
+              />
+            </Grid>
+            <Grid item xs={4}>
+              <TextField
+                label="Net Savings"
+                type="number"
+                fullWidth
+                value={selectedUser.netSavings || 0}
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value) || 0;
+                  handleEditUser({ ...selectedUser, netSavings: val });
+                }}
+                InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }}
+              />
+            </Grid>
+            <Grid item xs={12} sx={{ mt: 2 }}>
+              <Button
+                variant="contained"
+                onClick={() => {
+                  api.put(`/admin/users/${selectedUser._id}`, {
+                    monthlyIncome: selectedUser.monthlyIncome || 0,
+                    monthlyExpenses: selectedUser.monthlyExpenses || 0,
+                    netSavings: selectedUser.netSavings || 0
+                  }).then(() => {
+                    setSuccess('Financial summary updated');
+                    handleViewDetails(selectedUser);
+                  }).catch(() => setError('Failed to update financial summary'));
+                }}
+                sx={{
+                  background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
+                  '&:hover': { background: 'linear-gradient(135deg, #0052CC 0%, #0099CC 100%)' }
+                }}
+              >
+                Save Financial Summary
+              </Button>
+            </Grid>
+          </Grid>
+        </Box>
       </Box>
     );
   };
