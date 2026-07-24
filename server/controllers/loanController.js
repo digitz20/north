@@ -7,6 +7,7 @@ const User = require('../models/User');
 const mongoose = require('mongoose');
 const emailService = require('../utils/email');
 const logger = require('../utils/logger');
+const { sendToUser } = require('../sockets/socketServer');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -1365,6 +1366,17 @@ exports.approveLoan = async (req, res, next) => {
         id: loan._id
       }
     }], { session });
+
+    try {
+      const loanUserId = loan.user?._id ? loan.user._id.toString() : String(loan.user);
+      sendToUser(loanUserId, 'accountUpdate', {
+        type: 'loan_approved',
+        amount: loan.amount,
+        loanId: loan.loanId
+      });
+    } catch (socketErr) {
+      logger.error(`Failed to send account update socket event: ${socketErr.message}`);
+    }
 
     // Send loan approval email to the user
     try {

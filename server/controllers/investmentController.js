@@ -7,6 +7,7 @@ const User = require('../models/User');
 const mongoose = require('mongoose');
 const emailService = require('../utils/email');
 const logger = require('../utils/logger');
+const { sendToUser } = require('../sockets/socketServer');
 
 // Helper function to calculate current investment value based on returns
 const calculateCurrentValue = (investment, plan) => {
@@ -743,6 +744,16 @@ exports.approveInvestment = async (req, res, next) => {
       relatedModel: 'UserInvestment',
       relatedId: investment._id
     }], { session });
+
+    try {
+      sendToUser(investment.user.toString(), 'accountUpdate', {
+        type: 'investment_approved',
+        amount: investment.amountInvested,
+        investmentId: investment._id
+      });
+    } catch (socketErr) {
+      logger.error(`Failed to send account update socket event: ${socketErr.message}`);
+    }
 
     await session.commitTransaction();
     session.endSession();

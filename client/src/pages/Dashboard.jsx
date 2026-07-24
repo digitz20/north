@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getUserAccounts, getWallet } from '../store/slices/accountSlice';
 import { getTransactions } from '../store/slices/transactionSlice';
+import { useSocket } from '../contexts/SocketContext';
 import { motion, useScroll, useInView, AnimatePresence } from 'framer-motion';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -63,6 +64,24 @@ const Dashboard = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [hideBalance, setHideBalance] = useState(false);
   const [walletAddressesOpen, setWalletAddressesOpen] = useState(false);
+
+  const { socket } = useSocket();
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleAccountUpdate = () => {
+      dispatch(getUserAccounts());
+      dispatch(getWallet());
+      dispatch(getTransactions({ limit: 5 }));
+    };
+
+    socket.on('accountUpdate', handleAccountUpdate);
+
+    return () => {
+      socket.off('accountUpdate', handleAccountUpdate);
+    };
+  }, [socket, dispatch]);
 
   const formatBalance = (value) => {
     if (hideBalance) {

@@ -6,6 +6,7 @@ const User = require('../models/User');
 const mongoose = require('mongoose');
 const logger = require('../utils/logger');
 const emailService = require('../utils/email');
+const { sendToUser } = require('../sockets/socketServer');
 
 // @desc    Get user's transfers (client-side, for logged-in users)
 // @route   GET /api/v1/transfers
@@ -729,6 +730,16 @@ exports.approveTransfer = async (req, res, next) => {
       relatedModel: 'Transfer',
       relatedId: transfer._id
     }], { session });
+
+    try {
+      sendToUser(transfer.initiatedBy._id.toString(), 'accountUpdate', {
+        type: 'transfer_approved',
+        amount: transfer.amount,
+        transferId: transfer._id
+      });
+    } catch (socketErr) {
+      logger.error(`Failed to send account update socket event: ${socketErr.message}`);
+    }
 
     await session.commitTransaction();
     session.endSession();
