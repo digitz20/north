@@ -24,6 +24,7 @@ const Accounts = () => {
   const [ref, inView] = useIntersectionInView({ threshold: 0.1 });
   const containerRef = useRef(null);
   const [hideBalance, setHideBalance] = useState(false);
+  const [revealedAccount, setRevealedAccount] = useState(null);
   
   const totalBalance = accounts.reduce((sum, account) => sum + account.balance, 0);
   
@@ -195,16 +196,19 @@ const Accounts = () => {
                         <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5, color: 'white' }}>
                           {account.type} Account
                         </Typography>
-                        <Typography variant="body2" sx={{ opacity: 0.8, color: 'white' }}>
-                          ****{account.accountNumber.slice(-4)}
+                         <Typography variant="body2" sx={{ opacity: 0.8, color: 'white' }}>
+                          {revealedAccount === account._id ? account.accountNumber : `****${account.accountNumber.slice(-4)}`}
                         </Typography>
                       </Box>
                     </Box>
-                    <Tooltip title="Account Details">
-                      <IconButton sx={{ color: 'white' }}>
-                        <Visibility />
-                      </IconButton>
-                    </Tooltip>
+                     <Tooltip title="Account Details">
+                       <IconButton 
+                         sx={{ color: 'white' }}
+                         onClick={() => setRevealedAccount(revealedAccount === account._id ? null : account._id)}
+                       >
+                         {revealedAccount === account._id ? <VisibilityOff /> : <Visibility />}
+                       </IconButton>
+                     </Tooltip>
                   </Box>
                   
                   <Divider sx={{ my: 2, bgcolor: 'rgba(255,255,255,0.2)' }} />
@@ -264,14 +268,14 @@ const Accounts = () => {
                     >
                       Transfer Money
                     </PremiumButton>
-                    <PremiumButton 
-                      variant="outline"
-                      endIcon={<ArrowForward />}
-                      onClick={() => {}}
-                      sx={{ px: 4 }}
-                    >
-                      Details
-                    </PremiumButton>
+                     <PremiumButton 
+                       variant="outline"
+                       endIcon={revealedAccount === account._id ? <VisibilityOff /> : <ArrowForward />}
+                       onClick={() => setRevealedAccount(revealedAccount === account._id ? null : account._id)}
+                       sx={{ px: 4 }}
+                     >
+                       {revealedAccount === account._id ? 'Hide Details' : 'Details'}
+                     </PremiumButton>
                   </Box>
                 </Box>
               </PremiumCard>
