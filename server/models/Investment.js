@@ -89,7 +89,7 @@ const userInvestmentSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['active', 'matured', 'sold', 'pending'],
+    enum: ['active', 'matured', 'sold', 'pending', 'rejected'],
     default: 'active'
   },
   purchaseDate: {
