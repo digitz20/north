@@ -11,6 +11,7 @@ export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [supportOnline, setSupportOnline] = useState(false);
+  const [socketError, setSocketError] = useState(null);
   const socketRef = useRef(null);
 
   useEffect(() => {
@@ -31,12 +32,15 @@ export const SocketProvider = ({ children }) => {
       newSocket.on('connect', () => {
         console.log('Socket connected:', newSocket.id);
         setIsConnected(true);
+        setSocketError(null);
       });
 
       newSocket.on('disconnect', (reason) => {
         console.log('Socket disconnected:', reason);
         setIsConnected(false);
-        // If server disconnected us intentionally, clear the socket ref to allow reconnection later
+        setSocketError(reason === 'io server disconnect'
+          ? 'Server disconnected the session. Please refresh or log in again.'
+          : 'Live connection lost. Trying to reconnect automatically...');
         if (reason === 'io server disconnect') {
           socketRef.current = null;
           setSocket(null);
@@ -46,6 +50,7 @@ export const SocketProvider = ({ children }) => {
       newSocket.on('connect_error', (error) => {
         console.error('Socket connection error:', error);
         setIsConnected(false);
+        setSocketError('Unable to reach the live support server. Please check your connection and try again.');
       });
 
       newSocket.on('reconnect', (attemptNumber) => {
@@ -112,10 +117,14 @@ export const SocketProvider = ({ children }) => {
     }
   }, [socket]);
 
+  const clearSocketError = useCallback(() => setSocketError(null), []);
+
   const value = {
     socket,
     isConnected,
     supportOnline,
+    socketError,
+    clearSocketError,
     joinChat,
     leaveChat,
     sendMessage,

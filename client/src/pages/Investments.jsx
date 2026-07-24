@@ -432,7 +432,6 @@ const Investments = () => {
     <Box sx={{ 
       position: 'relative', 
       overflow: 'hidden',
-      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%)',
       minHeight: '100vh',
       p: { xs: 2, md: 0 }
     }}>
@@ -467,7 +466,7 @@ const Investments = () => {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
           <Typography variant="h4" sx={{ 
             fontWeight: 700, 
-            background: 'linear-gradient(135deg, #0f2744 0%, #1e4d8a 50%, #0066ff 100%)',
+            background: 'linear-gradient(90deg, #ffffff 0%, #00c896 30%, #00bfff 70%, #ffc857 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             mb: 1

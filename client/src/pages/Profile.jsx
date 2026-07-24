@@ -162,7 +162,6 @@ const Profile = () => {
     <Box sx={{ 
       position: 'relative', 
       overflow: 'hidden',
-      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%)',
       minHeight: '100vh',
       p: { xs: 2, md: 0 }
     }}>
@@ -200,6 +199,9 @@ const Profile = () => {
         >
           <Typography variant="h3" sx={{ 
             fontWeight: 800, 
+            background: 'linear-gradient(90deg, #ffffff 0%, #00c896 30%, #00bfff 70%, #ffc857 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
             mb: 2,
             mt: 4
           }}>My Profile</Typography>

@@ -44,6 +44,8 @@ const LiveSupportChat = () => {
     socket, 
     isConnected, 
     supportOnline,
+    socketError,
+    clearSocketError,
     joinChat,
     leaveChat,
     sendMessage,
@@ -896,6 +898,14 @@ const LiveSupportChat = () => {
                   <Typography variant="caption" sx={{ opacity: 0.75, display: 'block', lineHeight: 1.2 }}>
                     {headerSubtitle}
                   </Typography>
+                  {socketError && (
+                    <Chip
+                      label={socketError}
+                      size="small"
+                      sx={{ mt: 0.5, bgcolor: 'rgba(255,255,255,0.18)', color: 'white', backdropFilter: 'blur(4px)' }}
+                      onDelete={clearSocketError}
+                    />
+                  )}
                 </Box>
             </Box>
             <Box sx={{ display: 'flex', gap: 0.5 }}>
