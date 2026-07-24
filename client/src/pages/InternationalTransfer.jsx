@@ -1013,7 +1013,7 @@ const InternationalTransfer = () => {
                   <CheckCircle sx={{ fontSize: 64, color: '#f59e0b', mb: 2 }} />
                   <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>Transfer Pending Approval</Typography>
                   <Typography variant="body1" sx={{ mb: 3 }}>
-                    Your international transfer has been submitted and is pending admin approval. Funds will only be deducted from your account once approved.
+                    Your international transfer has been submitted and is pending admin approval. Funds will only be added to your account once approved.
                   </Typography>
                   {transactionId && (
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
