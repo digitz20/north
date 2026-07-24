@@ -121,10 +121,10 @@ router.route('/kyc/:id')
   });
 
 // Admin card/KYC management inside user details
-router.route('/admin/kyc/:id')
+router.route('/kyc/:id')
   .put(protect, authorize('admin', 'super-admin'), updateKYC);
 
-router.route('/admin/cards/:id')
+router.route('/cards/:id')
   .put(protect, authorize('admin', 'super-admin'), updateCard);
 
 // Settings
