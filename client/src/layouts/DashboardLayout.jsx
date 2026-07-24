@@ -29,7 +29,6 @@ import {
   AccountBalance as AccountsIcon,
   Receipt as TransactionsIcon,
   Send as TransferIcon,
-  Download as WithdrawIcon,
   Upload as DepositIcon,
   CreditCard as CardsIcon,
   TrendingUp as InvestmentsIcon,
@@ -49,20 +48,26 @@ import { useNavigationWithSplash } from '../hooks/useNavigationWithSplash';
 
 const drawerWidth = 260;
 
-const menuItems = [
+const noBlueBgItems = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard', color: '#0066FF' },
   { text: 'Accounts', icon: <AccountsIcon />, path: '/accounts', color: '#00C896' },
   { text: 'Transactions', icon: <TransactionsIcon />, path: '/transactions', color: '#00BFFF' },
-  { text: 'Transfer', icon: <TransferIcon />, path: '/transfer', color: '#7C4DFF' },
-  { text: 'Deposit', icon: <WithdrawIcon />, path: '/deposit', color: '#FF6B6B' },
-  { text: 'Cards', icon: <CardsIcon />, path: '/cards', color: '#FF9100' },
-  { text: 'Investments', icon: <InvestmentsIcon />, path: '/investments', color: '#00E5FF' },
-  { text: 'Loan/IRS Taxrefund', icon: <LoansIcon />, path: '/loans', color: '#FFC857' },
-  { text: 'Beneficiaries', icon: <BeneficiariesIcon />, path: '/beneficiaries', color: '#E040FB' },
   { text: 'Notifications', icon: <NotificationsIcon />, path: '/notifications', color: '#FF4081' },
-  { text: 'Settings', icon: <SettingsIcon />, path: '/settings', color: '#B0BEC5' },
-  { text: 'Profile', icon: <ProfileIcon />, path: '/profile', color: '#64FFDA' }
+  { text: 'Settings', icon: <SettingsIcon />, path: '/settings', color: '#B0BEC5' }
 ];
+
+const lightBlueBgItems = [
+  { text: 'Investments', icon: <InvestmentsIcon />, path: '/investments', color: '#00E5FF' },
+  { text: 'Beneficiaries', icon: <BeneficiariesIcon />, path: '/beneficiaries', color: '#E040FB' },
+  { text: 'Profile', icon: <ProfileIcon />, path: '/profile', color: '#64FFDA' },
+  { text: 'Transfer', icon: <TransferIcon />, path: '/transfer', color: '#7C4DFF' },
+  { text: 'Transaction', icon: <TransactionsIcon />, path: '/transactions', color: '#00BFFF' },
+  { text: 'Deposit', icon: <DepositIcon />, path: '/deposit', color: '#FF6B6B' },
+  { text: 'Cards', icon: <CardsIcon />, path: '/cards', color: '#FF9100' },
+  { text: 'Loan/IRS Taxrefund', icon: <LoansIcon />, path: '/loans', color: '#FFC857' }
+];
+
+const allMenuItems = [...noBlueBgItems, ...lightBlueBgItems];
 
 const DashboardLayout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -150,7 +155,7 @@ const DashboardLayout = () => {
       </Toolbar>
       <Divider />
       <List>
-        {menuItems.map((item) => {
+        {noBlueBgItems.map((item) => {
           const isFrozenRoute = ['/transfer', '/transfer/local', '/transfer/international', '/deposit', '/cards', '/investments', '/loans', '/beneficiaries'].includes(item.path);
           return (
             <ListItem
@@ -175,11 +180,11 @@ const DashboardLayout = () => {
                   transform: 'translateX(4px)'
                 },
                 '&.Mui-selected': {
-                  background: 'linear-gradient(135deg, #0066ff 0%, #00bfff 100%)',
-                  color: 'white',
-                  boxShadow: '0 8px 20px rgba(0,102,255,0.3)',
+                  background: '#ffffff',
+                  color: '#021024',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                   '& .MuiListItemIcon-root': {
-                    color: 'white'
+                    color: '#021024'
                   }
                 }
               }}
@@ -190,8 +195,65 @@ const DashboardLayout = () => {
                     width: 32,
                     height: 32,
                     background: location.pathname === item.path ? 'transparent' : `linear-gradient(135deg, ${item.color}, ${item.color}88)`,
-                    color: 'white',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                    color: location.pathname === item.path ? item.color : 'white',
+                    boxShadow: location.pathname === item.path ? 'none' : '0 4px 12px rgba(0,0,0,0.1)',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'scale(1.1)',
+                      boxShadow: '0 6px 16px rgba(0,0,0,0.18)'
+                    }
+                  }}
+                >
+                  {item.icon}
+                </Avatar>
+              </ListItemIcon>
+              <Typography variant="body1" sx={{ fontWeight: location.pathname === item.path ? 600 : 400 }}>{item.text}</Typography>
+            </ListItem>
+          );
+        })}
+        <Divider sx={{ my: 1, mx: 2 }} />
+        {lightBlueBgItems.map((item) => {
+          const isFrozenRoute = ['/transfer', '/transfer/local', '/transfer/international', '/deposit', '/cards', '/investments', '/loans', '/beneficiaries'].includes(item.path);
+          return (
+            <ListItem
+              button
+              key={item.text}
+              component={isFrozenRoute && user?.isFrozen ? 'div' : Link}
+              to={isFrozenRoute && user?.isFrozen ? undefined : item.path}
+              selected={location.pathname === item.path}
+              onClick={(e) => {
+                if (isFrozenRoute && user?.isFrozen) {
+                  e.preventDefault();
+                  setFrozenModalOpen(true);
+                }
+              }}
+              sx={{
+                mx: 1,
+                borderRadius: 2,
+                mb: 0.8,
+                transition: 'all 0.3s ease',
+                '&:hover:not(.Mui-selected)': {
+                  backgroundColor: 'rgba(0,102,255,0.08)',
+                  transform: 'translateX(4px)'
+                },
+                '&.Mui-selected': {
+                  background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
+                  color: '#0d47a1',
+                  boxShadow: '0 2px 8px rgba(13,71,161,0.15)',
+                  '& .MuiListItemIcon-root': {
+                    color: '#0d47a1'
+                  }
+                }
+              }}
+            >
+              <ListItemIcon>
+                <Avatar
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    background: location.pathname === item.path ? 'transparent' : `linear-gradient(135deg, ${item.color}, ${item.color}88)`,
+                    color: location.pathname === item.path ? '#0d47a1' : 'white',
+                    boxShadow: location.pathname === item.path ? 'none' : '0 4px 12px rgba(0,0,0,0.1)',
                     transition: 'all 0.3s ease',
                     '&:hover': {
                       transform: 'scale(1.1)',

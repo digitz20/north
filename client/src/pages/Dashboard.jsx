@@ -296,7 +296,7 @@ const Dashboard = () => {
 
 
   // Only show full-page loading if we have no data at all
-  if ((accounts.length === 0 || !wallet || transactions.length === 0) && (accountsLoading && transactionsLoading)) {
+  if ((accounts.length === 0 || transactions.length === 0) && (accountsLoading || transactionsLoading)) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
         <motion.div
