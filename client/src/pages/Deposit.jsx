@@ -640,10 +640,10 @@ const Deposit = () => {
               <DialogContent>
                 {transferComplete ? (
                   <Box textAlign="center" py={4}>
-                    <CheckCircle sx={{ fontSize: 80, color: 'success.main', mb: 2 }} />
-                    <Typography variant="h5" gutterBottom>Deposit in Progress...</Typography>
+                    <CheckCircle sx={{ fontSize: 80, color: 'warning.main', mb: 2 }} />
+                    <Typography variant="h5" gutterBottom>Deposit Pending Approval</Typography>
                     <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-                      Please note withdrawal will take sometime to reflect.
+                      Your deposit request has been submitted and is pending admin approval. It will not reflect in your balance until approved.
                     </Typography>
                     <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
                       Thank you for choosing NorthCrestBank.

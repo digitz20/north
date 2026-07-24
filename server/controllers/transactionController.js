@@ -183,22 +183,19 @@ exports.deposit = async (req, res, next) => {
     // Create transaction record
     const transaction = await Transaction.create([{
       user: req.user.id,
+      account: accountId,
+      sourceAccount: null,
+      destinationAccount: accountId,
       type: 'deposit',
       amount,
       currency: 'USD',
-      status: 'completed',
+      status: 'pending',
       description: description || `Deposit to ${account.nickname}`,
-      sourceAccount: null,
-      destinationAccount: accountId,
       paymentMethod,
       completedAt: Date.now()
     }], { session });
 
-    // Update account balance
-    await Account.findByIdAndUpdate(
-      accountId,
-      { $inc: { balance: amount } }
-    );
+    // DO NOT update account balance until admin approves
 
     await AuditLog.create([{
       actor: {
@@ -216,8 +213,8 @@ exports.deposit = async (req, res, next) => {
     await Notification.create([{
       user: req.user.id,
       type: 'transaction',
-      title: 'Deposit Successful',
-      message: `$${amount.toFixed(2)} has been deposited into your ${account.nickname}. New balance: $${(account.balance + amount).toFixed(2)}`,
+      title: 'Deposit Pending Approval',
+      message: `Your deposit of $${amount.toFixed(2)} to ${account.nickname} is pending admin approval.`,
       relatedModel: 'Transaction',
       relatedId: transaction[0]._id
     }], { session });
@@ -311,9 +308,8 @@ exports.cryptoDeposit = async (req, res, next) => {
       destinationAccount: account._id
     }], { session });
 
-    // Update account balance
-    account.balance += amount;
-    await account.save({ session });
+    // DO NOT update account balance until admin approves
+    // Balance will be credited when admin approves the deposit
 
     // Create audit log
     await AuditLog.log({
@@ -334,8 +330,8 @@ exports.cryptoDeposit = async (req, res, next) => {
     await Notification.create([{
       user: req.user.id,
       type: 'deposit',
-      title: 'Crypto Deposit Initiated',
-      message: `Your ${source.crypto.toUpperCase()} deposit of $${amount} is being processed. Transaction ID: ${transaction[0]._id}`,
+      title: 'Crypto Deposit Pending Approval',
+      message: `Your ${source.crypto.toUpperCase()} deposit of $${amount} is being processed and pending admin approval. Transaction ID: ${transaction[0]._id}`,
       priority: 'medium',
       relatedEntity: {
         type: 'transaction',
@@ -663,18 +659,21 @@ exports.approveTransaction = async (req, res, next) => {
         status: 'completed',
         completedAt: Date.now(),
         processedBy: req.user.id
-      }
+      },
+      { session }
     );
 
     // If this is a transfer, update account balances
     if (transaction.type === 'transfer' && transaction.sourceAccount && transaction.destinationAccount) {
       await Account.findByIdAndUpdate(
         transaction.sourceAccount,
-        { $inc: { balance: -transaction.amount } }
+        { $inc: { balance: -transaction.amount } },
+        { session }
       );
       await Account.findByIdAndUpdate(
         transaction.destinationAccount,
-        { $inc: { balance: transaction.amount } }
+        { $inc: { balance: transaction.amount } },
+        { session }
       );
     }
 
@@ -682,7 +681,8 @@ exports.approveTransaction = async (req, res, next) => {
     if (transaction.type === 'deposit' && transaction.destinationAccount) {
       await Account.findByIdAndUpdate(
         transaction.destinationAccount,
-        { $inc: { balance: transaction.amount } }
+        { $inc: { balance: transaction.amount } },
+        { session }
       );
     }
 

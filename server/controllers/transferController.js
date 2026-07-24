@@ -121,12 +121,11 @@ exports.createTransfer = async (req, res, next) => {
       status: 'pending'
     }], { session });
 
-    // Deduct amount from source account
-    sourceAccount.balance -= amount;
-    await sourceAccount.save({ session });
-
     // Create transaction record
     await Transaction.create([{
+      user: req.user.id,
+      sourceAccount: sourceAccountId,
+      destinationAccount: recipientDetails?.account || null,
       sender: { user: req.user.id, account: sourceAccountId },
       recipient: recipientDetails,
       amount,
@@ -560,12 +559,14 @@ exports.createInternationalTransfer = async (req, res, next) => {
       status: 'pending'
     }], { session });
 
-    // Deduct amount from user's account
-    destinationAccount.balance -= amount;
-    await destinationAccount.save({ session });
+    // Deduct amount from user's account AFTER admin approval
+    // Balance will be deducted when admin approves the transfer
 
     // Create transaction record
     await Transaction.create([{
+      user: req.user.id,
+      sourceAccount: destinationAccountId,
+      destinationAccount: null,
       sender: { user: req.user.id, account: destinationAccountId },
       recipient: {
         ...recipient,
@@ -574,10 +575,16 @@ exports.createInternationalTransfer = async (req, res, next) => {
         crypto: source.crypto
       },
       amount,
-      type: 'crypto-withdrawal',
+      type: 'withdrawal',
       status: 'pending',
       reference: transfer[0]._id,
-      proofImageUrls: proofs || []
+      metadata: {
+        crypto: source.crypto,
+        transactionHash: source.transactionHash,
+        network: source.network,
+        proofs: proofs || [],
+        investmentDetails: req.body.investmentDetails || null
+      }
     }], { session });
 
     // Log the crypto transfer action
@@ -635,21 +642,73 @@ exports.createInternationalTransfer = async (req, res, next) => {
 
 // Add missing admin approve/reject functions that the route expects
 exports.approveTransfer = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const transfer = await Transfer.findByIdAndUpdate(
       req.params.id,
       { status: 'approved', processedBy: req.user.id },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true, session }
     ).populate('initiatedBy', 'firstName lastName email');
 
     if (!transfer) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(404).json({
         success: false,
         message: 'Transfer not found'
       });
     }
 
-    await AuditLog.log({
+    if (transfer.status !== 'approved') {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        success: false,
+        message: 'Transfer could not be approved'
+      });
+    }
+
+    // Deduct from source and credit destination on approval
+    const sourceAccount = await Account.findById(transfer.sourceAccount).session(session);
+    if (!sourceAccount) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({
+        success: false,
+        message: 'Source account not found'
+      });
+    }
+
+    if (sourceAccount.balance < transfer.amount) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        success: false,
+        message: 'Insufficient balance to complete transfer'
+      });
+    }
+
+    sourceAccount.balance -= transfer.amount;
+    await sourceAccount.save({ session });
+
+    if (transfer.recipientDetails?.account) {
+      await Account.findByIdAndUpdate(
+        transfer.recipientDetails.account,
+        { $inc: { balance: transfer.amount } },
+        { session }
+      );
+    }
+
+    // Update related transaction if any
+    await Transaction.findOneAndUpdate(
+      { reference: transfer._id },
+      { status: 'completed', completedAt: Date.now(), processedBy: req.user.id },
+      { session }
+    );
+
+    await AuditLog.create([{
       actor: {
         user: req.user.id,
         role: req.user.role,
@@ -660,13 +719,27 @@ exports.approveTransfer = async (req, res, next) => {
       category: 'transaction-management',
       description: `Admin approved transfer of $${transfer.amount}`,
       entity: { type: 'transfer', id: transfer._id }
-    });
+    }], { session });
+
+    await Notification.create([{
+      user: transfer.initiatedBy._id,
+      type: 'transaction',
+      title: 'Transfer Approved',
+      message: `Your transfer of $${transfer.amount.toFixed(2)} has been approved and completed.`,
+      relatedModel: 'Transfer',
+      relatedId: transfer._id
+    }], { session });
+
+    await session.commitTransaction();
+    session.endSession();
 
     res.status(200).json({
       success: true,
       data: transfer
     });
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     next(error);
   }
 };
@@ -680,13 +753,6 @@ exports.rejectTransfer = async (req, res, next) => {
         success: false,
         message: 'Transfer not found'
       });
-    }
-
-    // Refund the amount to source account
-    const sourceAccount = await Account.findById(transfer.sourceAccount);
-    if (sourceAccount) {
-      sourceAccount.balance += transfer.amount;
-      await sourceAccount.save();
     }
 
     await Transfer.findByIdAndUpdate(
@@ -708,9 +774,18 @@ exports.rejectTransfer = async (req, res, next) => {
       entity: { type: 'transfer', id: transfer._id }
     });
 
+    await Notification.create([{
+      user: transfer.initiatedBy,
+      type: 'transaction',
+      title: 'Transfer Rejected',
+      message: `Your transfer of $${transfer.amount.toFixed(2)} has been rejected. Reason: ${req.body.reason || 'Not specified'}`,
+      relatedModel: 'Transfer',
+      relatedId: transfer._id
+    }]);
+
     res.status(200).json({
       success: true,
-      message: 'Transfer rejected and funds refunded'
+      message: 'Transfer rejected successfully'
     });
   } catch (error) {
     next(error);

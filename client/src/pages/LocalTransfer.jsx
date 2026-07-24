@@ -163,8 +163,8 @@ const LocalTransfer = () => {
             </Box>
 
             {success && (
-              <Alert severity="success" sx={{ mb: 3 }}>
-                Transfer completed successfully! Redirecting to dashboard...
+              <Alert severity="warning" sx={{ mb: 3 }}>
+                Transfer request submitted successfully! Pending admin approval. Your balance will not be deducted until approved.
               </Alert>
             )}
             {error && (
