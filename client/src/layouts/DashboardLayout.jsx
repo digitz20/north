@@ -422,7 +422,9 @@ const DashboardLayout = () => {
           flexGrow: 1,
           p: { xs: 2, sm: 3 },
           width: { sm: `calc(100% - ${drawerWidth}px)` },
-          background: 'linear-gradient(135deg, #0c1445 0%, #1a237e 25%, #283593 50%, #303f9f 75%, #3949ab 100%)',
+          background: ['/dashboard', '/accounts', '/transactions', '/notifications', '/settings'].includes(location.pathname)
+            ? 'white'
+            : 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
           position: 'relative',
           minHeight: '100vh',
           overflowX: 'hidden'
