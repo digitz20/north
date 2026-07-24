@@ -1667,13 +1667,13 @@ const Users = () => {
       </Dialog>
 
       {/* Add/Edit User Dialog */}
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
-        <DialogTitle sx={{ fontWeight: 600 }}>
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3, m: { xs: 1, sm: 2 } } }}>
+        <DialogTitle sx={{ fontWeight: 600, fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
           {selectedUser ? 'Edit User' : 'Add New User'}
         </DialogTitle>
         <form onSubmit={handleSubmit}>
-          <DialogContent>
-            <Grid container spacing={2} sx={{ mt: 0.5 }}>
+          <DialogContent sx={{ maxHeight: { xs: 'calc(100vh - 140px)', sm: 'calc(100vh - 200px)' }, overflowY: 'auto', px: { xs: 2, sm: 3 } }}>
+            <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mt: 0.5 }}>
               <Grid item xs={6}>
                 <TextField
                   label="First Name"
@@ -1781,7 +1781,7 @@ const Users = () => {
               <Grid item xs={12}>
                 <Typography variant="subtitle2" sx={{ mt: 2, mb: 1, fontWeight: 600 }}>Financial Overview</Typography>
               </Grid>
-              <Grid item xs={4}>
+              <Grid item xs={12} sm={4}>
                 <TextField
                   label="Monthly Income"
                   type="number"
@@ -1791,7 +1791,7 @@ const Users = () => {
                   InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }}
                 />
               </Grid>
-              <Grid item xs={4}>
+              <Grid item xs={12} sm={4}>
                 <TextField
                   label="Monthly Expenses"
                   type="number"
@@ -1801,7 +1801,7 @@ const Users = () => {
                   InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }}
                 />
               </Grid>
-              <Grid item xs={4}>
+              <Grid item xs={12} sm={4}>
                 <TextField
                   label="Net Savings"
                   type="number"
@@ -1815,10 +1815,10 @@ const Users = () => {
               {selectedUser && userDetails && (
                 <>
                   <Grid item xs={12}>
-                    <Typography variant="subtitle2" sx={{ mt: 3, mb: 1, fontWeight: 600 }}>Account Balances</Typography>
+                    <Typography variant="subtitle2" sx={{ mt: 2, mb: 1, fontWeight: 600, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>Account Balances</Typography>
                   </Grid>
                   {(userDetails?.accounts || []).map((account) => (
-                    <Grid item xs={12} md={4} key={account._id}>
+                    <Grid item xs={12} key={account._id}>
                       <TextField
                         label={`${account.accountType} (${account.accountNumber})`}
                         type="number"
@@ -1834,20 +1834,21 @@ const Users = () => {
                             handleUpdateBalance(account._id);
                           }
                         }}
+                        size="small"
                       />
                     </Grid>
                   ))}
                   {(!userDetails?.accounts || userDetails.accounts.length === 0) && (
                     <Grid item xs={12}>
-                      <Typography color="text.secondary">No accounts found</Typography>
+                      <Typography variant="body2" color="text.secondary">No accounts found</Typography>
                     </Grid>
                   )}
 
                   <Grid item xs={12}>
-                    <Typography variant="subtitle2" sx={{ mt: 3, mb: 1, fontWeight: 600 }}>Card Balances</Typography>
+                    <Typography variant="subtitle2" sx={{ mt: 2, mb: 1, fontWeight: 600, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>Card Balances</Typography>
                   </Grid>
                   {(userDetails?.cards || []).map((card) => (
-                    <Grid item xs={12} md={4} key={card._id}>
+                    <Grid item xs={12} key={card._id}>
                       <TextField
                         label={`${card.cardType} (****-${card.lastFourDigits})`}
                         type="number"
@@ -1863,20 +1864,21 @@ const Users = () => {
                             handleUpdateCardBalance(card._id);
                           }
                         }}
+                        size="small"
                       />
                     </Grid>
                   ))}
                   {(!userDetails?.cards || userDetails.cards.length === 0) && (
                     <Grid item xs={12}>
-                      <Typography color="text.secondary">No cards found</Typography>
+                      <Typography variant="body2" color="text.secondary">No cards found</Typography>
                     </Grid>
                   )}
 
                   <Grid item xs={12}>
-                    <Typography variant="subtitle2" sx={{ mt: 3, mb: 1, fontWeight: 600 }}>Investment Balances</Typography>
+                    <Typography variant="subtitle2" sx={{ mt: 2, mb: 1, fontWeight: 600, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>Investment Balances</Typography>
                   </Grid>
                   {(userDetails?.investments || []).map((inv) => (
-                    <Grid item xs={12} md={4} key={inv._id}>
+                    <Grid item xs={12} key={inv._id}>
                       <TextField
                         label={`${inv.plan?.name || 'Investment'} (${inv.investmentId})`}
                         type="number"
@@ -1892,12 +1894,13 @@ const Users = () => {
                             handleUpdateInvestmentValue(inv._id);
                           }
                         }}
+                        size="small"
                       />
                     </Grid>
                   ))}
                   {(!userDetails?.investments || userDetails.investments.length === 0) && (
                     <Grid item xs={12}>
-                      <Typography color="text.secondary">No investments found</Typography>
+                      <Typography variant="body2" color="text.secondary">No investments found</Typography>
                     </Grid>
                   )}
                 </>
