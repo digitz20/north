@@ -281,6 +281,7 @@ const Register = () => {
                   InputLabelProps={{ shrink: true }}
                   value={formData.dateOfBirth}
                   onChange={handleChange}
+                  inputProps={{ max: new Date().toISOString().split('T')[0] }}
                 />
               </Grid>
               <Grid item xs={12}>

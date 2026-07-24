@@ -519,19 +519,29 @@ exports.verifyEmail = async (req, res, next) => {
   try {
     const { otpId, code } = req.body;
 
+    if (!otpId || !code) {
+      return res.status(400).json({
+        success: false,
+        message: 'Verification code is required. Please enter the 6-digit code sent to your email.'
+      });
+    }
+
     const otpRecord = await OTP.findById(otpId);
     if (!otpRecord) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid or expired OTP'
+        message: 'Verification session not found or expired. Please request a new verification code.'
       });
     }
 
     const verification = await OTP.verify(otpId, code);
     if (!verification.success) {
+      const isBlocked = verification.message?.includes('blocked') || verification.message?.includes('attempts');
       return res.status(400).json({
         success: false,
-        message: verification.message
+        message: isBlocked
+          ? 'Too many failed attempts. Please request a new verification code.'
+          : verification.message || 'Invalid verification code. Please check and try again.'
       });
     }
 

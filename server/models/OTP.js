@@ -106,7 +106,10 @@ otpSchema.statics.verify = async function(otpId, code) {
     return { success: false, message: 'OTP not found or expired' };
   }
 
-  if (otp.code !== code) {
+  const normalizedInput = String(code).trim();
+  const normalizedStored = String(otp.code).trim();
+
+  if (normalizedStored !== normalizedInput) {
     otp.failedAttempts += 1;
     
     if (otp.failedAttempts >= otp.maxAttempts) {
@@ -115,7 +118,7 @@ otpSchema.statics.verify = async function(otpId, code) {
     }
     
     await otp.save();
-    return { success: false, message: 'Invalid OTP code' };
+    return { success: false, message: otp.isBlocked ? 'Too many failed attempts. This code has been blocked.' : 'Invalid OTP code' };
   }
 
   // Mark as used

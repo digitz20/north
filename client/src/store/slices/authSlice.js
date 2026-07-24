@@ -59,7 +59,10 @@ export const login = createAsyncThunk(
       const status = error.response?.status;
       const message = error.response?.data?.message || 'Login failed';
       if (status === 401) {
-        return rejectWithValue('Invalid email or password. If you recently registered, please verify your email before logging in.');
+        return rejectWithValue('Invalid email or password.');
+      }
+      if (status === 403) {
+        return rejectWithValue('Please verify your email before logging in.');
       }
       if (status === 404) {
         return rejectWithValue('Login service is temporarily unavailable. Please try again later.');
@@ -106,10 +109,18 @@ export const verifyEmail = createAsyncThunk(
   'auth/verify-email',
   async ({ otpId, code }, { rejectWithValue }) => {
     try {
-      const response = await axios.post('/auth/verify-email', { otpId, code });
+      const response = await axios.post('/auth/verify-email', { otpId, code: String(code).trim() });
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Email verification failed');
+      const status = error.response?.status;
+      const message = error.response?.data?.message || 'Email verification failed';
+      if (status === 400) {
+        return rejectWithValue(message || 'Invalid verification code. Please check and try again.');
+      }
+      if (status === 404) {
+        return rejectWithValue('Verification session not found. Please register again or request a new code.');
+      }
+      return rejectWithValue(message);
     }
   }
 );
