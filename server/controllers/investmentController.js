@@ -29,7 +29,7 @@ exports.getInvestments = async (req, res, next) => {
     const startIndex = (page - 1) * limit;
     
     // Filter options
-    const filters = { user: req.user.id };
+    const filters = { user: req.user.id, status: 'active' };
     if (req.query.status) filters.status = req.query.status;
     
     const total = await UserInvestment.countDocuments(filters);
@@ -92,7 +92,8 @@ exports.getInvestment = async (req, res, next) => {
   try {
     const investment = await UserInvestment.findOne({
       _id: req.params.id,
-      user: req.user.id
+      user: req.user.id,
+      status: 'active'
     }).populate('plan', 'name description type expectedReturn riskLevel duration liquidity')
       .populate('transaction', 'amount status createdAt');
 

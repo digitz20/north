@@ -105,7 +105,10 @@ const investmentSlice = createSlice({
       })
       // Create investment cases
       .addCase(createInvestment.fulfilled, (state, action) => {
-        state.investments.push(action.payload);
+        const investment = action.payload;
+        if (investment.status === 'active') {
+          state.investments.push(investment);
+        }
       })
       // Sell investment case
       .addCase(sellInvestment.fulfilled, (state, action) => {
