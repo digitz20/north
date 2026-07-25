@@ -150,6 +150,34 @@ const DashboardLayout = () => {
     handleMenuClose();
   };
 
+  const [lastActivity, setLastActivity] = useState(Date.now());
+  const INACTIVITY_TIMEOUT = 3 * 60 * 1000; // 3 minutes
+
+  useEffect(() => {
+    const updateActivity = () => {
+      setLastActivity(Date.now());
+    };
+
+    const events = ['mousemove', 'click', 'keypress', 'scroll', 'touchstart', 'mousedown'];
+    events.forEach(event => {
+      window.addEventListener(event, updateActivity);
+    });
+
+    const interval = setInterval(() => {
+      if (Date.now() - lastActivity > INACTIVITY_TIMEOUT) {
+        dispatch(logout());
+        navigate('/login');
+      }
+    }, 10000); // Check every 10 seconds
+
+    return () => {
+      events.forEach(event => {
+        window.removeEventListener(event, updateActivity);
+      });
+      clearInterval(interval);
+    };
+  }, [dispatch, navigate, lastActivity]);
+
   const drawer = (
     <Box sx={{ 
       height: '100%', 
@@ -180,6 +208,7 @@ const DashboardLayout = () => {
         pointerEvents: 'none',
         opacity: 0.5
       }
+    }}>
     }}>
       <style>
         {`
