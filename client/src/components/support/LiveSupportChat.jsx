@@ -107,11 +107,43 @@ const LiveSupportChat = () => {
      return Array.from(merged.values()).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
    };
 
+   const MAX_CHAT_STORAGE_SIZE = 4 * 1024 * 1024;
+
+   const pruneChatStorage = (allMessages) => {
+     let serialized = JSON.stringify(allMessages);
+     if (serialized.length <= MAX_CHAT_STORAGE_SIZE) return allMessages;
+
+     const pruned = { ...allMessages };
+     for (const ticketId in pruned) {
+       if (pruned[ticketId].length > 30) {
+         pruned[ticketId] = pruned[ticketId].slice(-30);
+       }
+     }
+
+     serialized = JSON.stringify(pruned);
+     if (serialized.length <= MAX_CHAT_STORAGE_SIZE) return pruned;
+
+     for (const ticketId in pruned) {
+       const messages = pruned[ticketId];
+       if (messages.length <= 10) continue;
+       pruned[ticketId] = messages.map((msg, idx) => {
+         if (idx < messages.length - 10 && msg.attachments?.length) {
+           const { attachments, ...rest } = msg;
+           return rest;
+         }
+         return msg;
+       });
+     }
+
+     return pruned;
+   };
+
    const saveMessagesToStorage = (ticketId, messages) => {
      try {
        const allMessages = JSON.parse(localStorage.getItem('client_chat_messages') || '{}');
        allMessages[ticketId] = messages.slice(-100);
-       localStorage.setItem('client_chat_messages', JSON.stringify(allMessages));
+       const pruned = pruneChatStorage(allMessages);
+       localStorage.setItem('client_chat_messages', JSON.stringify(pruned));
      } catch (e) {
        console.error('Error saving messages to localStorage:', e);
      }
