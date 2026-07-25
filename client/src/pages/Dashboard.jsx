@@ -423,7 +423,7 @@ const Dashboard = () => {
                     height: { xs: 36, md: 40 },
                     '&:hover': { background: 'rgba(0,102,255,0.15)' }
                   }}
-                  size={ { xs: 'small', md: 'medium' }}
+                  size="small"
                   title={hideBalance ? 'Show balance' : 'Hide balance'}
                 >
                   {hideBalance ? <VisibilityOff sx={{ fontSize: { xs: 16, md: 18 }, color: 'primary.main' }} /> : <Visibility sx={{ fontSize: { xs: 16, md: 18 }, color: 'primary.main' }} />}
@@ -433,7 +433,7 @@ const Dashboard = () => {
                     <Button
                       key={period}
                       variant={selectedTimeframe === period ? 'contained' : 'outlined'}
-                      size={ { xs: 'small', md: 'small' }}
+                      size="small"
                       onClick={() => setSelectedTimeframe(period)}
                       sx={{
                         borderRadius: 2,
