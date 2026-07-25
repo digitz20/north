@@ -82,9 +82,6 @@ const Login = () => {
     } else {
       setVerificationRequired(false);
     }
-    return () => {
-      dispatch(clearError());
-    };
   }, [isAuthenticated, navigate, redirectTo, dispatch, error]);
 
   const handleEmailChange = (e) => {
