@@ -25,7 +25,7 @@ const Settings = () => {
     maxTransferAmount: 10000,
     minLoanAmount: 500,
     interestRate: 4.5,
-    supportEmail: 'support@northcrestbank.com',
+    supportEmail: 'info@northcrestbhc.com',
     supportPhone: '+1-800-555-0123'
   });
   const [loading, setLoading] = useState(false);

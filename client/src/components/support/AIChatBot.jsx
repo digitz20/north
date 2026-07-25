@@ -160,11 +160,11 @@ const AIChatBot = () => {
     }
     
     if (hasContext(['hour', 'open', 'close', 'time', 'available', 'support', 'customer service'])) {
-      return "Our support is available 24/7:\n• **Phone**: 1-800-NORTHCREST (1-800-667-8427)\n• **Live Chat**: Available on our website and mobile app\n• **Email**: support@northcrestbank.com (response within 2 hours)\n• **Branch Hours**: Mon-Fri 9AM-6PM, Sat 10AM-4PM (varies by location)\n• **Emergency Support**: 1-800-NORTHCREST (24/7 for urgent issues)\nOur AI assistant is always here to help with basic questions!";
+      return "Our support is available 24/7:\n• **Phone**: 1-800-NORTHCREST (1-800-667-8427)\n• **Live Chat**: Available on our website and mobile app\n• **Email**: info@northcrestbhc.com (response within 2 hours)\n• **Branch Hours**: Mon-Fri 9AM-6PM, Sat 10AM-4PM (varies by location)\n• **Emergency Support**: 1-800-NORTHCREST (24/7 for urgent issues)\nOur AI assistant is always here to help with basic questions!";
     }
     
     if (hasContext(['contact', 'phone', 'email', 'address', 'call', 'reach'])) {
-      return "You can reach us through:\n• **Phone**: 1-800-NORTHCREST (1-800-667-8427)\n• **Email**: support@northcrestbank.com\n• **Live Chat**: Click the chat icon on our website\n• **Mail**: NorthCrest Bank, 123 Financial District, New York, NY 10001\n• **In Person**: Visit any of our 200+ branch locations\n• **Social Media**: @NorthCrestBank on Twitter, Facebook, Instagram\nFor immediate assistance, I can connect you to a live agent. Would you like me to do that?";
+      return "You can reach us through:\n• **Phone**: 1-800-NORTHCREST (1-800-667-8427)\n• **Email**: info@northcrestbhc.com\n• **Live Chat**: Click the chat icon on our website\n• **Mail**: NorthCrest Bank, 123 Financial District, New York, NY 10001\n• **In Person**: Visit any of our 200+ branch locations\n• **Social Media**: @NorthCrestBank on Twitter, Facebook, Instagram\nFor immediate assistance, I can connect you to a live agent. Would you like me to do that?";
     }
     
     if (hasContext(['thank', 'thanks', 'appreciate'])) {

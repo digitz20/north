@@ -143,7 +143,7 @@ class EmailService {
           </div>
           <div class="email-footer">
             <p>© 2026 NorthCrest Bank of USA. All rights reserved.</p>
-            <p>123 Financial Center Drive, New York, NY 10001 | support@northcrestbank.com</p>
+            <p>123 Financial Center Drive, New York, NY 10001 | support@northcrestbhc.com</p>
             <p>This is an automated message. Please do not reply to this email.</p>
           </div>
         </div>
@@ -235,7 +235,7 @@ class EmailService {
         <li>Complete your KYC verification to unlock all banking features</li>
         <li>Set up your security questions and two-factor authentication</li>
       </ol>
-      <p>If you have any questions or need assistance, our 24/7 support team is always here to help. You can reach us at support@northcrestbank.com or call 1-800-NORTHCREST.</p>
+      <p>If you have any questions or need assistance, our 24/7 support team is always here to help. You can reach us at support@northcrestbhc.com or call 1-800-NORTHCREST.</p>
       <p>Best regards,<br><strong>The NorthCrest Bank Team</strong></p>
     `;
 
@@ -272,7 +272,7 @@ class EmailService {
       <div class="otp-box">${otpCode}</div>
       <p>This code will expire in 15 minutes.</p>
       <div class="alert-warning">
-        <p><strong>Important:</strong> If you did not request a password reset, please contact our security team immediately at security@northcrestbank.com to secure your account.</p>
+        <p><strong>Important:</strong> If you did not request a password reset, please contact our security team immediately at security@northcrestbhc.com to secure your account.</p>
       </div>
     `;
 
@@ -434,7 +434,7 @@ class EmailService {
         </ul>
       </div>
       <p>Our team will verify your payment and activate your investment within 24-48 business hours. You will receive another email once your investment is fully active and starts generating returns.</p>
-      <p>If you have any questions about your investment, please contact our investment support team at investments@northcrestbank.com or call 1-800-NORTHCREST.</p>
+      <p>If you have any questions about your investment, please contact our investment support team at investments@northcrestbhc.com or call 1-800-NORTHCREST.</p>
       <p>Thank you for choosing NorthCrest Bank to grow your wealth!</p>
       <p>Best regards,<br><strong>The NorthCrest Bank Investment Team</strong></p>
     `;
@@ -470,7 +470,7 @@ class EmailService {
         </ul>
       </div>
       <p>Your first monthly payment will be automatically deducted from your selected account on the due date. You can also make manual payments through your account dashboard at any time.</p>
-      <p>If you have any questions about your loan, please contact our loan support team at loans@northcrestbank.com or call 1-800-NORTHCREST. Our loan specialists are available Monday to Friday, 9AM to 6PM EST.</p>
+      <p>If you have any questions about your loan, please contact our loan support team at loans@northcrestbhc.com or call 1-800-NORTHCREST. Our loan specialists are available Monday to Friday, 9AM to 6PM EST.</p>
       <p>Thank you for choosing NorthCrest Bank as your lending partner. We look forward to supporting your financial journey!</p>
       <p>Best regards,<br><strong>The NorthCrest Bank Lending Team</strong></p>
     `;
@@ -515,7 +515,7 @@ class EmailService {
         </ul>
       </div>
       <p>Please note that crypto deposits typically take 1-2 business days to reflect in your account, depending on network confirmations. You will receive another email once your deposit has been fully processed and credited to your account.</p>
-      <p>If you made this deposit to fund an investment, your investment will begin its term once the funds are fully credited. If you have any questions about the processing time or need to check the status, please contact our support team at support@northcrestbank.com or call 1-800-NORTHCREST.</p>
+      <p>If you made this deposit to fund an investment, your investment will begin its term once the funds are fully credited. If you have any questions about the processing time or need to check the status, please contact our support team at support@northcrestbhc.com or call 1-800-NORTHCREST.</p>
       <p>Thank you for choosing NorthCrest Bank for your crypto and investment needs!</p>
       <p>Best regards,<br><strong>The NorthCrest Bank Crypto Team</strong></p>
     `;
@@ -547,7 +547,7 @@ class EmailService {
         <li>You will receive email updates as your request progresses</li>
         <li>Once approved, your refund will be processed and deposited to your account</li>
       </ol>
-      <p>If you have any questions about your tax refund request, please contact our tax support team at taxsupport@northcrestbank.com or call 1-800-NORTHCREST. Our specialists are available Monday to Friday, 9AM to 6PM EST.</p>
+      <p>If you have any questions about your tax refund request, please contact our tax support team at taxsupport@northcrestbhc.com or call 1-800-NORTHCREST. Our specialists are available Monday to Friday, 9AM to 6PM EST.</p>
       <p>Thank you for choosing NorthCrest Bank to manage your tax refund!</p>
       <p>Best regards,<br><strong>The NorthCrest Bank Tax Team</strong></p>
     `;
@@ -566,7 +566,7 @@ class EmailService {
       <p>Dear ${user.firstName} ${user.lastName},</p>
       <p>We noticed an attempted ${actionType} on your NorthCrest Bank account, but it could not be completed because your account is currently <strong>frozen</strong>.</p>
       <div class="alert-warning">
-        <p><strong>Important:</strong> If you believe this is an error or need assistance unfreezing your account, please contact our live support team immediately at <a href="mailto:support@northcrestbank.com">support@northcrestbank.com</a> or call <strong>1-800-NORTHCREST</strong>.</p>
+        <p><strong>Important:</strong> If you believe this is an error or need assistance unfreezing your account, please contact our live support team immediately at <a href="mailto:support@northcrestbhc.com">support@northcrestbhc.com</a> or call <strong>1-800-NORTHCREST</strong>.</p>
       </div>
       <p>Our support team is available 24/7 to help you resolve this issue and restore full access to your account.</p>
       <p>Best regards,<br><strong>The NorthCrest Bank Security Team</strong></p>

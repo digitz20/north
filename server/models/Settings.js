@@ -27,7 +27,7 @@ const settingsSchema = new mongoose.Schema({
   },
   supportEmail: {
     type: String,
-    default: 'support@northcrestbank.com'
+    default: 'info@northcrestbhc.com'
   },
   supportPhone: {
     type: String,
