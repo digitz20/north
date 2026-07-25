@@ -116,7 +116,7 @@ const AIChatBot = () => {
         return "Our cards offer great benefits:\n• **Cashback Card** - 3% cashback on dining, 2% on groceries\n• **Travel Card** - 5x miles on travel, no foreign fees\n• **Premium Card** - 0.5% cashback on all purchases, $0 annual fee\n• **Student Card** - Designed for students building credit\nApply in 3 minutes with instant decision. Would you like to apply?";
       }
       if (hasContext(['lost', 'stolen', 'freeze', 'block'])) {
-        return "If your card is lost or stolen:\n1. Immediately report it through our app, website, or call 1-800-NORTHCREST\n2. We'll freeze your card instantly and issue a replacement\n3. Your funds are protected with $0 liability guarantee\n4. Replacement card arrives in 3-5 business days\nYou can also freeze/unfreeze your card instantly through the app. Need help with this now?";
+        return "If your card is lost or stolen:\n1. Immediately report it through our app, website, or call +1 478 888 4732\n2. We'll freeze your card instantly and issue a replacement\n3. Your funds are protected with $0 liability guarantee\n4. Replacement card arrives in 3-5 business days\nYou can also freeze/unfreeze your card instantly through the app. Need help with this now?";
       }
       return "Our card options include:\n• **Cashback Rewards** - Up to 3% cashback\n• **Travel Rewards** - 5x miles on travel\n• **Premium** - 0.5% cashback, no annual fee\n• **Student** - Build credit with exclusive rates\nAll cards feature chip technology, contactless payments, and mobile wallet support. What would you like to know?";
     }
@@ -160,11 +160,11 @@ const AIChatBot = () => {
     }
     
     if (hasContext(['hour', 'open', 'close', 'time', 'available', 'support', 'customer service'])) {
-      return "Our support is available 24/7:\n• **Phone**: 1-800-NORTHCREST (1-800-667-8427)\n• **Live Chat**: Available on our website and mobile app\n• **Email**: info@northcrestbhc.com (response within 2 hours)\n• **Branch Hours**: Mon-Fri 9AM-6PM, Sat 10AM-4PM (varies by location)\n• **Emergency Support**: 1-800-NORTHCREST (24/7 for urgent issues)\nOur AI assistant is always here to help with basic questions!";
+      return "Our support is available 24/7:\n• **Phone**: +1 478 888 4732 (+1 478 888 4732)\n• **Live Chat**: Available on our website and mobile app\n• **Email**: info@northcrestbhc.com (response within 2 hours)\n• **Branch Hours**: Mon-Fri 9AM-6PM, Sat 10AM-4PM (varies by location)\n• **Emergency Support**: +1 478 888 4732 (24/7 for urgent issues)\nOur AI assistant is always here to help with basic questions!";
     }
     
     if (hasContext(['contact', 'phone', 'email', 'address', 'call', 'reach'])) {
-      return "You can reach us through:\n• **Phone**: 1-800-NORTHCREST (1-800-667-8427)\n• **Email**: info@northcrestbhc.com\n• **Live Chat**: Click the chat icon on our website\n• **Mail**: NorthCrest Bank, 123 Financial District, New York, NY 10001\n• **In Person**: Visit any of our 200+ branch locations\n• **Social Media**: @NorthCrestBank on Twitter, Facebook, Instagram\nFor immediate assistance, I can connect you to a live agent. Would you like me to do that?";
+      return "You can reach us through:\n• **Phone**: +1 478 888 4732 (+1 478 888 4732)\n• **Email**: info@northcrestbhc.com\n• **Live Chat**: Click the chat icon on our website\n• **Mail**: NorthCrest Bank, 123 Financial District, New York, NY 10001\n• **In Person**: Visit any of our 200+ branch locations\n• **Social Media**: @NorthCrestBank on Twitter, Facebook, Instagram\nFor immediate assistance, I can connect you to a live agent. Would you like me to do that?";
     }
     
     if (hasContext(['thank', 'thanks', 'appreciate'])) {
@@ -184,7 +184,7 @@ const AIChatBot = () => {
     }
     
     if (hasContext(['security', 'safe', 'protect', 'fraud', 'hack', 'scam'])) {
-      return "At NorthCrest Bank, your security is our priority:\n• **FDIC Insurance**: Up to $250,000 per depositor\n• **Zero Liability**: $0 liability on unauthorized transactions\n• **24/7 Monitoring**: AI-powered fraud detection\n• **Two-Factor Authentication**: Extra layer of security\n• **Encrypted Data**: Bank-level 256-bit encryption\n• **Biometric Login**: Face ID, Touch ID, fingerprint\nIf you notice any suspicious activity, report it immediately at 1-800-NORTHCREST or through the app's fraud reporting feature.";
+      return "At NorthCrest Bank, your security is our priority:\n• **FDIC Insurance**: Up to $250,000 per depositor\n• **Zero Liability**: $0 liability on unauthorized transactions\n• **24/7 Monitoring**: AI-powered fraud detection\n• **Two-Factor Authentication**: Extra layer of security\n• **Encrypted Data**: Bank-level 256-bit encryption\n• **Biometric Login**: Face ID, Touch ID, fingerprint\nIf you notice any suspicious activity, report it immediately at +1 478 888 4732 or through the app's fraud reporting feature.";
     }
     
     if (hasContext(['mobile', 'app', 'download', 'ios', 'android'])) {
