@@ -62,7 +62,7 @@ export const login = createAsyncThunk(
         return rejectWithValue(message);
       }
       if (status === 401) {
-        return rejectWithValue(message);
+        return rejectWithValue(message || 'Invalid credentials');
       }
       if (status === 403) {
         return rejectWithValue(message);
@@ -139,7 +139,7 @@ export const resendVerificationEmail = createAsyncThunk(
       const status = error.response?.status;
       const message = error.response?.data?.message || 'Failed to resend verification email';
       if (status === 404) {
-        return rejectWithValue('Email verification service is temporarily unavailable. Please contact support or try again later.');
+        return rejectWithValue(message || 'Email verification service is temporarily unavailable. Please contact support or try again later.');
       }
       if (status === 429) {
         return rejectWithValue('Too many requests. Please wait a few minutes before trying again.');
