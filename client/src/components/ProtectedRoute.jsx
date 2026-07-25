@@ -5,7 +5,7 @@ import { getCurrentUser } from '../store/slices/authSlice';
 import { CircularProgress, Box } from '@mui/material';
 
 const isSessionExpired = () => {
-  const sessionExpiry = localStorage.getItem('sessionExpiry');
+  const sessionExpiry = sessionStorage.getItem('sessionExpiry');
   if (!sessionExpiry) return false;
   return Date.now() > parseInt(sessionExpiry);
 };
@@ -25,15 +25,15 @@ const ProtectedRoute = ({ isAuthenticated }) => {
   const location = useLocation();
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(true);
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
   const { user } = useSelector(state => state.auth);
 
   useEffect(() => {
     const verifyAuth = async () => {
       if (isSessionExpired()) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('sessionExpiry');
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('refreshToken');
+        sessionStorage.removeItem('sessionExpiry');
         setLoading(false);
         return;
       }

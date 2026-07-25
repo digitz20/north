@@ -11,7 +11,7 @@ const api = axios.create({
 // Add request interceptor to include auth token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -37,20 +37,20 @@ api.interceptors.response.use(
       originalRequest._retry = true;
       
       try {
-        const refreshToken = localStorage.getItem('refreshToken');
+        const refreshToken = sessionStorage.getItem('refreshToken');
         if (refreshToken) {
           const response = await axios.post((import.meta.env.VITE_API_URL || 'https://established-vanny-digitz-b5fdc94b.koyeb.app') + '/api/v1/auth/refresh-token', { refreshToken });
           const { token } = response.data.data;
           
-          localStorage.setItem('token', token);
+          sessionStorage.setItem('token', token);
           originalRequest.headers.Authorization = `Bearer ${token}`;
           
           return api(originalRequest);
         }
       } catch (refreshError) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('sessionExpiry');
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('refreshToken');
+        sessionStorage.removeItem('sessionExpiry');
         window.location.href = '/';
         return Promise.reject(refreshError);
       }

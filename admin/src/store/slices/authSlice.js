@@ -4,8 +4,8 @@ import axios from '../../services/api';
 // Initial state
 const initialState = {
   user: null,
-  token: localStorage.getItem('adminToken'),
-  refreshToken: localStorage.getItem('adminRefreshToken'),
+  token: sessionStorage.getItem('adminToken'),
+  refreshToken: sessionStorage.getItem('adminRefreshToken'),
   isAuthenticated: false,
   loading: false,
   error: null,
@@ -24,8 +24,8 @@ export const login = createAsyncThunk(
         return rejectWithValue('Unauthorized: Admin access required');
       }
       
-      localStorage.setItem('adminToken', token);
-      localStorage.setItem('adminRefreshToken', refreshToken);
+      sessionStorage.setItem('adminToken', token);
+      sessionStorage.setItem('adminRefreshToken', refreshToken);
       
       return { token, refreshToken, user };
     } catch (error) {
@@ -40,11 +40,11 @@ export const logout = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       await axios.post('/auth/logout');
-      localStorage.removeItem('adminToken');
-      localStorage.removeItem('adminRefreshToken');
+      sessionStorage.removeItem('adminToken');
+      sessionStorage.removeItem('adminRefreshToken');
     } catch (error) {
-      localStorage.removeItem('adminToken');
-      localStorage.removeItem('adminRefreshToken');
+      sessionStorage.removeItem('adminToken');
+      sessionStorage.removeItem('adminRefreshToken');
       return rejectWithValue(error.response?.data?.message);
     }
   }
@@ -59,15 +59,15 @@ export const getCurrentAdmin = createAsyncThunk(
       const user = response.data.data.user;
       
       if (user.role !== 'admin' && user.role !== 'super-admin') {
-        localStorage.removeItem('adminToken');
-        localStorage.removeItem('adminRefreshToken');
+        sessionStorage.removeItem('adminToken');
+        sessionStorage.removeItem('adminRefreshToken');
         return rejectWithValue('Unauthorized: Admin access required');
       }
       
       return user;
     } catch (error) {
-      localStorage.removeItem('adminToken');
-      localStorage.removeItem('adminRefreshToken');
+      sessionStorage.removeItem('adminToken');
+      sessionStorage.removeItem('adminRefreshToken');
       return rejectWithValue(error.response?.data?.message);
     }
   }

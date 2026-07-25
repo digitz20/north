@@ -4,8 +4,8 @@ import axios from '../../services/api';
 // Initial state
 const initialState = {
   user: null,
-  token: localStorage.getItem('token'),
-  refreshToken: localStorage.getItem('refreshToken'),
+  token: sessionStorage.getItem('token'),
+  refreshToken: sessionStorage.getItem('refreshToken'),
   isAuthenticated: false,
   loading: false,
   error: null
@@ -13,16 +13,16 @@ const initialState = {
 
 // Check if session has expired
 const isSessionExpired = () => {
-  const sessionExpiry = localStorage.getItem('sessionExpiry');
+  const sessionExpiry = sessionStorage.getItem('sessionExpiry');
   if (!sessionExpiry) return false;
   return Date.now() > parseInt(sessionExpiry);
 };
 
 // Clear session data
 const clearSession = () => {
-  localStorage.removeItem('token');
-  localStorage.removeItem('refreshToken');
-  localStorage.removeItem('sessionExpiry');
+  sessionStorage.removeItem('token');
+  sessionStorage.removeItem('refreshToken');
+  sessionStorage.removeItem('sessionExpiry');
 };
 
 // Register user
@@ -46,10 +46,10 @@ export const login = createAsyncThunk(
       const response = await axios.post('/auth/login', credentials, { timeout: 15000 });
       const { token, refreshToken, user } = response.data.data;
       
-      // Store tokens in localStorage
-      localStorage.setItem('token', token);
-      localStorage.setItem('refreshToken', refreshToken);
-      localStorage.setItem('sessionExpiry', Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+      // Store tokens in sessionStorage
+      sessionStorage.setItem('token', token);
+      sessionStorage.setItem('refreshToken', refreshToken);
+      sessionStorage.setItem('sessionExpiry', Date.now() + 24 * 60 * 60 * 1000); // 24 hours
       
       return { token, refreshToken, user };
     } catch (error) {

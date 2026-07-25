@@ -33,7 +33,7 @@ function App() {
   const hasRestoredRef = useRef(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('adminToken');
+    const token = sessionStorage.getItem('adminToken');
     if (token && !hasRestoredRef.current) {
       hasRestoredRef.current = true;
       const timeout = setTimeout(() => {
