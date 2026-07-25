@@ -276,6 +276,11 @@ const SupportTickets = () => {
     return container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
   }, []);
 
+  const scrollToBottom = useCallback((behavior = 'smooth') => {
+    if (!shouldAutoScrollRef.current) return;
+    messagesEndRef.current?.scrollIntoView({ behavior });
+  }, []);
+
   const mergeMessages = (local, server) => {
     const merged = new Map();
     [...local, ...server].forEach(msg => {

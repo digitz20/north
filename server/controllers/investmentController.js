@@ -43,15 +43,7 @@ exports.getInvestments = async (req, res, next) => {
     // Update current values for active investments and ensure plan fields are present
     for (let investment of investments) {
       if (investment.status === 'active') {
-        let plan = null;
-        if (investment.plan && typeof investment.plan === 'object' && investment.plan._id) {
-          plan = await InvestmentPlan.findById(investment.plan._id);
-        }
-
-        if (!plan && investment.plan) {
-          const planIdentifier = typeof investment.plan === 'string' ? investment.plan : String(investment.plan);
-          plan = await InvestmentPlan.findOne({ name: planIdentifier });
-        }
+        const plan = investment.plan && typeof investment.plan === 'object' ? investment.plan : null;
 
         if (plan) {
           const newValue = calculateCurrentValue(investment, plan);

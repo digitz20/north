@@ -239,12 +239,42 @@ exports.deleteAccount = async (req, res, next) => {
 // @access  Private/Admin
 exports.getAdminAccounts = async (req, res, next) => {
   try {
-    const accounts = await Account.find()
-      .populate('user', 'firstName lastName email');
-    
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 20;
+    const skip = (page - 1) * limit;
+    const filters = {};
+
+    if (req.query.accountType) {
+      filters.accountType = req.query.accountType;
+    }
+
+    if (req.query.isActive !== undefined) {
+      filters.accountStatus = req.query.isActive === 'true' ? 'active' : 'inactive';
+    }
+
+    if (req.query.user) {
+      const user = await User.findOne({ email: { $regex: new RegExp(req.query.user, 'i') } }).select('_id');
+      if (user) {
+        filters.user = user._id;
+      } else {
+        filters.user = null;
+      }
+    }
+
+    const total = await Account.countDocuments(filters);
+    const accounts = await Account.find(filters)
+      .populate('user', 'firstName lastName email')
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .skip(skip);
+
     res.status(200).json({
       success: true,
       count: accounts.length,
+      total,
+      page,
+      limit,
+      pages: Math.ceil(total / limit),
       data: accounts
     });
   } catch (error) {
