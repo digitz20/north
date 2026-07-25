@@ -107,45 +107,37 @@ const LiveSupportChat = () => {
      return Array.from(merged.values()).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
    };
 
-   const MAX_CHAT_STORAGE_SIZE = 4 * 1024 * 1024;
+   const MAX_CHAT_STORAGE_SIZE = 2 * 1024 * 1024;
 
-   const pruneChatStorage = (allMessages) => {
+   const pruneChatStorage = (allMessages, keepTicketId) => {
      let serialized = JSON.stringify(allMessages);
      if (serialized.length <= MAX_CHAT_STORAGE_SIZE) return allMessages;
 
-     const pruned = { ...allMessages };
-     for (const ticketId in pruned) {
-       if (pruned[ticketId].length > 30) {
-         pruned[ticketId] = pruned[ticketId].slice(-30);
-       }
-     }
-
+     const pruned = keepTicketId ? { [keepTicketId]: (allMessages[keepTicketId] || []).slice(-50) } : {};
      serialized = JSON.stringify(pruned);
      if (serialized.length <= MAX_CHAT_STORAGE_SIZE) return pruned;
 
-     for (const ticketId in pruned) {
-       const messages = pruned[ticketId];
-       if (messages.length <= 10) continue;
-       pruned[ticketId] = messages.map((msg, idx) => {
-         if (idx < messages.length - 10 && msg.attachments?.length) {
-           const { attachments, ...rest } = msg;
-           return rest;
-         }
-         return msg;
-       });
-     }
-
-     return pruned;
+     return {};
    };
 
    const saveMessagesToStorage = (ticketId, messages) => {
      try {
        const allMessages = JSON.parse(localStorage.getItem('client_chat_messages') || '{}');
-       allMessages[ticketId] = messages.slice(-100);
-       const pruned = pruneChatStorage(allMessages);
+       allMessages[ticketId] = messages.slice(-50);
+       const pruned = pruneChatStorage(allMessages, ticketId);
        localStorage.setItem('client_chat_messages', JSON.stringify(pruned));
      } catch (e) {
-       console.error('Error saving messages to localStorage:', e);
+       if (e?.name === 'QuotaExceededError' || String(e).includes('QuotaExceededError')) {
+         try {
+           const fallback = {};
+           if (ticketId) fallback[ticketId] = (messages || []).slice(-50);
+           localStorage.setItem('client_chat_messages', JSON.stringify(fallback));
+         } catch (fallbackError) {
+           console.error('Error saving messages to localStorage after quota cleanup:', fallbackError);
+         }
+       } else {
+         console.error('Error saving messages to localStorage:', e);
+       }
      }
    };
 
