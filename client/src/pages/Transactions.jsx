@@ -75,11 +75,15 @@ const Transactions = () => {
 
   const categoryColors = {
     Shopping: '#0066FF',
-    'Food & Dining': '#00BFFF',
+    'Food & Dining': '#FF6B6B',
     Housing: '#00C896',
     Transport: '#FFC857',
-    Healthcare: '#FF6B6B',
-    Other: '#808080'
+    Healthcare: '#9333EA',
+    Entertainment: '#FF4081',
+    Utilities: '#00BFFF',
+    Education: '#FF9800',
+    Travel: '#00E5FF',
+    Other: '#78909C'
   };
 
   const categoryData = Object.entries(categorySpending).map(([name, value]) => ({
@@ -308,37 +312,95 @@ const Transactions = () => {
         </Grid>
         <Grid item xs={12} lg={4}>
           <motion.div variants={itemVariants}>
-            <PremiumCard title="Spending by Category" sx={{ height: '100%' }}>
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie
-                    data={categoryData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {categoryData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <RechartsTooltip />
-                </PieChart>
-              </ResponsiveContainer>
-              <Box sx={{ mt: 2 }}>
+            <PremiumCard title="Spending by Category" sx={{ height: '100%', background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(240,247,255,0.9) 100%)' }}>
+              <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center',
+                position: 'relative',
+                mb: 2
+              }}>
+                <ResponsiveContainer width="100%" height={220}>
+                  <PieChart>
+                    <Pie
+                      data={categoryData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={55}
+                      outerRadius={85}
+                      paddingAngle={3}
+                      dataKey="value"
+                      stroke="none"
+                    >
+                      {categoryData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip 
+                      contentStyle={{ 
+                        borderRadius: 12, 
+                        border: 'none',
+                        boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                        background: 'rgba(255,255,255,0.98)',
+                        padding: '10px 14px'
+                      }}
+                      formatter={(value, name) => [`$${value.toLocaleString()}`, name]}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                <Box sx={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  textAlign: 'center',
+                  pointerEvents: 'none'
+                }}>
+                  <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600, display: 'block', mb: 0.5 }}>Total</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f2744' }}>
+                    ${categoryData.reduce((sum, cat) => sum + cat.value, 0).toLocaleString()}
+                  </Typography>
+                </Box>
+              </Box>
+              <Box sx={{ 
+                mt: 3, 
+                p: 2, 
+                background: 'rgba(0,0,0,0.02)', 
+                borderRadius: 3,
+                border: '1px solid rgba(0,0,0,0.04)'
+              }}>
                 {categoryData.map((cat, index) => (
-                  <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  <Box 
+                    key={index} 
+                    sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      mb: index < categoryData.length - 1 ? 1.5 : 0,
+                      p: 1.5,
+                      borderRadius: 2,
+                      background: 'rgba(255,255,255,0.6)',
+                      border: '1px solid rgba(0,0,0,0.03)',
+                      transition: 'all 0.2s ease',
+                      '&:hover': {
+                        background: 'rgba(255,255,255,0.9)',
+                        transform: 'translateX(4px)',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                      }
+                    }}
+                  >
                     <Box sx={{ 
-                      width: 12, 
-                      height: 12, 
+                      width: 14, 
+                      height: 14, 
                       borderRadius: '50%', 
                       bgcolor: cat.color,
-                      mr: 2
+                      mr: 2,
+                      boxShadow: `0 0 10px ${cat.color}50`,
+                      border: `2px solid ${cat.color}30`
                     }} />
-                    <Typography variant="body2" sx={{ flex: 1 }}>{cat.name}</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>${cat.value}</Typography>
+                    <Typography variant="body2" sx={{ flex: 1, fontWeight: 600, color: '#0f2744' }}>{cat.name}</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 700, color: cat.color }}>
+                      ${cat.value.toLocaleString()}
+                    </Typography>
                   </Box>
                 ))}
               </Box>

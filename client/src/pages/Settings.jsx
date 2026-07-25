@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { getCurrentUser, updateSettings } from '../store/slices/authSlice';
 import PremiumCard from '../components/PremiumCard';
 import PremiumButton from '../components/PremiumButton';
+import { Email, Phone, Notifications, Security, ToggleOn, ToggleOff } from '@mui/icons-material';
 
 const countryCodes = [
   { code: '+1', country: 'United States' },
@@ -71,8 +72,7 @@ const Settings = () => {
     emailNotifications: true,
     smsAlerts: true,
     twoFactorAuth: false,
-    monthlyStatements: true,
-    darkMode: false
+    monthlyStatements: true
   });
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -96,8 +96,7 @@ const Settings = () => {
           emailNotifications: user.settings.emailNotifications ?? true,
           smsAlerts: user.settings.smsAlerts ?? true,
           twoFactorAuth: user.settings.twoFactorAuth ?? false,
-          monthlyStatements: user.settings.monthlyStatements ?? true,
-          darkMode: user.settings.darkMode ?? false
+          monthlyStatements: user.settings.monthlyStatements ?? true
         });
       }
     }
@@ -123,7 +122,6 @@ const Settings = () => {
     setError('');
     try {
       await dispatch(updateSettings({
-        email: formData.email,
         phone: `${formData.countryCode} ${formData.phone}`,
         settings
       })).unwrap();
@@ -184,23 +182,57 @@ const Settings = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
-          <Typography variant="h3" sx={{ 
-            fontWeight: 800, 
-            color: '#0066FF',
-            mb: 2,
-            mt: 4
-          }}>Settings</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, mt: 4 }}>
+            <Box sx={{ 
+              width: 50, 
+              height: 50, 
+              borderRadius: 3, 
+              background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 8px 20px rgba(0,102,255,0.3)'
+            }}>
+              <Security sx={{ fontSize: 28, color: 'white' }} />
+            </Box>
+            <Typography variant="h3" sx={{ 
+              fontWeight: 800, 
+              color: '#0066FF',
+              mb: 0
+            }}>Settings</Typography>
+          </Box>
         </motion.div>
 
-        {saved && <Alert severity="success" sx={{ mb: 3 }}>Settings saved successfully!</Alert>}
-        {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+        {saved && <Alert severity="success" sx={{ mb: 3, borderRadius: 3 }}>Settings saved successfully!</Alert>}
+        {error && <Alert severity="error" sx={{ mb: 3, borderRadius: 3 }}>{error}</Alert>}
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <PremiumCard title="Account Settings" subtitle="Update your account information">
+          <PremiumCard 
+            title={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Box sx={{ 
+                  width: 36, 
+                  height: 36, 
+                  borderRadius: 2, 
+                  background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <Email sx={{ fontSize: 20, color: 'white' }} />
+                </Box>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: '#0f2744' }}>Account Settings</Typography>
+                  <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 500 }}>Update your account information</Typography>
+                </Box>
+              </Box>
+            }
+            sx={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(240,247,255,0.9) 100%)' }}
+          >
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <TextField
@@ -208,7 +240,32 @@ const Settings = () => {
                   label="Email Address"
                   name="email"
                   value={formData.email}
-                  onChange={handleInputChange}
+                  InputProps={{
+                    readOnly: true,
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <Box sx={{ 
+                          px: 1, 
+                          py: 0.5, 
+                          borderRadius: 1, 
+                          background: 'rgba(0,102,255,0.1)',
+                          color: '#0066FF',
+                          fontSize: '0.75rem',
+                          fontWeight: 600
+                        }}>
+                          Locked
+                        </Box>
+                      </InputAdornment>
+                    )
+                  }}
+                  sx={{ 
+                    '& .MuiInputBase-input': { 
+                      bgcolor: 'rgba(0,0,0,0.02)',
+                      color: '#64748b',
+                      fontWeight: 500
+                    },
+                    '& .MuiInputLabel-root': { color: '#64748b' }
+                  }}
                 />
               </Grid>
               <Grid item xs={12} md={6}>
@@ -221,12 +278,21 @@ const Settings = () => {
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
+                        <Phone sx={{ color: '#0066FF', fontSize: 20 }} />
+                      </InputAdornment>
+                    ),
+                    endAdornment: (
+                      <InputAdornment position="end">
                         <TextField
                           select
                           name="countryCode"
                           value={formData.countryCode}
                           onChange={handleInputChange}
-                          sx={{ minWidth: 120, '& .MuiInputBase-input': { py: 1 } }}
+                          sx={{ 
+                            minWidth: 120, 
+                            '& .MuiInputBase-input': { py: 1, fontSize: '0.875rem', fontWeight: 600, color: '#0066FF' },
+                            '& .MuiSelect-select': { background: 'rgba(0,102,255,0.05)', borderRadius: 1 }
+                          }}
                           variant="standard"
                           size="small"
                         >
@@ -250,25 +316,124 @@ const Settings = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
         >
-          <PremiumCard title="Notifications" subtitle="Manage how you receive notifications">
+          <PremiumCard 
+            title={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Box sx={{ 
+                  width: 36, 
+                  height: 36, 
+                  borderRadius: 2, 
+                  background: 'linear-gradient(135deg, #FFC857 0%, #ffda77 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <Notifications sx={{ fontSize: 20, color: 'white' }} />
+                </Box>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: '#0f2744' }}>Notifications</Typography>
+                  <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 500 }}>Manage how you receive notifications</Typography>
+                </Box>
+              </Box>
+            }
+            sx={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,250,240,0.9) 100%)' }}
+          >
             <Grid container spacing={2}>
               <Grid item xs={12}>
-                <FormControlLabel
-                  control={<Switch checked={settings.emailNotifications} onChange={() => handleToggle('emailNotifications')} />}
-                  label="Email Notifications"
-                />
+                <Box sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'space-between',
+                  p: 2,
+                  borderRadius: 2,
+                  background: 'rgba(0,102,255,0.03)',
+                  border: '1px solid rgba(0,102,255,0.08)'
+                }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Email sx={{ color: '#0066FF', fontSize: 24 }} />
+                    <Box>
+                      <Typography variant="body1" sx={{ fontWeight: 600, color: '#0f2744' }}>Email Notifications</Typography>
+                      <Typography variant="caption" sx={{ color: '#64748b' }}>Receive updates via email</Typography>
+                    </Box>
+                  </Box>
+                  <Switch 
+                    checked={settings.emailNotifications} 
+                    onChange={() => handleToggle('emailNotifications')}
+                    sx={{ 
+                      '& .MuiSwitch-switchBase.Mui-checked': { 
+                        color: '#0066FF',
+                        '&:hover': { backgroundColor: 'rgba(0,102,255,0.08)' }
+                      },
+                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { 
+                        backgroundColor: '#0066FF' 
+                      }
+                    }}
+                  />
+                </Box>
               </Grid>
               <Grid item xs={12}>
-                <FormControlLabel
-                  control={<Switch checked={settings.smsAlerts} onChange={() => handleToggle('smsAlerts')} />}
-                  label="SMS Alerts"
-                />
+                <Box sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'space-between',
+                  p: 2,
+                  borderRadius: 2,
+                  background: 'rgba(0,200,150,0.03)',
+                  border: '1px solid rgba(0,200,150,0.08)'
+                }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Phone sx={{ color: '#00C896', fontSize: 24 }} />
+                    <Box>
+                      <Typography variant="body1" sx={{ fontWeight: 600, color: '#0f2744' }}>SMS Alerts</Typography>
+                      <Typography variant="caption" sx={{ color: '#64748b' }}>Receive updates via SMS</Typography>
+                    </Box>
+                  </Box>
+                  <Switch 
+                    checked={settings.smsAlerts} 
+                    onChange={() => handleToggle('smsAlerts')}
+                    sx={{ 
+                      '& .MuiSwitch-switchBase.Mui-checked': { 
+                        color: '#00C896',
+                        '&:hover': { backgroundColor: 'rgba(0,200,150,0.08)' }
+                      },
+                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { 
+                        backgroundColor: '#00C896' 
+                      }
+                    }}
+                  />
+                </Box>
               </Grid>
               <Grid item xs={12}>
-                <FormControlLabel
-                  control={<Switch checked={settings.monthlyStatements} onChange={() => handleToggle('monthlyStatements')} />}
-                  label="Receive Monthly Statements"
-                />
+                <Box sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'space-between',
+                  p: 2,
+                  borderRadius: 2,
+                  background: 'rgba(255,200,87,0.03)',
+                  border: '1px solid rgba(255,200,87,0.08)'
+                }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Notifications sx={{ color: '#FFC857', fontSize: 24 }} />
+                    <Box>
+                      <Typography variant="body1" sx={{ fontWeight: 600, color: '#0f2744' }}>Receive Monthly Statements</Typography>
+                      <Typography variant="caption" sx={{ color: '#64748b' }}>Get monthly account statements</Typography>
+                    </Box>
+                  </Box>
+                  <Switch 
+                    checked={settings.monthlyStatements} 
+                    onChange={() => handleToggle('monthlyStatements')}
+                    sx={{ 
+                      '& .MuiSwitch-switchBase.Mui-checked': { 
+                        color: '#FFC857',
+                        '&:hover': { backgroundColor: 'rgba(255,200,87,0.08)' }
+                      },
+                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { 
+                        backgroundColor: '#FFC857' 
+                      }
+                    }}
+                  />
+                </Box>
               </Grid>
             </Grid>
           </PremiumCard>
@@ -279,13 +444,60 @@ const Settings = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          <PremiumCard title="Security" subtitle="Manage your account security settings">
+          <PremiumCard 
+            title={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Box sx={{ 
+                  width: 36, 
+                  height: 36, 
+                  borderRadius: 2, 
+                  background: 'linear-gradient(135deg, #00C896 0%, #33d8b0 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <Security sx={{ fontSize: 20, color: 'white' }} />
+                </Box>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: '#0f2744' }}>Security</Typography>
+                  <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 500 }}>Manage your account security settings</Typography>
+                </Box>
+              </Box>
+            }
+            sx={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(240,255,247,0.9) 100%)' }}
+          >
             <Grid container spacing={2}>
               <Grid item xs={12}>
-                <FormControlLabel
-                  control={<Switch checked={settings.twoFactorAuth} onChange={() => handleToggle('twoFactorAuth')} />}
-                  label="Two-Factor Authentication"
-                />
+                <Box sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'space-between',
+                  p: 2,
+                  borderRadius: 2,
+                  background: 'rgba(255,107,107,0.03)',
+                  border: '1px solid rgba(255,107,107,0.08)'
+                }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Security sx={{ color: '#FF6B6B', fontSize: 24 }} />
+                    <Box>
+                      <Typography variant="body1" sx={{ fontWeight: 600, color: '#0f2744' }}>Two-Factor Authentication</Typography>
+                      <Typography variant="caption" sx={{ color: '#64748b' }}>Add an extra layer of security</Typography>
+                    </Box>
+                  </Box>
+                  <Switch 
+                    checked={settings.twoFactorAuth} 
+                    onChange={() => handleToggle('twoFactorAuth')}
+                    sx={{ 
+                      '& .MuiSwitch-switchBase.Mui-checked': { 
+                        color: '#FF6B6B',
+                        '&:hover': { backgroundColor: 'rgba(255,107,107,0.08)' }
+                      },
+                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { 
+                        backgroundColor: '#FF6B6B' 
+                      }
+                    }}
+                  />
+                </Box>
               </Grid>
             </Grid>
           </PremiumCard>
@@ -295,21 +507,6 @@ const Settings = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
-        >
-          <PremiumCard title="Preferences" subtitle="Customize your experience">
-            <Grid item xs={12}>
-              <FormControlLabel
-                control={<Switch checked={settings.darkMode} onChange={() => handleToggle('darkMode')} />}
-                label="Dark Mode"
-              />
-            </Grid>
-          </PremiumCard>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
         >
           <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end' }}>
             <PremiumButton

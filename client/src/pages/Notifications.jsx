@@ -145,12 +145,12 @@ const Notifications = () => {
                         )}
                       </Box>
                     }
-                    secondary={
-                      <>
-                        <Typography variant="body2" color="text.secondary">{notification.message}</Typography>
-                        <Typography variant="caption" color="text.secondary">{formatDate(notification.createdAt)}</Typography>
-                      </>
-                    }
+                     secondary={
+                       <>
+                         <Typography variant="body2" color="text.secondary" component="div">{notification.message}</Typography>
+                         <Typography variant="caption" color="text.secondary" component="div">{formatDate(notification.createdAt)}</Typography>
+                       </>
+                     }
                   />
                 </ListItem>
                 {index < notifications.length - 1 && <Divider />}

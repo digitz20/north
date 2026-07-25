@@ -84,8 +84,42 @@ const Cards = () => {
   };
 
   const cardActions = [
-    { title: 'Request New Card', icon: <Add sx={{ fontSize: 32, color: '#0066FF' }} />, color: '#0066FF', action: () => setOpen(true) },
-    { title: 'Card Settings', icon: <Security sx={{ fontSize: 32, color: '#FFC857' }} />, color: '#FFC857', action: () => navigate('/settings') },
+    { 
+      title: 'Request New Card', 
+      icon: <Add sx={{ fontSize: 28 }} />, 
+      color: '#0066FF', 
+      gradient: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
+      bgColor: 'rgba(0,102,255,0.08)',
+      borderColor: 'rgba(0,102,255,0.2)',
+      action: () => setOpen(true) 
+    },
+    { 
+      title: 'Card Settings', 
+      icon: <Security sx={{ fontSize: 28 }} />, 
+      color: '#9333EA', 
+      gradient: 'linear-gradient(135deg, #9333EA 0%, #E040FB 100%)',
+      bgColor: 'rgba(147,51,234,0.08)',
+      borderColor: 'rgba(147,51,234,0.2)',
+      action: () => navigate('/settings') 
+    },
+    { 
+      title: 'Freeze Cards', 
+      icon: <Lock sx={{ fontSize: 28 }} />, 
+      color: '#FF6B6B', 
+      gradient: 'linear-gradient(135deg, #FF6B6B 0%, #ff8e8e 100%)',
+      bgColor: 'rgba(255,107,107,0.08)',
+      borderColor: 'rgba(255,107,107,0.2)',
+      action: () => {}
+    },
+    { 
+      title: 'Card Support', 
+      icon: <CreditCard sx={{ fontSize: 28 }} />, 
+      color: '#00C896', 
+      gradient: 'linear-gradient(135deg, #00C896 0%, #33d8b0 100%)',
+      bgColor: 'rgba(0,200,150,0.08)',
+      borderColor: 'rgba(0,200,150,0.2)',
+      action: () => {}
+    },
   ];
 
   const containerVariants = {
@@ -568,29 +602,83 @@ const Cards = () => {
       {/* Quick Actions Section */}
       <motion.div variants={itemVariants}>
         <Box sx={{ mt: 10, mb: 4 }}>
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: 4, color: '#0066FF' }}>
-            Card Management
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
+            <Box sx={{ 
+              width: 40, 
+              height: 40, 
+              borderRadius: 2, 
+              background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 8px 20px rgba(0,102,255,0.3)'
+            }}>
+              <CreditCard sx={{ fontSize: 22, color: 'white' }} />
+            </Box>
+            <Typography variant="h4" sx={{ fontWeight: 700, color: '#0f2744' }}>
+              Card Management
+            </Typography>
+          </Box>
           <Grid container spacing={3}>
             {cardActions.map((action, index) => (
               <Grid item xs={12} sm={6} md={3} key={index}>
                 <motion.div
-                  whileHover={{ y: -3 }}
+                  whileHover={{ y: -8, scale: 1.03 }}
+                  whileTap={{ scale: 0.98 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <PremiumCard
+                  <Box
                     onClick={action.action}
-                    sx={{ 
-                      textAlign: 'center', 
+                    sx={{
                       cursor: 'pointer',
-                      '&:hover': { borderColor: action.color }
+                      p: 3,
+                      height: '100%',
+                      background: 'white',
+                      borderRadius: 3,
+                      border: `1px solid ${action.borderColor}`,
+                      transition: 'all 0.3s ease',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '4px',
+                        background: action.gradient,
+                        transition: 'all 0.3s ease'
+                      },
+                      '&:hover': {
+                        boxShadow: `0 20px 40px ${action.color}25`,
+                        transform: 'translateY(-4px)',
+                        '&::before': {
+                          height: '6px'
+                        }
+                      }
                     }}
-                    action={action.icon}
                   >
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                    <Box sx={{ 
+                      width: 56, 
+                      height: 56, 
+                      borderRadius: 2, 
+                      background: action.gradient,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'white',
+                      mb: 2,
+                      boxShadow: `0 8px 20px ${action.color}40`
+                    }}>
+                      {action.icon}
+                    </Box>
+                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#0f2744', mb: 1 }}>
                       {action.title}
                     </Typography>
-                  </PremiumCard>
+                    <Box sx={{ mt: 'auto', display: 'flex', alignItems: 'center', color: action.color, fontWeight: 600 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 700 }}>Get Started</Typography>
+                    </Box>
+                  </Box>
                 </motion.div>
               </Grid>
             ))}

@@ -24,7 +24,7 @@ const walletSchema = new mongoose.Schema({
   },
   monthlyDepositLimit: {
     type: Number,
-    default: 10000
+    default: 100000000
   },
   depositsThisMonth: {
     type: Number,

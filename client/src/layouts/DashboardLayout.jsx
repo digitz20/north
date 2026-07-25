@@ -148,12 +148,52 @@ const DashboardLayout = () => {
   };
 
   const drawer = (
-    <Box>
-      <Toolbar sx={{ justifyContent: 'center', py: 1 }}>
+    <Box sx={{ 
+      height: '100%', 
+      background: 'linear-gradient(180deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)',
+      position: 'relative',
+      overflow: 'hidden',
+      '&::before': {
+        content: '""',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'radial-gradient(circle at 50% 0%, rgba(0,102,255,0.15) 0%, transparent 50%)',
+        animation: 'shimmer 8s ease-in-out infinite',
+        pointerEvents: 'none'
+      },
+      '&::after': {
+        content: '""',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.03"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
+        pointerEvents: 'none',
+        opacity: 0.5
+      }
+    }}>
+      <style>
+        {`
+          @keyframes shimmer {
+            0%, 100% { opacity: 0.5; transform: translateY(0px); }
+            50% { opacity: 1; transform: translateY(-10px); }
+          }
+        `}
+      </style>
+      <Toolbar sx={{ justifyContent: 'center', py: 1, position: 'relative', zIndex: 1 }}>
         <NorthCrestLogo />
       </Toolbar>
-      <Divider />
-      <List>
+      <Divider sx={{ 
+        my: 1, 
+        mx: 2, 
+        background: 'rgba(255,255,255,0.1)',
+        borderColor: 'rgba(255,255,255,0.05)'
+      }} />
+      <List sx={{ position: 'relative', zIndex: 1 }}>
         {noBlueBgItems.map((item) => {
           const isFrozenRoute = ['/transfer', '/transfer/local', '/transfer/international', '/deposit', '/cards', '/investments', '/loans', '/beneficiaries'].includes(item.path);
           return (
@@ -174,43 +214,46 @@ const DashboardLayout = () => {
                 borderRadius: 2,
                 mb: 0.8,
                 transition: 'all 0.3s ease',
+                color: 'rgba(255,255,255,0.7)',
                 '&:hover:not(.Mui-selected)': {
-                  backgroundColor: 'rgba(0,102,255,0.08)',
-                  transform: 'translateX(4px)'
+                  backgroundColor: 'rgba(255,255,255,0.08)',
+                  transform: 'translateX(4px)',
+                  color: 'white'
                 },
                 '&.Mui-selected': {
-                  background: '#ffffff',
-                  color: '#021024',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                  background: 'linear-gradient(90deg, rgba(0,102,255,0.3) 0%, rgba(0,191,255,0.2) 100%)',
+                  color: 'white',
+                  boxShadow: '0 4px 15px rgba(0,102,255,0.3), inset 0 0 0 1px rgba(255,255,255,0.1)',
                   '& .MuiListItemIcon-root': {
-                    color: '#021024'
+                    color: 'white'
                   }
                 }
               }}
             >
-              <ListItemIcon>
+              <ListItemIcon sx={{ color: 'inherit' }}>
                 <Avatar
                   sx={{
                     width: 32,
                     height: 32,
-                    background: location.pathname === item.path ? 'transparent' : `linear-gradient(135deg, ${item.color}, ${item.color}88)`,
-                    color: location.pathname === item.path ? item.color : 'white',
-                    boxShadow: location.pathname === item.path ? 'none' : '0 4px 12px rgba(0,0,0,0.1)',
+                    background: location.pathname === item.path ? 'rgba(255,255,255,0.15)' : `linear-gradient(135deg, ${item.color}, ${item.color}88)`,
+                    color: location.pathname === item.path ? 'white' : 'white',
+                    boxShadow: location.pathname === item.path ? 'none' : '0 4px 12px rgba(0,0,0,0.3)',
                     transition: 'all 0.3s ease',
+                    border: location.pathname === item.path ? '1px solid rgba(255,255,255,0.2)' : 'none',
                     '&:hover': {
                       transform: 'scale(1.1)',
-                      boxShadow: '0 6px 16px rgba(0,0,0,0.18)'
+                      boxShadow: '0 6px 16px rgba(0,0,0,0.4)'
                     }
                   }}
                 >
                   {item.icon}
                 </Avatar>
               </ListItemIcon>
-              <Typography variant="body1" sx={{ fontWeight: location.pathname === item.path ? 600 : 400 }}>{item.text}</Typography>
+              <Typography variant="body1" sx={{ fontWeight: location.pathname === item.path ? 700 : 400, fontSize: '0.95rem' }}>{item.text}</Typography>
             </ListItem>
           );
         })}
-        <Divider sx={{ my: 1, mx: 2 }} />
+        <Divider sx={{ my: 1, mx: 2, background: 'rgba(255,255,255,0.1)' }} />
         {lightBlueBgItems.map((item) => {
           const isFrozenRoute = ['/transfer', '/transfer/local', '/transfer/international', '/deposit', '/cards', '/investments', '/loans', '/beneficiaries'].includes(item.path);
           return (
@@ -231,39 +274,42 @@ const DashboardLayout = () => {
                 borderRadius: 2,
                 mb: 0.8,
                 transition: 'all 0.3s ease',
+                color: 'rgba(255,255,255,0.7)',
                 '&:hover:not(.Mui-selected)': {
-                  backgroundColor: 'rgba(0,102,255,0.08)',
-                  transform: 'translateX(4px)'
+                  backgroundColor: 'rgba(255,255,255,0.08)',
+                  transform: 'translateX(4px)',
+                  color: 'white'
                 },
                 '&.Mui-selected': {
-                  background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
-                  color: '#0d47a1',
-                  boxShadow: '0 2px 8px rgba(13,71,161,0.15)',
+                  background: 'linear-gradient(90deg, rgba(0,102,255,0.3) 0%, rgba(0,191,255,0.2) 100%)',
+                  color: 'white',
+                  boxShadow: '0 4px 15px rgba(0,102,255,0.3), inset 0 0 0 1px rgba(255,255,255,0.1)',
                   '& .MuiListItemIcon-root': {
-                    color: '#0d47a1'
+                    color: 'white'
                   }
                 }
               }}
             >
-              <ListItemIcon>
+              <ListItemIcon sx={{ color: 'inherit' }}>
                 <Avatar
                   sx={{
                     width: 32,
                     height: 32,
-                    background: location.pathname === item.path ? 'transparent' : `linear-gradient(135deg, ${item.color}, ${item.color}88)`,
-                    color: location.pathname === item.path ? '#0d47a1' : 'white',
-                    boxShadow: location.pathname === item.path ? 'none' : '0 4px 12px rgba(0,0,0,0.1)',
+                    background: location.pathname === item.path ? 'rgba(255,255,255,0.15)' : `linear-gradient(135deg, ${item.color}, ${item.color}88)`,
+                    color: location.pathname === item.path ? 'white' : 'white',
+                    boxShadow: location.pathname === item.path ? 'none' : '0 4px 12px rgba(0,0,0,0.3)',
                     transition: 'all 0.3s ease',
+                    border: location.pathname === item.path ? '1px solid rgba(255,255,255,0.2)' : 'none',
                     '&:hover': {
                       transform: 'scale(1.1)',
-                      boxShadow: '0 6px 16px rgba(0,0,0,0.18)'
+                      boxShadow: '0 6px 16px rgba(0,0,0,0.4)'
                     }
                   }}
                 >
                   {item.icon}
                 </Avatar>
               </ListItemIcon>
-              <Typography variant="body1" sx={{ fontWeight: location.pathname === item.path ? 600 : 400 }}>{item.text}</Typography>
+              <Typography variant="body1" sx={{ fontWeight: location.pathname === item.path ? 700 : 400, fontSize: '0.95rem' }}>{item.text}</Typography>
             </ListItem>
           );
         })}
@@ -425,6 +471,8 @@ const DashboardLayout = () => {
           background: ['/dashboard', '/accounts', '/notifications', '/settings'].includes(location.pathname)
             ? 'white'
             : '#48CAE4',
+          borderTopLeftRadius: 4,
+          borderTopRightRadius: 4,
           position: 'relative',
           minHeight: '100vh',
           overflowX: 'hidden'

@@ -215,8 +215,8 @@ const Deposit = () => {
     }
     
     const destAccount = accounts.find(a => a.id === cryptoForm.destinationAccount);
-    if (destAccount && parseFloat(cryptoForm.amount) > 100000) {
-      newErrors.amount = 'Deposit amount exceeds maximum limit of $100,000';
+    if (destAccount && parseFloat(cryptoForm.amount) > 100000000) {
+      newErrors.amount = 'Deposit amount exceeds maximum limit of $100,000,000';
     }
     
     setErrors(newErrors);
@@ -415,7 +415,7 @@ const Deposit = () => {
                       onChange={(e) => setCryptoForm(prev => ({ ...prev, amount: e.target.value }))}
                       error={!!errors.amount}
                       helperText={errors.amount}
-                      InputProps={{ inputProps: { min: 10, step: 0.01, max: 100000 } }}
+                      InputProps={{ inputProps: { min: 10, step: 0.01, max: 100000000 } }}
                     />
                   </Grid>
                   <Grid item xs={12} md={6}>
