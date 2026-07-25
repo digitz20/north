@@ -15,7 +15,7 @@ export const SocketProvider = ({ children }) => {
     const createSocket = () => {
       const token = localStorage.getItem('adminToken');
       if (token && token !== 'undefined' && token !== 'null' && !socketRef.current) {
-        const socketUrl = 'https://established-vanny-digitz-b5fdc94b.koyeb.app';
+         const socketUrl = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL || 'https://established-vanny-digitz-b5fdc94b.koyeb.app';
         const newSocket = io(socketUrl, {
           auth: { token },
           query: { token },
