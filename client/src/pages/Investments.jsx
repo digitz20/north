@@ -981,9 +981,9 @@ const Investments = () => {
                     />
                   </Grid>
 
-                  {/* Our official crypto address to send payment to */}
-                  <Grid item xs={12}>
-                    <Card sx={{ p: 3, bgcolor: 'background.default' }}>
+                   {/* Our official crypto address to send payment to */}
+                   <Grid item xs={12}>
+                     <Card sx={{ p: 3, bgcolor: 'background.default', borderRadius: 3 }}>
                       <Typography variant="subtitle1" gutterBottom>
                         Send your {selectedCrypto.name} to our official address:
                       </Typography>
@@ -1046,9 +1046,9 @@ const Investments = () => {
                     />
                   </Grid>
 
-                  {/* Bank transfer details for fiat payments */}
-                  <Grid item xs={12}>
-                    <Card sx={{ p: 3, bgcolor: 'background.default' }}>
+                   {/* Bank transfer details for fiat payments */}
+                   <Grid item xs={12}>
+                     <Card sx={{ p: 3, bgcolor: 'background.default', borderRadius: 3 }}>
                       <Typography variant="subtitle1" gutterBottom>
                         Bank Transfer Details:
                       </Typography>

@@ -160,7 +160,7 @@ const Notifications = () => {
             ))}
           </List>
         ) : (
-          <Box sx={{ p: 8, textAlign: 'center' }}>
+          <Box sx={{ p: 8, textAlign: 'center', borderRadius: 3 }}>
             <NotificationsIcon sx={{ fontSize: 64, color: '#ccc', mb: 2 }} />
             <Typography variant="h6" sx={{ color: '#666' }}>No notifications</Typography>
             <Typography variant="body2" sx={{ color: '#888', mt: 1 }}>You're all caught up!</Typography>

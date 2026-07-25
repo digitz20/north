@@ -941,7 +941,7 @@ border: '1px solid rgba(0,200,150,0.1)',
               </Grid>
               
               <Grid item xs={12} md={6}>
-                <Card sx={{ p: 3, height: '100%' }}>
+                <Card sx={{ p: 3, height: '100%', borderRadius: 3 }}>
                   <Typography variant="h6" gutterBottom>Loan Summary</Typography>
                   <Box mt={2}>
                     <Typography variant="body2" display="block" sx={{ mb: 1 }}><strong>Loan Type:</strong> {selectedLoan?.type}</Typography>
@@ -1022,7 +1022,7 @@ border: '1px solid rgba(0,200,150,0.1)',
               </Grid>
               
               <Grid item xs={12}>
-                <Card sx={{ p: 3 }}>
+                <Card sx={{ p: 3, borderRadius: 3 }}>
                   <Typography variant="h6" gutterBottom>Payment Summary</Typography>
                   <Box mt={2}>
                     <Typography variant="body2" display="block" sx={{ mb: 1 }}><strong>Loan Type:</strong> {selectedLoan?.type}</Typography>
@@ -1143,7 +1143,7 @@ border: '1px solid rgba(0,200,150,0.1)',
               </Grid>
               
               <Grid item xs={12} md={6}>
-                <Card sx={{ p: 3, height: '100%' }}>
+                <Card sx={{ p: 3, height: '100%', borderRadius: 3 }}>
                   <Typography variant="h6" gutterBottom>Loan Details</Typography>
                   <Box mt={2}>
                     <Typography variant="body2" display="block" sx={{ mb: 1 }}><strong>Loan Type:</strong> {selectedLoanType?.type}</Typography>
@@ -1302,7 +1302,7 @@ border: '1px solid rgba(0,200,150,0.1)',
               </Grid>
               
               <Grid item xs={12}>
-                <Card sx={{ p: 3 }}>
+                <Card sx={{ p: 3, borderRadius: 3 }}>
                   <Typography variant="h6" gutterBottom>Application Summary</Typography>
                   <Box mt={2}>
                     <Typography variant="body2" display="block" sx={{ mb: 1 }}><strong>Loan Provider:</strong> {selectedLoanType?.type}</Typography>

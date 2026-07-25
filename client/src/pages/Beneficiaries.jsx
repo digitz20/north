@@ -164,7 +164,7 @@ const Beneficiaries = () => {
               <CircularProgress sx={{ color: '#0066FF' }} />
             </Box>
           ) : beneficiaries.length === 0 ? (
-            <Box sx={{ p: 8, textAlign: 'center' }}>
+            <Box sx={{ p: 8, textAlign: 'center', borderRadius: 3 }}>
               <Person sx={{ fontSize: 80, color: '#ccc', mb: 3 }} />
               <Typography variant="h5" sx={{ mb: 2, color: '#666' }}>No beneficiaries found</Typography>
               <Typography variant="body1" sx={{ mb: 4, color: '#888' }}>

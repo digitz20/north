@@ -146,7 +146,7 @@ const Transactions = () => {
 
   if (error) {
     return (
-      <Box sx={{ p: 5, textAlign: 'center' }}>
+      <Box sx={{ p: 5, textAlign: 'center', borderRadius: 3 }}>
         <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
         <Button variant="contained" onClick={() => dispatch(fetchTransactions())}>Retry</Button>
       </Box>
@@ -481,7 +481,7 @@ const Transactions = () => {
           {/* Transactions List */}
           <Box sx={{ p: 0 }}>
             {filteredTransactions.length === 0 ? (
-              <Box sx={{ p: 8, textAlign: 'center' }}>
+              <Box sx={{ p: 8, textAlign: 'center', borderRadius: 3 }}>
                 <CreditCard sx={{ fontSize: 64, color: '#ccc', mb: 2 }} />
                 <Typography variant="h6" sx={{ color: '#666' }}>No transactions found</Typography>
               </Box>
@@ -549,7 +549,7 @@ const Transactions = () => {
 
           {/* Load More */}
           {filteredTransactions.length > 0 && (
-            <Box sx={{ p: 3, textAlign: 'center', borderTop: '1px solid #f0f0f0' }}>
+            <Box sx={{ p: 3, textAlign: 'center', borderTop: '1px solid #f0f0f0', borderRadius: 3 }}>
               <PremiumButton variant="primary" size="large">
                 Load More Transactions
               </PremiumButton>

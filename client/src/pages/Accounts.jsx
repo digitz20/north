@@ -272,7 +272,7 @@ const Accounts = () => {
                      </Box>
                    </Box>
                 </Box>
-                <Box sx={{ p: 3, bgcolor: 'white' }}>
+                 <Box sx={{ p: 3, bgcolor: 'white', borderRadius: 3 }}>
                   <Box sx={{ display: 'flex', gap: 2 }}>
                     <PremiumButton 
                       variant="primary"
