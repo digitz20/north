@@ -89,10 +89,18 @@ const LiveSupportChat = () => {
   const ticketsCacheRef = useRef({ data: null, timestamp: 0 });
   const MIN_FETCH_INTERVAL = 500;
 
-  const getSupportedAudioMimeType = () => {
-    const types = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus', 'audio/ogg'];
-    return types.find(type => MediaRecorder.isTypeSupported(type)) || '';
-  };
+   const getSupportedAudioMimeType = () => {
+     const types = [
+       'audio/webm;codecs=opus',
+       'audio/webm',
+       'audio/mp4',
+       'audio/aac',
+       'audio/3gpp',
+       'audio/ogg;codecs=opus',
+       'audio/ogg'
+     ];
+     return types.find(type => MediaRecorder.isTypeSupported(type)) || '';
+   };
 
    const mergeMessages = (local, server) => {
      const merged = new Map();
@@ -440,7 +448,7 @@ const LiveSupportChat = () => {
       };
 
       mediaRecorder.onstop = async () => {
-        const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
+        const ext = mimeType.includes('mp4') || mimeType.includes('aac') || mimeType.includes('3gpp') ? 'mp4' : 'webm';
         const audioBlob = new Blob(audioChunksRef.current, { type: mimeType || 'audio/webm' });
         const audioFile = new File([audioBlob], `voice-message-${Date.now()}.${ext}`, { type: mimeType || 'audio/webm' });
 

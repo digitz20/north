@@ -685,7 +685,15 @@ const SupportTickets = () => {
   const startRecording = async () => {
     try {
       const mimeType = (() => {
-        const types = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus', 'audio/ogg'];
+        const types = [
+          'audio/webm;codecs=opus',
+          'audio/webm',
+          'audio/mp4',
+          'audio/aac',
+          'audio/3gpp',
+          'audio/ogg;codecs=opus',
+          'audio/ogg'
+        ];
         return types.find(type => MediaRecorder.isTypeSupported(type)) || '';
       })();
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -696,7 +704,7 @@ const SupportTickets = () => {
         if (event.data.size > 0) audioChunksRef.current.push(event.data);
       };
       mediaRecorder.onstop = async () => {
-        const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
+        const ext = mimeType.includes('mp4') || mimeType.includes('aac') || mimeType.includes('3gpp') ? 'mp4' : 'webm';
         const audioBlob = new Blob(audioChunksRef.current, { type: mimeType || 'audio/webm' });
         const audioFile = new File([audioBlob], `voice-message-${Date.now()}.${ext}`, { type: mimeType || 'audio/webm' });
         if (selectedTicket) {
