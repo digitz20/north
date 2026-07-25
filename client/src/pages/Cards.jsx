@@ -16,6 +16,7 @@ import { getUserCards, createCard, freezeCard, unfreezeCard, deleteCard } from '
 import PremiumCard from '../components/PremiumCard';
 import PremiumStatCard from '../components/PremiumStatCard';
 import PremiumButton from '../components/PremiumButton';
+import NorthCrestLogo from '../components/common/NorthCrestLogo';
 
 const Cards = () => {
   const navigate = useNavigate();
@@ -276,8 +277,9 @@ const Cards = () => {
 
       {/* Loading State */}
       {loading && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
-          <CircularProgress size={60} />
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh', flexDirection: 'column', gap: 2 }}>
+          <NorthCrestLogo variant="full" color="#0066FF" />
+          <CircularProgress size={60} sx={{ color: '#0066FF' }} />
         </Box>
       )}
 

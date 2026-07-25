@@ -19,6 +19,7 @@ import {
 import PremiumCard from '../components/PremiumCard';
 import PremiumStatCard from '../components/PremiumStatCard';
 import PremiumButton from '../components/PremiumButton';
+import NorthCrestLogo from '../components/common/NorthCrestLogo';
 
 const Transactions = () => {
   const dispatch = useDispatch();
@@ -126,7 +127,22 @@ const Transactions = () => {
     return matchesSearch && matchesFilter;
   });
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <Box sx={{ 
+        style: { minHeight: '100vh' }, 
+        background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        flexDirection: 'column',
+        gap: 2
+      }}>
+        <NorthCrestLogo variant="full" color="#0066FF" />
+        <CircularProgress sx={{ color: '#0066FF' }} />
+      </Box>
+    );
+  }
 
   if (error) {
     return (

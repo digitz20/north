@@ -51,9 +51,7 @@ const drawerWidth = 260;
 const noBlueBgItems = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard', color: '#0066FF' },
   { text: 'Accounts', icon: <AccountsIcon />, path: '/accounts', color: '#00C896' },
-  { text: 'Transactions', icon: <TransactionsIcon />, path: '/transactions', color: '#00BFFF' },
-  { text: 'Notifications', icon: <NotificationsIcon />, path: '/notifications', color: '#FF4081' },
-  { text: 'Settings', icon: <SettingsIcon />, path: '/settings', color: '#B0BEC5' }
+  { text: 'Transactions', icon: <TransactionsIcon />, path: '/transactions', color: '#00BFFF' }
 ];
 
 const lightBlueBgItems = [
@@ -61,9 +59,14 @@ const lightBlueBgItems = [
   { text: 'Deposit', icon: <DepositIcon />, path: '/deposit', color: '#FF6B6B' },
   { text: 'Cards', icon: <CardsIcon />, path: '/cards', color: '#FF9100' },
   { text: 'Investments', icon: <InvestmentsIcon />, path: '/investments', color: '#00E5FF' },
-  { text: 'Loans/IRS Taxrefund', icon: <LoansIcon />, path: '/loans', color: '#FFC857' },
-  { text: 'Beneficiaries', icon: <BeneficiariesIcon />, path: '/beneficiaries', color: '#E040FB' },
-  { text: 'Profile', icon: <ProfileIcon />, path: '/profile', color: '#64FFDA' }
+  { text: 'Loans/IRS Taxrefund', icon: <LoansIcon />, path: '/loans', color: '#FFC857' }
+];
+
+const bottomMenuItems = [
+  { text: 'Notifications', icon: <NotificationsIcon />, path: '/notifications', color: '#FF4081' },
+  { text: 'Settings', icon: <SettingsIcon />, path: '/settings', color: '#B0BEC5' },
+  { text: 'Profile', icon: <ProfileIcon />, path: '/profile', color: '#64FFDA' },
+  { text: 'Beneficiaries', icon: <BeneficiariesIcon />, path: '/beneficiaries', color: '#E040FB' }
 ];
 
 const allMenuItems = [...noBlueBgItems, ...lightBlueBgItems];
@@ -153,6 +156,8 @@ const DashboardLayout = () => {
       background: 'linear-gradient(180deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)',
       position: 'relative',
       overflow: 'hidden',
+      display: 'flex',
+      flexDirection: 'column',
       '&::before': {
         content: '""',
         position: 'absolute',
@@ -184,16 +189,36 @@ const DashboardLayout = () => {
           }
         `}
       </style>
-      <Toolbar sx={{ justifyContent: 'center', py: 1, position: 'relative', zIndex: 1 }}>
+      <Toolbar sx={{ justifyContent: 'center', py: 1, position: 'relative', zIndex: 1, flexShrink: 0 }}>
         <NorthCrestLogo />
       </Toolbar>
       <Divider sx={{ 
         my: 1, 
         mx: 2, 
         background: 'rgba(255,255,255,0.1)',
-        borderColor: 'rgba(255,255,255,0.05)'
+        borderColor: 'rgba(255,255,255,0.05)',
+        flexShrink: 0
       }} />
-      <List sx={{ position: 'relative', zIndex: 1 }}>
+      <List sx={{ 
+        position: 'relative', 
+        zIndex: 1, 
+        flex: 1, 
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        '&::-webkit-scrollbar': {
+          width: '6px',
+        },
+        '&::-webkit-scrollbar-track': {
+          background: 'rgba(255,255,255,0.05)',
+        },
+        '&::-webkit-scrollbar-thumb': {
+          background: 'rgba(255,255,255,0.2)',
+          borderRadius: '3px',
+          '&:hover': {
+            background: 'rgba(255,255,255,0.3)',
+          }
+        }
+      }}>
         {noBlueBgItems.map((item) => {
           const isFrozenRoute = ['/transfer', '/transfer/local', '/transfer/international', '/deposit', '/cards', '/investments', '/loans', '/beneficiaries'].includes(item.path);
           return (
@@ -236,7 +261,7 @@ const DashboardLayout = () => {
                     width: 32,
                     height: 32,
                     background: location.pathname === item.path ? 'rgba(255,255,255,0.15)' : `linear-gradient(135deg, ${item.color}, ${item.color}88)`,
-                    color: location.pathname === item.path ? 'white' : 'white',
+                    color: 'white',
                     boxShadow: location.pathname === item.path ? 'none' : '0 4px 12px rgba(0,0,0,0.3)',
                     transition: 'all 0.3s ease',
                     border: location.pathname === item.path ? '1px solid rgba(255,255,255,0.2)' : 'none',
@@ -296,7 +321,67 @@ const DashboardLayout = () => {
                     width: 32,
                     height: 32,
                     background: location.pathname === item.path ? 'rgba(255,255,255,0.15)' : `linear-gradient(135deg, ${item.color}, ${item.color}88)`,
-                    color: location.pathname === item.path ? 'white' : 'white',
+                    color: 'white',
+                    boxShadow: location.pathname === item.path ? 'none' : '0 4px 12px rgba(0,0,0,0.3)',
+                    transition: 'all 0.3s ease',
+                    border: location.pathname === item.path ? '1px solid rgba(255,255,255,0.2)' : 'none',
+                    '&:hover': {
+                      transform: 'scale(1.1)',
+                      boxShadow: '0 6px 16px rgba(0,0,0,0.4)'
+                    }
+                  }}
+                >
+                  {item.icon}
+                </Avatar>
+              </ListItemIcon>
+              <Typography variant="body1" sx={{ fontWeight: location.pathname === item.path ? 700 : 400, fontSize: '0.95rem' }}>{item.text}</Typography>
+            </ListItem>
+          );
+        })}
+        <Divider sx={{ my: 1, mx: 2, background: 'rgba(255,255,255,0.1)' }} />
+        {bottomMenuItems.map((item) => {
+          const isFrozenRoute = ['/transfer', '/transfer/local', '/transfer/international', '/deposit', '/cards', '/investments', '/loans', '/beneficiaries'].includes(item.path);
+          return (
+            <ListItem
+              button
+              key={item.text}
+              component={isFrozenRoute && user?.isFrozen ? 'div' : Link}
+              to={isFrozenRoute && user?.isFrozen ? undefined : item.path}
+              selected={location.pathname === item.path}
+              onClick={(e) => {
+                if (isFrozenRoute && user?.isFrozen) {
+                  e.preventDefault();
+                  setFrozenModalOpen(true);
+                }
+              }}
+              sx={{
+                mx: 1,
+                borderRadius: 2,
+                mb: 0.8,
+                transition: 'all 0.3s ease',
+                color: 'rgba(255,255,255,0.7)',
+                '&:hover:not(.Mui-selected)': {
+                  backgroundColor: 'rgba(255,255,255,0.08)',
+                  transform: 'translateX(4px)',
+                  color: 'white'
+                },
+                '&.Mui-selected': {
+                  background: 'linear-gradient(90deg, rgba(0,102,255,0.3) 0%, rgba(0,191,255,0.2) 100%)',
+                  color: 'white',
+                  boxShadow: '0 4px 15px rgba(0,102,255,0.3), inset 0 0 0 1px rgba(255,255,255,0.1)',
+                  '& .MuiListItemIcon-root': {
+                    color: 'white'
+                  }
+                }
+              }}
+            >
+              <ListItemIcon sx={{ color: 'inherit' }}>
+                <Avatar
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    background: location.pathname === item.path ? 'rgba(255,255,255,0.15)' : `linear-gradient(135deg, ${item.color}, ${item.color}88)`,
+                    color: 'white',
                     boxShadow: location.pathname === item.path ? 'none' : '0 4px 12px rgba(0,0,0,0.3)',
                     transition: 'all 0.3s ease',
                     border: location.pathname === item.path ? '1px solid rgba(255,255,255,0.2)' : 'none',
@@ -453,7 +538,12 @@ const DashboardLayout = () => {
           variant="permanent"
           sx={{
             display: { xs: 'none', sm: 'block' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth }
+            '& .MuiDrawer-paper': { 
+              boxSizing: 'border-box', 
+              width: drawerWidth,
+              height: '100vh',
+              overflow: 'hidden'
+            }
           }}
           open
         >

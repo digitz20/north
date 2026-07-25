@@ -6,6 +6,7 @@ import { Close, AttachFile, InsertDriveFile, Delete, Email as EmailIcon, CloudUp
 import { motion } from 'framer-motion';
 import { getUserLoans, getAvailableLoanTypes, applyForLoan, makeLoanPayment, submitTaxRefundRequest } from '../store/slices/loanSlice';
 import api from '../services/api';
+import NorthCrestLogo from '../components/common/NorthCrestLogo';
 
 const Loans = () => {
   const dispatch = useDispatch();
@@ -208,8 +209,9 @@ const Loans = () => {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
-        <CircularProgress />
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh', flexDirection: 'column', gap: 2 }}>
+        <NorthCrestLogo variant="full" color="#0066FF" />
+        <CircularProgress sx={{ color: '#0066FF' }} />
       </Box>
     );
   }

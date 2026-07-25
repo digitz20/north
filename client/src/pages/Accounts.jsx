@@ -6,7 +6,7 @@ import { motion, useInView } from 'framer-motion';
 import { useInView as useIntersectionInView } from 'react-intersection-observer';
 import CountUp from 'react-countup';
 import {
-  Box, Typography, Grid, Avatar, Chip, Divider, IconButton, Tooltip
+  Box, Typography, Grid, Avatar, Chip, Divider, IconButton, Tooltip, CircularProgress
 } from '@mui/material';
 import {
   CreditCard, AttachMoney, ArrowForward, Visibility, VisibilityOff, SwapHoriz,
@@ -15,6 +15,7 @@ import {
 import PremiumCard from '../components/PremiumCard';
 import PremiumStatCard from '../components/PremiumStatCard';
 import PremiumButton from '../components/PremiumButton';
+import NorthCrestLogo from '../components/common/NorthCrestLogo';
 
 const Accounts = () => {
   const dispatch = useDispatch();
@@ -65,7 +66,14 @@ const Accounts = () => {
     dispatch(fetchAccounts());
   }, [dispatch, location.pathname]);
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh', flexDirection: 'column', gap: 2 }}>
+        <NorthCrestLogo variant="full" color="#0066FF" />
+        <CircularProgress sx={{ color: '#0066FF' }} />
+      </Box>
+    );
+  }
 
   return (
     <motion.div

@@ -7,6 +7,7 @@ import { getCurrentUser, updateSettings } from '../store/slices/authSlice';
 import PremiumCard from '../components/PremiumCard';
 import PremiumButton from '../components/PremiumButton';
 import { Email, Phone, Notifications, Security, ToggleOn, ToggleOff } from '@mui/icons-material';
+import NorthCrestLogo from '../components/common/NorthCrestLogo';
 
 const countryCodes = [
   { code: '+1', country: 'United States' },
@@ -136,8 +137,9 @@ const Settings = () => {
 
   if (authLoading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
-        <CircularProgress />
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh', flexDirection: 'column', gap: 2 }}>
+        <NorthCrestLogo variant="full" color="#0066FF" />
+        <CircularProgress sx={{ color: '#0066FF' }} />
       </Box>
     );
   }

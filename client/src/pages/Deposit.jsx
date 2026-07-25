@@ -18,6 +18,7 @@ import { processCryptoDeposit } from '../store/slices/transactionSlice';
 import api from '../services/api';
 import PremiumCard from '../components/PremiumCard';
 import PremiumButton from '../components/PremiumButton';
+import NorthCrestLogo from '../components/common/NorthCrestLogo';
 
 const cryptoOptions = [
   { 
@@ -272,8 +273,9 @@ const Deposit = () => {
 
   if (authLoading || accountsLoading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
-        <CircularProgress />
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh', flexDirection: 'column', gap: 2 }}>
+        <NorthCrestLogo variant="full" color="#0066FF" />
+        <CircularProgress sx={{ color: '#0066FF' }} />
       </Box>
     );
   }

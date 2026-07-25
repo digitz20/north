@@ -304,7 +304,10 @@ const Dashboard = () => {
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          <CircularProgress size={60} sx={{ color: '#0066FF' }} />
+          <Box sx={{ textAlign: 'center' }}>
+            <NorthCrestLogo variant="full" color="#0066FF" />
+            <CircularProgress size={60} sx={{ color: '#0066FF', mt: 3 }} />
+          </Box>
         </motion.div>
       </Box>
     );
@@ -377,11 +380,8 @@ const Dashboard = () => {
         <motion.div variants={itemVariants}>
           <Box sx={{ mb: 5 }}>
             <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', md: 'center' }, mb: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-                  <NorthCrestLogo />
-                </Box>
-                <Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Box>
                   <Typography variant="h3" component="h1" sx={{ 
                     mb: 1, 
                     fontWeight: 800, 

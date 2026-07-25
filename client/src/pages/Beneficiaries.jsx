@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { fetchBeneficiaries, addBeneficiary, deleteBeneficiary } from '../store/slices/beneficiarySlice';
 import PremiumCard from '../components/PremiumCard';
 import PremiumButton from '../components/PremiumButton';
+import NorthCrestLogo from '../components/common/NorthCrestLogo';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -158,8 +159,9 @@ const Beneficiaries = () => {
         <PremiumCard title="Beneficiary List">
           {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
           {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
-              <CircularProgress />
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh', flexDirection: 'column', gap: 2 }}>
+              <NorthCrestLogo variant="full" color="#0066FF" />
+              <CircularProgress sx={{ color: '#0066FF' }} />
             </Box>
           ) : beneficiaries.length === 0 ? (
             <Box sx={{ p: 8, textAlign: 'center' }}>

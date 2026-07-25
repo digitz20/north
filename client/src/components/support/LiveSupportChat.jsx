@@ -908,7 +908,7 @@ const LiveSupportChat = () => {
                   )}
                 </Box>
             </Box>
-            <Box sx={{ display: 'flex', gap: 0.5 }}>
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
               <IconButton 
                 size="small" 
                 onClick={handleToggleMinimize}
@@ -919,7 +919,10 @@ const LiveSupportChat = () => {
               <IconButton 
                 size="small" 
                 onClick={handleClose}
-                sx={{ color: 'white', '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' } }}
+                sx={{ 
+                  color: 'white', 
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' } 
+                }}
               >
                 <CloseIcon fontSize="small" />
               </IconButton>

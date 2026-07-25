@@ -7,6 +7,7 @@ import { getNotifications, markAsRead, markAllAsRead } from '../store/slices/not
 import { motion } from 'framer-motion';
 import PremiumCard from '../components/PremiumCard';
 import PremiumButton from '../components/PremiumButton';
+import NorthCrestLogo from '../components/common/NorthCrestLogo';
 
 const Notifications = () => {
   const dispatch = useDispatch();
@@ -40,8 +41,9 @@ const Notifications = () => {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
-        <CircularProgress />
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh', flexDirection: 'column', gap: 2 }}>
+        <NorthCrestLogo variant="full" color="#0066FF" />
+        <CircularProgress sx={{ color: '#0066FF' }} />
       </Box>
     );
   }

@@ -31,7 +31,7 @@ function App() {
   const { isAuthenticated } = useSelector((state) => state.auth);
 
   return (
-    <Suspense fallback={<LoadingSpinner fullPage size={60} />}>
+    <Suspense fallback={<LoadingSpinner fullPage size={60} message="Loading NorthCrest Bank..." />}>
       <Routes>
       {/* Public landing page */}
       <Route path="/" element={!isAuthenticated ? <Landing /> : <Navigate to="/dashboard" replace />} />

@@ -16,6 +16,7 @@ import {
 import { processCryptoDeposit } from '../store/slices/transactionSlice';
 import { getCurrentUser } from '../store/slices/authSlice';
 import { fetchAccounts } from '../store/slices/accountSlice';
+import NorthCrestLogo from '../components/common/NorthCrestLogo';
 
 // New supported cryptocurrencies with your specified addresses
 const cryptoOptions = [
@@ -494,8 +495,9 @@ const Investments = () => {
 
       {/* Loading State */}
       {investmentsLoading || authLoading || accountsLoading || transactionLoading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
-          <CircularProgress size={60} />
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh', flexDirection: 'column', gap: 2 }}>
+          <NorthCrestLogo variant="full" color="#0066FF" />
+          <CircularProgress size={60} sx={{ color: '#0066FF' }} />
         </Box>
       ) : (
         <>
