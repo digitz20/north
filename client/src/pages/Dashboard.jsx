@@ -391,7 +391,7 @@ const Dashboard = () => {
                     fontSize: { xs: '2rem', md: '2.5rem' },
                     letterSpacing: '-0.02em'
                   }}>
-                    Welcome back, {user?.firstName || 'User'}!
+                     Welcome back, {user?.fullName?.split(' ')[0] || 'User'}!
                   </Typography>
                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
                      <Typography variant="body1" color="text.secondary" sx={{ 

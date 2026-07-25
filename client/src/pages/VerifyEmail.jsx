@@ -40,7 +40,7 @@ const VerifyEmail = () => {
       await dispatch(verifyEmail({ otpId, code: otpCode })).unwrap();
       setVerified(true);
     } catch (err) {
-      setError(err.message || 'Failed to verify email. Please try again.');
+      setError(typeof err === 'string' ? err : err?.message || 'Failed to verify email. Please try again.');
     } finally {
       setLoading(false);
     }
