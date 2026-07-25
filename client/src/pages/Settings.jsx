@@ -200,7 +200,7 @@ const Settings = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <PremiumCard title="Account Settings" subtitle="Update your account information" sx={{ borderRadius: 4 }}>
+          <PremiumCard title="Account Settings" subtitle="Update your account information">
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <TextField
@@ -250,7 +250,7 @@ const Settings = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
         >
-          <PremiumCard title="Notifications" subtitle="Manage how you receive notifications" sx={{ borderRadius: 4 }}>
+          <PremiumCard title="Notifications" subtitle="Manage how you receive notifications">
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <FormControlLabel
@@ -279,7 +279,7 @@ const Settings = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          <PremiumCard title="Security" subtitle="Manage your account security settings" sx={{ borderRadius: 4 }}>
+          <PremiumCard title="Security" subtitle="Manage your account security settings">
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <FormControlLabel
@@ -296,7 +296,7 @@ const Settings = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
         >
-          <PremiumCard title="Preferences" subtitle="Customize your experience" sx={{ borderRadius: 4 }}>
+          <PremiumCard title="Preferences" subtitle="Customize your experience">
             <Grid item xs={12}>
               <FormControlLabel
                 control={<Switch checked={settings.darkMode} onChange={() => handleToggle('darkMode')} />}

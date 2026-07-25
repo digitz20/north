@@ -55,9 +55,7 @@ const Transfer = () => {
             variant="h3" 
             sx={{ 
               fontWeight: 800, 
-              background: 'linear-gradient(90deg, #ffffff 0%, #00c896 30%, #00bfff 70%, #ffc857 100%)', 
-              WebkitBackgroundClip: 'text', 
-              WebkitTextFillColor: 'transparent', 
+              color: '#0066FF',
               mb: 4,
             }}
           >
@@ -86,7 +84,6 @@ const Transfer = () => {
                   backdropFilter: 'blur(20px) saturate(120%)', 
                   border: '1px solid rgba(255,255,255,0.3)',
                   boxShadow: '0 15px 50px -15px rgba(0,102,255,0.4), 0 0 0 1px rgba(255,255,255,0.1) inset',
-                  borderRadius: 4,
                   '&:hover': {
                     boxShadow: '0 25px 70px -15px rgba(0,102,255,0.5), 0 0 0 1px rgba(255,255,255,0.2) inset'
                   }
@@ -132,7 +129,6 @@ const Transfer = () => {
                   backdropFilter: 'blur(20px) saturate(120%)', 
                   border: '1px solid rgba(255,255,255,0.3)',
                   boxShadow: '0 15px 50px -15px rgba(0,200,150,0.4), 0 0 0 1px rgba(255,255,255,0.1) inset',
-                  borderRadius: 4,
                   '&:hover': {
                     boxShadow: '0 25px 70px -15px rgba(0,200,150,0.5), 0 0 0 1px rgba(255,255,255,0.2) inset'
                   }
@@ -168,9 +164,8 @@ const Transfer = () => {
           <PremiumCard sx={{ 
             mt: 6,
             textAlign: 'center',
-            background: 'linear-gradient(135deg, rgba(0,102,255,0.15) 0%, rgba(0,191,255,0.1) 100%)',
-            border: '1px solid rgba(0,102,255,0.3)', 
-            borderRadius: 4,
+            background: '#48CAE4',
+            border: '1px solid rgba(72, 202, 228, 0.5)', 
           }}>
             <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.9)', fontWeight: 500, fontSize: '1.05rem' }}>
               Secure Transaction - All transfers are encrypted and processed securely. Never share your PIN with anyone.

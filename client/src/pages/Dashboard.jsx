@@ -401,21 +401,15 @@ const Dashboard = () => {
                     }}>
                       Here's your comprehensive financial overview for {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                     </Typography>
-                    <Box sx={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      px: 1.5,
-                      py: 0.5,
-                      borderRadius: 2,
-                      background: 'rgba(0, 102, 255, 0.08)',
-                      border: '1px solid rgba(0, 102, 255, 0.15)'
-                    }}>
-                      <AccessTime sx={{ fontSize: 18, color: 'primary.main' }} />
-                      <Typography variant="body2" sx={{ fontWeight: 700, color: 'primary.main', fontFamily: 'monospace', fontSize: '1rem', letterSpacing: '0.05em' }}>
-                        {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                      </Typography>
-                    </Box>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      startIcon={<ContentCopy />}
+                      onClick={() => setWalletAddressesOpen(true)}
+                      sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)', color: 'white', '&:hover': { background: 'linear-gradient(135deg, #0052cc 0%, #0099cc 100%)' } }}
+                    >
+                      Your Wallet Addresses
+                    </Button>
                   </Box>
                 </Box>
               </Box>
@@ -563,7 +557,7 @@ const Dashboard = () => {
               mb: 5,
               background: 'rgba(255,255,255,0.75)',
               backdropFilter: 'blur(30px)',
-              borderRadius: 2,
+              borderRadius: 3,
               border: '1px solid rgba(15,39,68,0.08)',
               boxShadow: '0 20px 60px -15px rgba(0,0,0,0.1)'
             }}
@@ -626,7 +620,7 @@ const Dashboard = () => {
                   height: '100%',
                   background: 'rgba(255,255,255,0.75)',
                   backdropFilter: 'blur(30px)',
-                  borderRadius: 5,
+                  borderRadius: 3,
                   border: '1px solid rgba(15,39,68,0.08)',
                   boxShadow: '0 20px 60px -15px rgba(0,0,0,0.1)'
                 }}
@@ -698,7 +692,7 @@ const Dashboard = () => {
                   mb: 4,
                   background: 'rgba(255,255,255,0.8)',
                   backdropFilter: 'blur(20px)',
-                  borderRadius: 2,
+                  borderRadius: 3,
                   border: '1px solid rgba(0,102,255,0.1)',
                   boxShadow: '0 8px 32px rgba(0,0,0,0.05)'
                 }}
@@ -725,22 +719,10 @@ const Dashboard = () => {
                     </Box>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>
                       {hideBalance ? '••••••••' : `$${(wallet?.balance || 0).toLocaleString()}`}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ mt: 1.5 }}>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    fullWidth
-                    startIcon={<ContentCopy />}
-                    onClick={() => setWalletAddressesOpen(true)}
-                    sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)', color: 'white', '&:hover': { background: 'linear-gradient(135deg, #0052cc 0%, #0099cc 100%)' } }}
-                  >
-                    Your Wallet Addresses
-                  </Button>
-                  </Box>
-                </Box>
-              </Paper>
+                     </Typography>
+                   </Box>
+                 </Box>
+               </Paper>
             </motion.div>
 
             <motion.div variants={itemVariants}>
@@ -790,7 +772,7 @@ const Dashboard = () => {
                   p: 5,
                   background: 'rgba(255,255,255,0.8)',
                   backdropFilter: 'blur(20px)',
-                  borderRadius: 4,
+                  borderRadius: 3,
                   border: '1px solid rgba(0,102,255,0.1)',
                   boxShadow: '0 8px 32px rgba(0,0,0,0.05)'
                 }}
@@ -876,7 +858,7 @@ const Dashboard = () => {
                   height: '100%',
                   background: 'rgba(255,255,255,0.8)',
                   backdropFilter: 'blur(20px)',
-                  borderRadius: 4,
+                  borderRadius: 3,
                   border: '1px solid rgba(0,102,255,0.1)',
                   boxShadow: '0 8px 32px rgba(0,0,0,0.05)'
                 }}
@@ -939,7 +921,7 @@ const Dashboard = () => {
               p: 5,
               background: 'rgba(255,255,255,0.8)',
               backdropFilter: 'blur(20px)',
-              borderRadius: 4,
+              borderRadius: 3,
               border: '1px solid rgba(0,102,255,0.1)',
               boxShadow: '0 8px 32px rgba(0,0,0,0.05)'
             }}
