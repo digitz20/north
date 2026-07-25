@@ -15,7 +15,7 @@ const PremiumCard = ({
     <Card
       elevation={elevation}
       sx={{
-        borderRadius: 3,
+        borderRadius: 5,
         border: '1px solid rgba(15, 39, 68, 0.06)',
         boxShadow: '0 4px 20px rgba(15, 39, 68, 0.06)',
         transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',

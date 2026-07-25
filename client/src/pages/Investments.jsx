@@ -511,7 +511,7 @@ const Investments = () => {
                     p: 4,
                     background: 'linear-gradient(135deg, #0066ff 0%, #00bfff 100%)',
                     color: 'white',
-                    borderRadius: 4,
+                    borderRadius: 5,
                     position: 'relative',
                     overflow: 'hidden',
                     boxShadow: '0 25px 50px -12px rgba(0,102,255,0.4), 0 20px 40px rgba(0,0,0,0.2)',
@@ -559,7 +559,7 @@ const Investments = () => {
                       ? 'linear-gradient(135deg, #00c896 0%, #33d8b0 100%)' 
                       : 'linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%)',
                     color: 'white',
-                    borderRadius: 4,
+                    borderRadius: 5,
                     position: 'relative',
                     overflow: 'hidden',
                     boxShadow: totalCurrent >= totalInvested 
@@ -610,7 +610,7 @@ const Investments = () => {
               <Paper sx={{ 
                 p: 8, 
                 textAlign: 'center', 
-                borderRadius: 3,
+                borderRadius: 5,
                 background: 'rgba(255,255,255,0.75)',
                 backdropFilter: 'blur(30px)',
                 border: '1px solid rgba(15,39,68,0.08)',

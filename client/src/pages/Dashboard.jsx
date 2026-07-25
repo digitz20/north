@@ -279,10 +279,10 @@ const Dashboard = () => {
   ];
 
   const quickActions = [
-    { title: 'Transfer', icon: <SwapHoriz sx={{ fontSize: 32 }} />, path: '/transfer', color: '#0066FF', description: 'Send money instantly' },
-    { title: 'Deposit', icon: <ArrowDownward sx={{ fontSize: 32 }} />, path: '/transactions', color: '#00C896', description: 'Add funds to account' },
-    { title: 'Pay Bills', icon: <Payments sx={{ fontSize: 32 }} />, path: '/transactions', color: '#00BFFF', description: 'Settle your bills' },
-    { title: 'Invest', icon: <ShowChart sx={{ fontSize: 32 }} />, path: '/investments', color: '#FFC857', description: 'Grow your wealth' },
+    { title: 'Transfer', icon: <SwapHoriz sx={{ fontSize: 32 }} />, path: '/transfer', color: '#0066FF', gradient: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)', description: 'Send money instantly' },
+    { title: 'Deposit', icon: <ArrowDownward sx={{ fontSize: 32 }} />, path: '/transactions', color: '#00C896', gradient: 'linear-gradient(135deg, #00C896 0%, #33d8b0 100%)', description: 'Add funds to account' },
+    { title: 'Pay Bills', icon: <Payments sx={{ fontSize: 32 }} />, path: '/transactions', color: '#FF6B6B', gradient: 'linear-gradient(135deg, #FF6B6B 0%, #ff8e8e 100%)', description: 'Settle your bills' },
+    { title: 'Invest', icon: <ShowChart sx={{ fontSize: 32 }} />, path: '/investments', color: '#FFC857', gradient: 'linear-gradient(135deg, #FFC857 0%, #ffda77 100%)', description: 'Grow your wealth' },
   ];
 
   const securityCards = [
@@ -413,46 +413,51 @@ const Dashboard = () => {
                   </Box>
                 </Box>
               </Box>
-              <Box sx={{ display: 'flex', gap: 2, mt: { xs: 2, md: 0 }, alignItems: 'center' }}>
+              <Box sx={{ display: 'flex', gap: 2, mt: { xs: 2, md: 0 }, alignItems: 'center', flexWrap: 'wrap' }}>
                 <IconButton
                   onClick={() => setHideBalance(prev => !prev)}
                   sx={{
                     background: 'rgba(0,102,255,0.08)',
                     border: '1px solid rgba(0,102,255,0.15)',
+                    width: { xs: 36, md: 40 },
+                    height: { xs: 36, md: 40 },
                     '&:hover': { background: 'rgba(0,102,255,0.15)' }
                   }}
+                  size={ { xs: 'small', md: 'medium' }}
                   title={hideBalance ? 'Show balance' : 'Hide balance'}
                 >
-                  {hideBalance ? <VisibilityOff sx={{ fontSize: 18, color: 'primary.main' }} /> : <Visibility sx={{ fontSize: 18, color: 'primary.main' }} />}
+                  {hideBalance ? <VisibilityOff sx={{ fontSize: { xs: 16, md: 18 }, color: 'primary.main' }} /> : <Visibility sx={{ fontSize: { xs: 16, md: 18 }, color: 'primary.main' }} />}
                 </IconButton>
-                {['Today', 'Week', 'Month', 'Year'].map((period) => (
-                  <Button
-                    key={period}
-                    variant={selectedTimeframe === period ? 'contained' : 'outlined'}
-                    size="small"
-                    onClick={() => setSelectedTimeframe(period)}
-                    sx={{
-                      borderRadius: 2,
-                      px: 3.5,
-                      py: 1.2,
-                      fontWeight: 600,
-                      fontSize: '0.9rem',
-                      background: selectedTimeframe === period ? 'linear-gradient(135deg, #0066ff 0%, #00bfff 100%)' : 'transparent',
-                      borderColor: 'rgba(0,102,255,0.4)',
-                      color: selectedTimeframe === period ? 'white' : '#0066ff',
-                      boxShadow: selectedTimeframe === period ? '0 10px 25px -5px rgba(0,102,255,0.4)' : 'none',
-                      transform: selectedTimeframe === period ? 'translateY(-1px)' : 'none',
-                      '&:hover': {
-                        background: selectedTimeframe === period ? 'linear-gradient(135deg, #0052cc 0%, #0099cc 100%)' : 'rgba(0,102,255,0.06)',
-                        borderColor: selectedTimeframe === period ? 'inherit' : 'rgba(0,102,255,0.6)',
-                        transform: 'translateY(-2px)',
-                        boxShadow: selectedTimeframe === period ? '0 12px 30px -5px rgba(0,102,255,0.5)' : '0 4px 12px rgba(0,0,0,0.05)'
-                      }
-                    }}
-                  >
-                    {period}
-                  </Button>
-                ))}
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  {['Today', 'Week', 'Month', 'Year'].map((period) => (
+                    <Button
+                      key={period}
+                      variant={selectedTimeframe === period ? 'contained' : 'outlined'}
+                      size={ { xs: 'small', md: 'small' }}
+                      onClick={() => setSelectedTimeframe(period)}
+                      sx={{
+                        borderRadius: 2,
+                        px: { xs: 1.5, md: 3.5 },
+                        py: { xs: 0.5, md: 1.2 },
+                        fontWeight: 600,
+                        fontSize: { xs: '0.75rem', md: '0.9rem' },
+                        background: selectedTimeframe === period ? 'linear-gradient(135deg, #0066ff 0%, #00bfff 100%)' : 'transparent',
+                        borderColor: 'rgba(0,102,255,0.4)',
+                        color: selectedTimeframe === period ? 'white' : '#0066ff',
+                        boxShadow: selectedTimeframe === period ? '0 10px 25px -5px rgba(0,102,255,0.4)' : 'none',
+                        transform: selectedTimeframe === period ? 'translateY(-1px)' : 'none',
+                        '&:hover': {
+                          background: selectedTimeframe === period ? 'linear-gradient(135deg, #0052cc 0%, #0099cc 100%)' : 'rgba(0,102,255,0.06)',
+                          borderColor: selectedTimeframe === period ? 'inherit' : 'rgba(0,102,255,0.6)',
+                          transform: 'translateY(-2px)',
+                          boxShadow: selectedTimeframe === period ? '0 12px 30px -5px rgba(0,102,255,0.5)' : '0 4px 12px rgba(0,0,0,0.05)'
+                        }
+                      }}
+                    >
+                      {period}
+                    </Button>
+                  ))}
+                </Box>
               </Box>
             </Box>
           </Box>
@@ -557,7 +562,7 @@ const Dashboard = () => {
               mb: 5,
               background: 'rgba(255,255,255,0.75)',
               backdropFilter: 'blur(30px)',
-              borderRadius: 3,
+              borderRadius: 5,
               border: '1px solid rgba(15,39,68,0.08)',
               boxShadow: '0 20px 60px -15px rgba(0,0,0,0.1)'
             }}
@@ -588,17 +593,46 @@ const Dashboard = () => {
                         borderRadius: 3,
                         border: '1px solid rgba(0,0,0,0.05)',
                         transition: 'all 0.3s ease',
+                        position: 'relative',
+                        overflow: 'hidden',
+                        '&::before': {
+                          content: '""',
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          height: '4px',
+                          background: action.gradient,
+                          transition: 'all 0.3s ease'
+                        },
                         '&:hover': {
                           boxShadow: `0 20px 40px ${action.color}25`,
-                          borderColor: `${action.color}50`
+                          borderColor: `${action.color}50`,
+                          transform: 'translateY(-4px)',
+                          '&::before': {
+                            height: '6px'
+                          }
                         }
                       }}
                     >
-                      <Box sx={{ color: action.color, mb: 2 }}>{action.icon}</Box>
-                      <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>{action.title}</Typography>
-                      <Typography variant="body2" color="text.secondary">{action.description}</Typography>
-                      <Box sx={{ mt: 3, display: 'flex', alignItems: 'center', color: action.color }}>
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>Get Started</Typography>
+                      <Box sx={{ 
+                        width: { xs: 48, sm: 56 },
+                        height: { xs: 48, sm: 56 },
+                        borderRadius: 2,
+                        background: action.gradient,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        mb: 2,
+                        boxShadow: `0 8px 20px ${action.color}40`
+                      }}>
+                        {action.icon}
+                      </Box>
+                      <Typography variant="h6" sx={{ fontWeight: 700, mb: 1, color: '#0f2744' }}>{action.title}</Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>{action.description}</Typography>
+                      <Box sx={{ mt: 'auto', display: 'flex', alignItems: 'center', color: action.color, fontWeight: 600 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 700 }}>Get Started</Typography>
                         <ChevronRight sx={{ fontSize: 18, ml: 0.5 }} />
                       </Box>
                     </Card>
@@ -620,65 +654,110 @@ const Dashboard = () => {
                   height: '100%',
                   background: 'rgba(255,255,255,0.75)',
                   backdropFilter: 'blur(30px)',
-                  borderRadius: 3,
+                  borderRadius: 5,
                   border: '1px solid rgba(15,39,68,0.08)',
                   boxShadow: '0 20px 60px -15px rgba(0,0,0,0.1)'
                 }}
               >
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: 2, sm: 0 } }}>
                   <Box>
-                    <Typography variant="h5" sx={{ 
-                      fontWeight: 700, 
-                      background: 'linear-gradient(135deg, #0f2744 0%, #0066ff 100%)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      mb: 1,
-                      fontSize: { xs: '1.25rem', sm: '1.5rem' }
-                    }}>Financial Overview</Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+                      <Box sx={{ 
+                        width: 6, 
+                        height: 28, 
+                        borderRadius: 3, 
+                        background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
+                        boxShadow: '0 0 12px rgba(0,102,255,0.4)'
+                      }} />
+                      <Typography variant="h5" sx={{ 
+                        fontWeight: 700, 
+                        color: '#0f2744',
+                        mb: 0,
+                        fontSize: { xs: '1.25rem', sm: '1.5rem' }
+                      }}>Financial Overview</Typography>
+                    </Box>
                     <Typography variant="body2" color="text.secondary">Track your income, expenses, and savings over time</Typography>
                   </Box>
                   <IconButton sx={{ 
-                    background: 'rgba(0,102,255,0.05)',
+                    background: 'rgba(0,102,255,0.08)',
+                    border: '1px solid rgba(0,102,255,0.15)',
                     '&:hover': {
-                      background: 'rgba(0,102,255,0.1)'
+                      background: 'rgba(0,102,255,0.15)'
                     }
                   }}>
-                    <MoreHoriz />
+                    <MoreHoriz sx={{ color: '#0066FF' }} />
                   </IconButton>
                 </Box>
                 <ResponsiveContainer width="100%" height={300}>
                   <AreaChart data={monthlyData}>
                     <defs>
                       <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#00C896" stopOpacity={0.3}/>
+                        <stop offset="5%" stopColor="#00C896" stopOpacity={0.5}/>
                         <stop offset="95%" stopColor="#00C896" stopOpacity={0}/>
                       </linearGradient>
                       <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#FF6B6B" stopOpacity={0.3}/>
+                        <stop offset="5%" stopColor="#FF6B6B" stopOpacity={0.5}/>
                         <stop offset="95%" stopColor="#FF6B6B" stopOpacity={0}/>
                       </linearGradient>
                       <linearGradient id="colorSavings" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#0066FF" stopOpacity={0.3}/>
+                        <stop offset="5%" stopColor="#0066FF" stopOpacity={0.5}/>
                         <stop offset="95%" stopColor="#0066FF" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
-                    <XAxis dataKey="name" stroke="#666" />
-                    <YAxis stroke="#666" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
+                    <XAxis dataKey="name" stroke="#666" style={{ fontSize: '12px' }} />
+                    <YAxis stroke="#666" style={{ fontSize: '12px' }} />
                     <RechartsTooltip
                       contentStyle={{
-                        background: 'rgba(255,255,255,0.95)',
-                        backdropFilter: 'blur(10px)',
-                        borderRadius: 12,
-                        border: '1px solid rgba(0,102,255,0.2)',
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
+                        background: 'rgba(255,255,255,0.98)',
+                        backdropFilter: 'blur(20px)',
+                        borderRadius: 16,
+                        border: '1px solid rgba(0,102,255,0.25)',
+                        boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
+                        padding: '12px 16px'
                       }}
+                      cursor={{ stroke: 'rgba(0,102,255,0.2)', strokeWidth: 1 }}
                     />
                     <Area type="monotone" dataKey="income" stroke="#00C896" strokeWidth={3} fillOpacity={1} fill="url(#colorIncome)" />
                     <Area type="monotone" dataKey="expenses" stroke="#FF6B6B" strokeWidth={3} fillOpacity={1} fill="url(#colorExpenses)" />
                     <Area type="monotone" dataKey="savings" stroke="#0066FF" strokeWidth={3} fillOpacity={1} fill="url(#colorSavings)" />
                   </AreaChart>
                 </ResponsiveContainer>
+                <Box sx={{ 
+                  display: 'flex', 
+                  justifyContent: 'center', 
+                  gap: 3, 
+                  mt: 2,
+                  flexWrap: 'wrap'
+                }}>
+                  {[
+                    { label: 'Income', color: '#00C896', bg: 'rgba(0,200,150,0.1)' },
+                    { label: 'Expenses', color: '#FF6B6B', bg: 'rgba(255,107,107,0.1)' },
+                    { label: 'Savings', color: '#0066FF', bg: 'rgba(0,102,255,0.1)' }
+                  ].map((item) => (
+                    <Box key={item.label} sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 1,
+                      px: 2,
+                      py: 1,
+                      borderRadius: 3,
+                      background: item.bg,
+                      border: `1px solid ${item.color}30`
+                    }}>
+                      <Box sx={{ 
+                        width: 10, 
+                        height: 10, 
+                        borderRadius: '50%', 
+                        bgcolor: item.color,
+                        boxShadow: `0 0 8px ${item.color}50`
+                      }} />
+                      <Typography variant="caption" sx={{ fontWeight: 700, color: item.color, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                        {item.label}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
               </Paper>
             </motion.div>
           </Grid>
@@ -692,7 +771,7 @@ const Dashboard = () => {
                   mb: 4,
                   background: 'rgba(255,255,255,0.8)',
                   backdropFilter: 'blur(20px)',
-                  borderRadius: 3,
+                  borderRadius: 5,
                   border: '1px solid rgba(0,102,255,0.1)',
                   boxShadow: '0 8px 32px rgba(0,0,0,0.05)'
                 }}
@@ -772,7 +851,7 @@ const Dashboard = () => {
                   p: 5,
                   background: 'rgba(255,255,255,0.8)',
                   backdropFilter: 'blur(20px)',
-                  borderRadius: 3,
+                  borderRadius: 5,
                   border: '1px solid rgba(0,102,255,0.1)',
                   boxShadow: '0 8px 32px rgba(0,0,0,0.05)'
                 }}
@@ -858,7 +937,7 @@ const Dashboard = () => {
                   height: '100%',
                   background: 'rgba(255,255,255,0.8)',
                   backdropFilter: 'blur(20px)',
-                  borderRadius: 3,
+                  borderRadius: 5,
                   border: '1px solid rgba(0,102,255,0.1)',
                   boxShadow: '0 8px 32px rgba(0,0,0,0.05)'
                 }}
@@ -887,21 +966,31 @@ const Dashboard = () => {
                 </ResponsiveContainer>
                 <Box sx={{ mt: 3 }}>
                   {spendingByCategory.map((category, index) => (
-                    <Box key={category.name} sx={{ mb: 2 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 500 }}>{category.name}</Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>{category.value}%</Typography>
+                    <Box key={category.name} sx={{ mb: 2.5 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                          <Box sx={{ 
+                            width: 12, 
+                            height: 12, 
+                            borderRadius: '50%', 
+                            bgcolor: category.fill,
+                            boxShadow: `0 0 8px ${category.fill}40`
+                          }} />
+                          <Typography variant="body2" sx={{ fontWeight: 600, color: '#021024' }}>{category.name}</Typography>
+                        </Box>
+                        <Typography variant="body2" sx={{ fontWeight: 700, color: category.fill }}>{category.value}%</Typography>
                       </Box>
                       <LinearProgress
                         variant="determinate"
                         value={category.value}
                         sx={{
-                          height: 8,
-                          borderRadius: 4,
+                          height: 10,
+                          borderRadius: 5,
                           bgcolor: 'rgba(0,0,0,0.05)',
                           '& .MuiLinearProgress-bar': {
                             bgcolor: category.fill,
-                            borderRadius: 4
+                            borderRadius: 5,
+                            boxShadow: `0 2px 8px ${category.fill}50`
                           }
                         }}
                       />
@@ -921,7 +1010,7 @@ const Dashboard = () => {
               p: 5,
               background: 'rgba(255,255,255,0.8)',
               backdropFilter: 'blur(20px)',
-              borderRadius: 3,
+              borderRadius: 5,
               border: '1px solid rgba(0,102,255,0.1)',
               boxShadow: '0 8px 32px rgba(0,0,0,0.05)'
             }}

@@ -249,25 +249,53 @@ const Cards = () => {
 
       {/* Cards Grid - only show when not loading */}
       {!loading && (
-        <Grid container spacing={5} ref={ref}>
+        <Grid container spacing={4} ref={ref}>
           {cards.length === 0 ? (
             <Grid item xs={12}>
-              <PremiumCard sx={{ p: 6, textAlign: 'center' }}>
-                <CreditCard sx={{ fontSize: 80, color: '#ccc', mb: 3 }} />
-                <Typography variant="h5" sx={{ mb: 2, color: '#666' }}>No cards found</Typography>
-                <Typography variant="body1" sx={{ mb: 4, color: '#888' }}>You don't have any cards yet. Request your first card to get started!</Typography>
-                <PremiumButton variant="primary" startIcon={<Add />} onClick={handleClickOpen}>
-                  Request Your First Card
-                </PremiumButton>
-              </PremiumCard>
+              <motion.div variants={itemVariants}>
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 6,
+                    textAlign: 'center',
+                    borderRadius: 5,
+                    background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(240,247,255,0.85) 100%)',
+                    backdropFilter: 'blur(30px)',
+                    border: '1px solid rgba(0,102,255,0.1)',
+                    boxShadow: '0 20px 60px -15px rgba(0,0,0,0.1)'
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 100,
+                      height: 100,
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      margin: '0 auto',
+                      mb: 3,
+                      boxShadow: '0 15px 35px -8px rgba(0,102,255,0.4)'
+                    }}
+                  >
+                    <CreditCard sx={{ fontSize: 50, color: 'white' }} />
+                  </Box>
+                  <Typography variant="h4" sx={{ fontWeight: 700, mb: 2, color: '#0f2744' }}>No cards found</Typography>
+                  <Typography variant="body1" sx={{ mb: 4, color: '#64748b', maxWidth: 400, margin: '0 auto 24px' }}>You don't have any cards yet. Request your first card to get started with secure payments!</Typography>
+                  <PremiumButton variant="primary" startIcon={<Add />} onClick={handleClickOpen} sx={{ px: 4, py: 1.5, borderRadius: 3 }}>
+                    Request Your First Card
+                  </PremiumButton>
+                </Paper>
+              </motion.div>
             </Grid>
           ) : (
             cards.map((card, index) => (
               <Grid item xs={12} md={6} key={card.id}>
                 <motion.div
                   variants={itemVariants}
-                  whileHover={{ y: -3 }}
-                  transition={{ duration: 0.2 }}
+                  whileHover={{ y: -5, scale: 1.01 }}
+                  transition={{ duration: 0.3 }}
                   style={{ perspective: 1000 }}
                 >
                   <Box
@@ -284,11 +312,12 @@ const Cards = () => {
                       elevation={0}
                       sx={{
                         p: 0,
-                        height: 320,
-                        borderRadius: 4,
+                        height: 340,
+                        borderRadius: 5,
                         overflow: 'hidden',
-                        boxShadow: '0 30px 60px rgba(0,0,0,0.2)',
-                        backfaceVisibility: 'hidden'
+                        boxShadow: '0 30px 60px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.1) inset',
+                        backfaceVisibility: 'hidden',
+                        position: 'relative'
                       }}
                     >
                       <Box sx={{ 
@@ -301,27 +330,37 @@ const Cards = () => {
                       }}>
                         <Box sx={{
                           position: 'absolute',
-                          top: -40,
-                          right: -40,
-                          width: 160,
-                          height: 160,
+                          top: -60,
+                          right: -60,
+                          width: 220,
+                          height: 220,
                           borderRadius: '50%',
-                          background: 'rgba(255,255,255,0.1)',
+                          background: 'rgba(255,255,255,0.12)',
                         }} />
                         <Box sx={{
                           position: 'absolute',
-                          bottom: -60,
-                          left: -60,
-                          width: 180,
-                          height: 180,
+                          bottom: -80,
+                          left: -80,
+                          width: 240,
+                          height: 240,
                           borderRadius: '50%',
                           background: 'rgba(255,255,255,0.08)',
+                        }} />
+                        <Box sx={{
+                          position: 'absolute',
+                          top: '50%',
+                          left: '50%',
+                          transform: 'translate(-50%, -50%)',
+                          width: 300,
+                          height: 300,
+                          borderRadius: '50%',
+                          background: 'rgba(255,255,255,0.03)',
                         }} />
                         
                         <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative', zIndex: 2 }}>
                           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                             <Box>
-                              <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
+                              <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5, textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                                 {card.type}
                               </Typography>
                               <Chip 
@@ -330,33 +369,40 @@ const Cards = () => {
                                 sx={{ 
                                   bgcolor: card.status === 'Active' ? 'rgba(0,200,150,0.9)' : 'rgba(255,107,107,0.9)', 
                                   color: 'white',
-                                  fontWeight: 600
+                                  fontWeight: 600,
+                                  backdropFilter: 'blur(10px)',
+                                  border: '1px solid rgba(255,255,255,0.2)'
                                 }} 
                               />
                             </Box>
                             <Box sx={{ textAlign: 'right' }}>
-                              <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: 2, opacity: 0.9 }}>
+                              <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: 2, opacity: 0.9, textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                                 {card.network}
                               </Typography>
-                              <Avatar sx={{ 
-                                bgcolor: 'rgba(255,255,255,0.2)', 
-                                width: 48, 
-                                height: 32,
+                              <Box sx={{ 
+                                bgcolor: 'rgba(255,255,255,0.15)', 
+                                backdropFilter: 'blur(10px)',
+                                border: '1px solid rgba(255,255,255,0.2)',
+                                borderRadius: 1,
+                                px: 1.5,
+                                py: 0.5,
                                 ml: 'auto',
-                                mt: 1
+                                mt: 1,
+                                display: 'inline-block'
                               }}>
-                                <CreditCard />
-                              </Avatar>
+                                <CreditCard sx={{ fontSize: 24 }} />
+                              </Box>
                             </Box>
                           </Box>
-                          
+                           
                            <Box>
                              {detailsHidden[card.id] !== false ? (
                                <Typography variant="h4" sx={{ 
                                  fontWeight: 600, 
                                  letterSpacing: 3,
                                  mb: 3,
-                                 color: 'rgba(255,255,255,0.7)'
+                                 color: 'rgba(255,255,255,0.7)',
+                                 textShadow: '0 2px 4px rgba(0,0,0,0.1)'
                                }}>
                                  •••• •••• •••• ••••
                                </Typography>
@@ -364,7 +410,8 @@ const Cards = () => {
                                <Typography variant="h4" sx={{ 
                                  fontWeight: 600, 
                                  letterSpacing: 3,
-                                 mb: 3
+                                 mb: 3,
+                                 textShadow: '0 2px 4px rgba(0,0,0,0.1)'
                                }}>
                                  {card.maskedNumber}
                                </Typography>
@@ -384,11 +431,11 @@ const Cards = () => {
                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                                  <Box>
                                    <Typography variant="body2" sx={{ opacity: 0.7, mb: 0.5 }}>Card Holder</Typography>
-                                   <Typography variant="h6" sx={{ fontWeight: 600 }}>{card.holder}</Typography>
+                                   <Typography variant="h6" sx={{ fontWeight: 600, textShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>{card.holder}</Typography>
                                  </Box>
                                  <Box sx={{ textAlign: 'right' }}>
                                    <Typography variant="body2" sx={{ opacity: 0.7, mb: 0.5 }}>Expires</Typography>
-                                   <Typography variant="h6" sx={{ fontWeight: 600 }}>{card.expiry}</Typography>
+                                   <Typography variant="h6" sx={{ fontWeight: 600, textShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>{card.expiry}</Typography>
                                  </Box>
                                </Box>
                              )}
@@ -405,10 +452,10 @@ const Cards = () => {
                         top: 0,
                         left: 0,
                         width: '100%',
-                        height: 320,
-                        borderRadius: 4,
+                        height: 340,
+                        borderRadius: 5,
                         overflow: 'hidden',
-                        boxShadow: '0 30px 60px rgba(0,0,0,0.2)',
+                        boxShadow: '0 30px 60px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.1) inset',
                         backfaceVisibility: 'hidden',
                         transform: 'rotateY(180deg)'
                       }}
@@ -421,22 +468,32 @@ const Cards = () => {
                         position: 'relative',
                         overflow: 'hidden'
                       }}>
-                        <Box sx={{ width: '100%', height: 50, bgcolor: 'rgba(0,0,0,0.4)', mt: 2 }} />
-                        <Box sx={{ mt: 3, textAlign: 'right' }}>
+                        <Box sx={{
+                          position: 'absolute',
+                          top: -40,
+                          right: -40,
+                          width: 180,
+                          height: 180,
+                          borderRadius: '50%',
+                          background: 'rgba(255,255,255,0.1)',
+                        }} />
+                        <Box sx={{ width: '100%', height: 55, bgcolor: 'rgba(0,0,0,0.4)', mt: 4, borderRadius: 1 }} />
+                        <Box sx={{ mt: 4, textAlign: 'right' }}>
                           <Typography variant="body2" sx={{ opacity: 0.7, mb: 1 }}>CVV</Typography>
                           <Box sx={{ 
                             bgcolor: 'white', 
                             color: '#333',
-                            p: 1, 
-                            px: 2, 
-                            borderRadius: 1,
-                            display: 'inline-block'
+                            p: 1.5, 
+                            px: 3, 
+                            borderRadius: 2,
+                            display: 'inline-block',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                           }}>
                             <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: 3 }}>{card.cvv}</Typography>
                           </Box>
                         </Box>
-                        <Box sx={{ mt: 4 }}>
-                          <Typography variant="body1" sx={{ opacity: 0.8, fontStyle: 'italic' }}>
+                        <Box sx={{ mt: 5 }}>
+                          <Typography variant="body1" sx={{ opacity: 0.8, fontStyle: 'italic', lineHeight: 1.6 }}>
                             "This card is the property of NorthCrest Bank. Unauthorized use is prohibited."
                           </Typography>
                         </Box>
@@ -445,7 +502,7 @@ const Cards = () => {
                   </Box>
 
                   {/* Card Actions */}
-                  <Box sx={{ mt: 3, display: 'flex', gap: 2, justifyContent: 'center' }}>
+                  <Box sx={{ mt: 4, display: 'flex', gap: 2, justifyContent: 'center' }}>
                     <Tooltip title={detailsHidden[card.id] ? "Show Card Details" : "Hide Card Details"}>
                       <IconButton 
                         onClick={(e) => {
@@ -458,7 +515,9 @@ const Cards = () => {
                         sx={{ 
                           bgcolor: 'rgba(0,102,255,0.1)', 
                           color: '#0066FF',
-                          '&:hover': { bgcolor: 'rgba(0,102,255,0.2)' }
+                          border: '1px solid rgba(0,102,255,0.2)',
+                          '&:hover': { bgcolor: 'rgba(0,102,255,0.2)', transform: 'translateY(-2px)' },
+                          transition: 'all 0.2s ease'
                         }}>
                         {(detailsHidden[card.id] !== false) ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
@@ -472,7 +531,12 @@ const Cards = () => {
                         sx={{ 
                           bgcolor: card.status === 'Active' ? 'rgba(255,107,107,0.1)' : 'rgba(0,200,150,0.1)', 
                           color: card.status === 'Active' ? '#FF6B6B' : '#00C896',
-                          '&:hover': { bgcolor: card.status === 'Active' ? 'rgba(255,107,107,0.2)' : 'rgba(0,200,150,0.2)' }
+                          border: `1px solid ${card.status === 'Active' ? 'rgba(255,107,107,0.2)' : 'rgba(0,200,150,0.2)'}`,
+                          '&:hover': { 
+                            bgcolor: card.status === 'Active' ? 'rgba(255,107,107,0.2)' : 'rgba(0,200,150,0.2)',
+                            transform: 'translateY(-2px)'
+                          },
+                          transition: 'all 0.2s ease'
                         }}>
                         <Lock />
                       </IconButton>
@@ -486,7 +550,9 @@ const Cards = () => {
                         sx={{ 
                           bgcolor: 'rgba(255,152,0,0.1)', 
                           color: '#FF9800',
-                          '&:hover': { bgcolor: 'rgba(255,152,0,0.2)' }
+                          border: '1px solid rgba(255,152,0,0.2)',
+                          '&:hover': { bgcolor: 'rgba(255,152,0,0.2)', transform: 'translateY(-2px)' },
+                          transition: 'all 0.2s ease'
                         }}>
                         <Delete />
                       </IconButton>

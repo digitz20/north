@@ -349,7 +349,7 @@ const Deposit = () => {
         >
           <Paper sx={{ 
             p: { xs: 3, md: 5 },
-            borderRadius: 3,
+            borderRadius: 5,
             background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(240,245,255,0.9) 100%)',
             backdropFilter: 'blur(40px) saturate(180%)',
             border: '1px solid rgba(255,255,255,0.3)',
