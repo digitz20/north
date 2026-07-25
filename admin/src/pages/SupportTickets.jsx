@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import {
   Box,
   Typography,
@@ -57,6 +57,176 @@ import StopIcon from '@mui/icons-material/Stop';
 import api from '../services/api';
 import { useSocket } from '../contexts/SocketContext';
 
+const getMessageTime = (dateStr) => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+};
+
+const getMessageStatus = (message, currentUserId) => {
+  if (!currentUserId) return null;
+  const messageUserId = message.sender?._id || message.sender;
+  const isOwn = messageUserId?.toString?.() === currentUserId?.toString?.();
+  if (!isOwn) return null;
+
+  const isRead = message.readBy?.some(read => {
+    const readUserId = read.user?._id || read.user;
+    return readUserId?.toString?.() === currentUserId?.toString?.();
+  });
+
+  if (isRead) {
+    return <DoneAllIcon fontSize="small" sx={{ fontSize: 14, color: '#4ade80' }} />;
+  }
+  return <CheckIcon fontSize="small" sx={{ fontSize: 14, opacity: 0.7 }} />;
+};
+
+const MessageBubble = memo(function MessageBubble({ msg, user, editingMessageId, selectedTicketId, onEdit, onDelete, onImageClick, editInputRef, handleEditMessage }) {
+  const senderId = msg.sender?._id || msg.sender;
+  const isOwn = senderId?.toString?.() === user?._id?.toString?.();
+  const messageTime = getMessageTime(msg.createdAt || msg.timestamp);
+  const statusIcon = getMessageStatus(msg, user?._id);
+
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        justifyContent: isOwn ? 'flex-end' : 'flex-start',
+        mb: { xs: 1, sm: 2 }
+      }}
+    >
+      <Box
+        sx={{
+          maxWidth: { xs: '85%', sm: '70%' },
+          position: 'relative',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: isOwn ? 'flex-end' : 'flex-start'
+        }}
+      >
+        <Box
+          sx={{
+            p: { xs: 1.25, sm: 2 },
+            borderRadius: 2,
+            bgcolor: isOwn ? '#0066ff' : 'white',
+            color: isOwn ? 'white' : 'text.primary',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+          }}
+        >
+          {editingMessageId === msg._id ? (
+            <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column' }}>
+              <TextField
+                inputRef={editInputRef}
+                fullWidth
+                size="small"
+                defaultValue={msg.message}
+                onKeyPress={(e) => e.key === 'Enter' && handleEditMessage(selectedTicketId, msg._id, editInputRef.current?.value || msg.message)}
+                sx={{ bgcolor: 'white', borderRadius: 1 }}
+              />
+              <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+                <Button size="small" onClick={() => {
+                  handleEditMessage(selectedTicketId, msg._id, editInputRef.current?.value || msg.message);
+                  onEdit(null);
+                }}>Save</Button>
+                <Button size="small" onClick={() => onEdit(null)}>Cancel</Button>
+              </Box>
+            </Box>
+          ) : (
+            <>
+              {msg.attachments && msg.attachments.length > 0 && (
+                <Box sx={{ mb: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  {msg.attachments.map((attachment, attIndex) => (
+                    <Box key={attIndex}>
+                      {attachment.url && (
+                        <>
+                          {(() => {
+                            const url = attachment.url;
+                            const lower = url.toLowerCase();
+                            if (lower.startsWith('data:image/') || lower.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
+                              return (
+                                <Box component="img" src={url} alt={attachment.name}
+                                  sx={{ maxWidth: '100%', maxHeight: 200, borderRadius: 1, mt: 1, cursor: 'pointer', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)' } }}
+                                  onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); onImageClick(url); }} />
+                              );
+                            }
+                            if (lower.startsWith('data:audio/') || lower.match(/\.(mp3|wav|ogg|webm)$/i)) {
+                              return (
+                                <Box sx={{ mt: 1 }}>
+                                  <audio controls src={url} style={{ maxWidth: '100%', height: 40 }} />
+                                </Box>
+                              );
+                            }
+                            if (lower.startsWith('data:') || lower.startsWith('blob:')) {
+                              const mime = lower.match(/^data:([^;]+)/)?.[1] || lower.match(/^blob:([^;]+)/)?.[1];
+                              if (mime?.startsWith('image/')) {
+                                return (
+                                  <Box component="img" src={url} alt={attachment.name}
+                                    sx={{ maxWidth: '100%', maxHeight: 200, borderRadius: 1, mt: 1, cursor: 'pointer', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)' } }}
+                                    onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); onImageClick(url); }} />
+                                );
+                              }
+                              if (mime?.startsWith('audio/')) {
+                                return (
+                                  <Box sx={{ mt: 1 }}>
+                                    <audio controls src={url} style={{ maxWidth: '100%', height: 40 }} />
+                                  </Box>
+                                );
+                              }
+                              if (mime?.startsWith('video/')) {
+                                return (
+                                  <Box sx={{ mt: 1 }}>
+                                    <video controls src={url} style={{ maxWidth: '100%', height: 200, borderRadius: 1 }} />
+                                  </Box>
+                                );
+                              }
+                              return (
+                                <Box sx={{ mt: 1 }}>
+                                  <a href={url} download={attachment.name} style={{ color: 'inherit' }}>📎 {attachment.name || 'Download file'}</a>
+                                </Box>
+                              );
+                            }
+                            return (
+                              <Box sx={{ mt: 1 }}>
+                                <a href={url} target="_blank" rel="noopener noreferrer">📎 {attachment.name || 'Open file'}</a>
+                              </Box>
+                            );
+                          })()}
+                        </>
+                      )}
+                    </Box>
+                  ))}
+                </Box>
+              )}
+              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
+                  {msg.message}
+                  {msg.edited && <Typography component="span" variant="caption" sx={{ opacity: 0.7, ml: 0.5 }}>(edited)</Typography>}
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, justifyContent: isOwn ? 'flex-end' : 'flex-start', mt: 0.5 }}>
+                  <Typography variant="caption" sx={{ opacity: 0.7 }}>{messageTime}</Typography>
+                  {isOwn ? (
+                    <Box sx={{ display: 'flex', gap: 0.5 }}>
+                      <IconButton size="small" sx={{ padding: 0, minWidth: 24, height: 24 }} onClick={() => onEdit(msg._id)}>
+                        <EditIcon fontSize="small" sx={{ fontSize: 14, opacity: 0.7 }} />
+                      </IconButton>
+                      <IconButton size="small" sx={{ padding: 0, minWidth: 24, height: 24 }} onClick={() => onDelete(selectedTicketId, msg._id)}>
+                        <DeleteIcon fontSize="small" sx={{ fontSize: 14, opacity: 0.7 }} />
+                      </IconButton>
+                      {statusIcon}
+                    </Box>
+                  ) : (
+                    <Box />
+                  )}
+                </Box>
+              </Box>
+            </>
+          )}
+        </Box>
+      </Box>
+    </Box>
+  );
+});
+
 const SupportTickets = () => {
   const location = useLocation();
   const { user } = useSelector(state => state.auth);
@@ -97,16 +267,14 @@ const SupportTickets = () => {
   const [pendingImage, setPendingImage] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
 
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, []);
+  const shouldAutoScrollRef = useRef(true);
 
-  const getMessageTime = (dateStr) => {
-    if (!dateStr) return '';
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return '';
-    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
+  const checkShouldAutoScroll = useCallback(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return true;
+    const threshold = 100;
+    return container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
+  }, []);
 
   const mergeMessages = (local, server) => {
     const merged = new Map();
@@ -352,10 +520,23 @@ const SupportTickets = () => {
   }, [socket, scrollToBottom]);
 
   useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    const handleScroll = () => {
+      shouldAutoScrollRef.current = checkShouldAutoScroll();
+    };
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [checkShouldAutoScroll]);
+
+  useEffect(() => {
     if (selectedTicket && ticketMessages[selectedTicket._id]) {
-      scrollToBottom();
+      shouldAutoScrollRef.current = checkShouldAutoScroll();
+      if (shouldAutoScrollRef.current) {
+        scrollToBottom('auto');
+      }
     }
-  }, [ticketMessages, selectedTicket, scrollToBottom]);
+  }, [ticketMessages, selectedTicket, scrollToBottom, checkShouldAutoScroll]);
 
   const handleDeleteMessage = useCallback(async (ticketId, messageId) => {
     try {
@@ -582,12 +763,18 @@ const SupportTickets = () => {
     setIsRecording(false);
     setPendingImage(null);
     
-    setTicketMessages(prev => ({
-      ...prev,
-      [ticket._id]: prev[ticket._id] || ticket.messages || []
-    }));
+    joinChat(ticket._id);
     
-    if (!ticketMessages[ticket._id]) {
+    setTicketMessages(prev => {
+      const existing = prev[ticket._id] || ticket.messages || [];
+      if (existing.length > 0) {
+        return { ...prev, [ticket._id]: existing };
+      }
+      return prev;
+    });
+    
+    const cachedMessages = ticketMessages[ticket._id];
+    if (!cachedMessages) {
       try {
         const response = await api.get(`/support/tickets/${ticket._id}`);
         const ticketData = response.data?.data || response.data;
@@ -605,15 +792,12 @@ const SupportTickets = () => {
         console.error('Error fetching ticket messages:', error);
       }
     } else {
-      const existing = ticketMessages[ticket._id] || [];
       setMessagesPage(prev => ({ ...prev, [ticket._id]: 1 }));
       setHasMoreMessages(prev => ({ ...prev, [ticket._id]: false }));
     }
     
-    joinChat(ticket._id);
-
-    if (ticketMessages[ticket._id]) {
-      ticketMessages[ticket._id].forEach(msg => {
+    if (cachedMessages) {
+      cachedMessages.forEach(msg => {
         if (!msg.read && msg.sender !== user._id) {
           markMessageAsRead(ticket._id, msg._id);
         }
@@ -630,7 +814,7 @@ const SupportTickets = () => {
       setLoadingUserDetails(false);
     }
     
-    setTimeout(scrollToBottom, 100);
+    setTimeout(scrollToBottom, 50);
   }, [joinChat, markMessageAsRead, scrollToBottom, ticketMessages, user._id]);
 
   const handleCloseChat = useCallback(() => {
@@ -1318,173 +1502,20 @@ const SupportTickets = () => {
                           </Button>
                         </Box>
                       )}
-                      {visibleMessages.map((msg, index) => {
-                    const senderId = msg.sender?._id || msg.sender;
-                    const isOwn = senderId?.toString?.() === user._id?.toString?.();
-                    const canEdit = isOwn;
-                    
-                    const messageTime = getMessageTime(msg.createdAt || msg.timestamp);
-                    
-                    const getMessageStatus = (message) => {
-                      if (!isOwn) return null;
-                      
-                      const isRead = message.readBy?.some(read => {
-                        const readUserId = read.user?._id || read.user;
-                        return readUserId?.toString?.() === user._id?.toString?.();
-                      });
-                      
-                      if (isRead) {
-                        return <DoneAllIcon fontSize="small" sx={{ fontSize: 14, color: '#4ade80' }} />;
-                      }
-                      return <CheckIcon fontSize="small" sx={{ fontSize: 14, opacity: 0.7 }} />;
-                    };
-                    
-                     return (
-                       <Box
-                         key={msg._id || index}
-                         sx={{
-                           display: 'flex',
-                           justifyContent: isOwn ? 'flex-end' : 'flex-start',
-                           mb: { xs: 1, sm: 2 }
-                         }}
-                       >
-                         <Box
-                           sx={{
-                             maxWidth: { xs: '85%', sm: '70%' },
-                             position: 'relative',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: isOwn ? 'flex-end' : 'flex-start'
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              p: { xs: 1.25, sm: 2 },
-                              borderRadius: 2,
-                              bgcolor: isOwn ? '#0066ff' : 'white',
-                              color: isOwn ? 'white' : 'text.primary',
-                              boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
-                            }}
-                          >
-                            {editingMessageId === msg._id ? (
-                              <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column' }}>
-                                <TextField
-                                  inputRef={editInputRef}
-                                  fullWidth
-                                  size="small"
-                                  defaultValue={msg.message}
-                                  onKeyPress={(e) => e.key === 'Enter' && handleEditMessage(selectedTicket._id, msg._id, editInputRef.current?.value || msg.message)}
-                                  sx={{ bgcolor: 'white', borderRadius: 1 }}
-                                />
-                                <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
-                                  <Button size="small" onClick={() => {
-                                    handleEditMessage(selectedTicket._id, msg._id, editInputRef.current?.value || msg.message);
-                                    setEditingMessageId(null);
-                                  }}>Save</Button>
-                                  <Button size="small" onClick={() => {
-                                    setEditingMessageId(null);
-                                  }}>Cancel</Button>
-                                </Box>
-                              </Box>
-                            ) : (
-                              <>
-                                {msg.attachments && msg.attachments.length > 0 && (
-                                  <Box sx={{ mb: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                                    {msg.attachments.map((attachment, attIndex) => (
-                                      <Box key={attIndex}>
-                                        {attachment.url && (
-                                          <>
-                                            {(() => {
-                                              const url = attachment.url;
-                                              const lower = url.toLowerCase();
-                                              if (lower.startsWith('data:image/') || lower.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
-                                                return (
-                                                  <Box component="img" src={url} alt={attachment.name}
-                                                    sx={{ maxWidth: '100%', maxHeight: 200, borderRadius: 1, mt: 1, cursor: 'pointer', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)' } }}
-                                                    onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); setSelectedImage(url); }} />
-                                                );
-                                              }
-                                              if (lower.startsWith('data:audio/') || lower.match(/\.(mp3|wav|ogg|webm)$/i)) {
-                                                return (
-                                                  <Box sx={{ mt: 1 }}>
-                                                    <audio controls src={url} style={{ maxWidth: '100%', height: 40 }} />
-                                                  </Box>
-                                                );
-                                              }
-                                              if (lower.startsWith('data:') || lower.startsWith('blob:')) {
-                                                const mime = lower.match(/^data:([^;]+)/)?.[1] || lower.match(/^blob:([^;]+)/)?.[1];
-                                                if (mime?.startsWith('image/')) {
-                                                  return (
-                                                    <Box component="img" src={url} alt={attachment.name}
-                                                      sx={{ maxWidth: '100%', maxHeight: 200, borderRadius: 1, mt: 1, cursor: 'pointer', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)' } }}
-                                                      onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); setSelectedImage(url); }} />
-                                                  );
-                                                }
-                                                if (mime?.startsWith('audio/')) {
-                                                  return (
-                                                    <Box sx={{ mt: 1 }}>
-                                                      <audio controls src={url} style={{ maxWidth: '100%', height: 40 }} />
-                                                    </Box>
-                                                  );
-                                                }
-                                                if (mime?.startsWith('video/')) {
-                                                  return (
-                                                    <Box sx={{ mt: 1 }}>
-                                                      <video controls src={url} style={{ maxWidth: '100%', height: 200, borderRadius: 1 }} />
-                                                    </Box>
-                                                  );
-                                                }
-                                                return (
-                                                  <Box sx={{ mt: 1 }}>
-                                                    <a href={url} download={attachment.name} style={{ color: 'inherit' }}>📎 {attachment.name || 'Download file'}</a>
-                                                  </Box>
-                                                );
-                                              }
-                                              return (
-                                                <Box sx={{ mt: 1 }}>
-                                                  <a href={url} target="_blank" rel="noopener noreferrer">📎 {attachment.name || 'Open file'}</a>
-                                                </Box>
-                                              );
-                                            })()}
-                                          </>
-                                        )}
-                                      </Box>
-                                    ))}
-                                  </Box>
-                                )}
-                                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                                  <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
-                                    {msg.message}
-                                    {msg.edited && <Typography component="span" variant="caption" sx={{ opacity: 0.7, ml: 0.5 }}>(edited)</Typography>}
-                                  </Typography>
-                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, justifyContent: isOwn ? 'flex-end' : 'flex-start', mt: 0.5 }}>
-                                      <Typography variant="caption" sx={{ opacity: 0.7 }}>{messageTime}</Typography>
-                                      {isOwn ? (
-                                        <Box sx={{ display: 'flex', gap: 0.5 }}>
-                                          <IconButton size="small" sx={{ padding: 0, minWidth: 24, height: 24 }} onClick={() => {
-                                            setEditingMessageId(msg._id);
-                                            setEditText(msg.message);
-                                            setTimeout(() => editInputRef.current?.focus(), 50);
-                                          }}>
-                                            <EditIcon fontSize="small" sx={{ fontSize: 14, opacity: 0.7 }} />
-                                          </IconButton>
-                                          <IconButton size="small" sx={{ padding: 0, minWidth: 24, height: 24 }} onClick={() => handleDeleteMessage(selectedTicket._id, msg._id)}>
-                                            <DeleteIcon fontSize="small" sx={{ fontSize: 14, opacity: 0.7 }} />
-                                          </IconButton>
-                                          {getMessageStatus(msg)}
-                                        </Box>
-                                      ) : (
-                                        <Box />
-                                      )}
-                                    </Box>
-                                </Box>
-                              </>
-                            )}
-                          </Box>
-                        </Box>
-                      </Box>
-                     );
-                    })}
+                       {visibleMessages.map((msg, index) => (
+                        <MessageBubble
+                          key={msg._id || index}
+                          msg={msg}
+                          user={user}
+                          editingMessageId={editingMessageId}
+                          selectedTicketId={selectedTicket._id}
+                          onEdit={setEditingMessageId}
+                          onDelete={handleDeleteMessage}
+                          onImageClick={setSelectedImage}
+                          editInputRef={editInputRef}
+                          handleEditMessage={handleEditMessage}
+                        />
+                      ))}
                     </>
                   )}
                    <div ref={messagesEndRef} />
