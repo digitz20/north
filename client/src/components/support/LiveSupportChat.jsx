@@ -1036,7 +1036,7 @@ const LiveSupportChat = () => {
                                       if (lower.startsWith('data:audio/') || lower.match(/\.(mp3|wav|ogg|webm)$/i)) {
                                         return (
                                           <Box sx={{ mt: 1 }}>
-                                            <audio controls src={url} style={{ maxWidth: '100%', height: 40 }} />
+                                            <audio controls src={url} style={{ maxWidth: '100%', height: 40 }} playsInline preload="metadata" onError={(e) => { e.target.style.display = 'none'; }} />
                                           </Box>
                                         );
                                       }
@@ -1053,7 +1053,7 @@ const LiveSupportChat = () => {
                                         if (mime?.startsWith('audio/')) {
                                           return (
                                             <Box sx={{ mt: 1 }}>
-                                              <audio controls src={url} style={{ maxWidth: '100%', height: 40 }} />
+                                              <audio controls src={url} style={{ maxWidth: '100%', height: 40 }} playsInline preload="metadata" onError={(e) => { e.target.style.display = 'none'; }} />
                                             </Box>
                                           );
                                         }

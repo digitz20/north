@@ -55,7 +55,8 @@ router.post('/tickets/:id/upload', protect, upload.single('file'), (req, res) =>
       });
     }
 
-    const fileUrl = `${req.protocol}://${req.get('host')}/uploads/support/${req.file.filename}`;
+    const protocol = req.secure || req.get('X-Forwarded-Proto') === 'https' ? 'https' : req.protocol;
+    const fileUrl = `${protocol}://${req.get('host')}/uploads/support/${req.file.filename}`;
     
     res.status(200).json({
       success: true,
