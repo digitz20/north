@@ -326,7 +326,6 @@ exports.createTransfer = async (req, res, next) => {
         message: 'Transfer submitted successfully and is pending admin approval',
         data: transfer[0]
       });
-    }
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
