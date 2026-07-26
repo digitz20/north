@@ -1,0 +1,50 @@
+﻿
+> northcrest-bank-client@1.0.0 build
+> vite build
+
+[36mvite v5.4.21 [32mbuilding for production...[36m[39m
+transforming...
+[32m✓[39m 12737 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mdist/[22m[32mindex.html                                [39m[1m[2m  2.89 kB[22m[1m[22m[2m │ gzip:   0.90 kB[22m
+[2mdist/[22m[35massets/index-EXAxTonw.css                 [39m[1m[2m  4.04 kB[22m[1m[22m[2m │ gzip:   1.46 kB[22m
+[2mdist/[22m[36massets/PremiumCard-BZyAgdgF.js            [39m[1m[2m  0.98 kB[22m[1m[22m[2m │ gzip:   0.58 kB[22m[2m │ map:     2.85 kB[22m
+[2mdist/[22m[36massets/PhoneFrame-CTLIGNMM.js             [39m[1m[2m  1.01 kB[22m[1m[22m[2m │ gzip:   0.58 kB[22m[2m │ map:     2.85 kB[22m
+[2mdist/[22m[36massets/index-BsbMoluo.js                  [39m[1m[2m  2.16 kB[22m[1m[22m[2m │ gzip:   1.11 kB[22m[2m │ map:    15.72 kB[22m
+[2mdist/[22m[36massets/ForgotPassword-CRvGrJpF.js         [39m[1m[2m  2.38 kB[22m[1m[22m[2m │ gzip:   1.29 kB[22m[2m │ map:     6.06 kB[22m
+[2mdist/[22m[36massets/PremiumButton-DHf3UxZw.js          [39m[1m[2m  2.47 kB[22m[1m[22m[2m │ gzip:   1.05 kB[22m[2m │ map:     5.53 kB[22m
+[2mdist/[22m[36massets/VerifyEmail-Dp0LpphC.js            [39m[1m[2m  2.97 kB[22m[1m[22m[2m │ gzip:   1.45 kB[22m[2m │ map:     8.40 kB[22m
+[2mdist/[22m[36massets/PinVerifyModal-BQH8O7Y3.js         [39m[1m[2m  2.99 kB[22m[1m[22m[2m │ gzip:   1.51 kB[22m[2m │ map:     9.38 kB[22m
+[2mdist/[22m[36massets/ResetPassword-DRoyc6Jy.js          [39m[1m[2m  3.00 kB[22m[1m[22m[2m │ gzip:   1.45 kB[22m[2m │ map:     8.14 kB[22m
+[2mdist/[22m[36massets/PinSetup-DEEzuqOw.js               [39m[1m[2m  3.24 kB[22m[1m[22m[2m │ gzip:   1.57 kB[22m[2m │ map:     8.92 kB[22m
+[2mdist/[22m[36massets/ResetTransactionPin-BmU1HgDt.js    [39m[1m[2m  3.91 kB[22m[1m[22m[2m │ gzip:   1.62 kB[22m[2m │ map:    10.93 kB[22m
+[2mdist/[22m[36massets/Notifications-CaFJknEF.js          [39m[1m[2m  3.91 kB[22m[1m[22m[2m │ gzip:   1.66 kB[22m[2m │ map:    11.16 kB[22m
+[2mdist/[22m[36massets/Transfer-BFZ8qvvx.js               [39m[1m[2m  4.30 kB[22m[1m[22m[2m │ gzip:   1.39 kB[22m[2m │ map:    10.57 kB[22m
+[2mdist/[22m[36massets/Login-D3oHmxVg.js                  [39m[1m[2m  6.64 kB[22m[1m[22m[2m │ gzip:   2.55 kB[22m[2m │ map:    20.98 kB[22m
+[2mdist/[22m[36massets/Beneficiaries-CqYNYxjx.js          [39m[1m[2m  6.98 kB[22m[1m[22m[2m │ gzip:   2.38 kB[22m[2m │ map:    22.07 kB[22m
+[2mdist/[22m[36massets/Accounts-DWAMGXgW.js               [39m[1m[2m  7.26 kB[22m[1m[22m[2m │ gzip:   2.52 kB[22m[2m │ map:    23.61 kB[22m
+[2mdist/[22m[36massets/Register-CU3WoCby.js               [39m[1m[2m 10.32 kB[22m[1m[22m[2m │ gzip:   3.61 kB[22m[2m │ map:    33.11 kB[22m
+[2mdist/[22m[36massets/Profile-Cy9wLLzA.js                [39m[1m[2m 11.33 kB[22m[1m[22m[2m │ gzip:   3.66 kB[22m[2m │ map:    37.80 kB[22m
+[2mdist/[22m[36massets/LocalTransfer-FPRnApjv.js          [39m[1m[2m 11.55 kB[22m[1m[22m[2m │ gzip:   3.93 kB[22m[2m │ map:    37.64 kB[22m
+[2mdist/[22m[36massets/Settings-IAXlyzP3.js               [39m[1m[2m 11.72 kB[22m[1m[22m[2m │ gzip:   3.12 kB[22m[2m │ map:    32.93 kB[22m
+[2mdist/[22m[36massets/index-C2l0GIWn.js                  [39m[1m[2m 13.41 kB[22m[1m[22m[2m │ gzip:   4.66 kB[22m[2m │ map:    38.57 kB[22m
+[2mdist/[22m[36massets/Transactions-YaIrYMUh.js           [39m[1m[2m 14.95 kB[22m[1m[22m[2m │ gzip:   4.51 kB[22m[2m │ map:    47.57 kB[22m
+[2mdist/[22m[36massets/Cards-BAKmA5i-.js                  [39m[1m[2m 15.66 kB[22m[1m[22m[2m │ gzip:   4.37 kB[22m[2m │ map:    48.98 kB[22m
+[2mdist/[22m[36massets/Deposit-c_e8zmDc.js                [39m[1m[2m 17.39 kB[22m[1m[22m[2m │ gzip:   5.73 kB[22m[2m │ map:    51.98 kB[22m
+[2mdist/[22m[36massets/mui-icons-DR_5uJUG.js              [39m[1m[2m 18.75 kB[22m[1m[22m[2m │ gzip:   7.77 kB[22m[2m │ map:    43.71 kB[22m
+[2mdist/[22m[36massets/LiveSupportChat-CCWyb1Ic.js        [39m[1m[2m 21.34 kB[22m[1m[22m[2m │ gzip:   7.13 kB[22m[2m │ map:    80.70 kB[22m
+[2mdist/[22m[36massets/Dashboard-DroKQ_NZ.js              [39m[1m[2m 26.58 kB[22m[1m[22m[2m │ gzip:   7.40 kB[22m[2m │ map:    82.83 kB[22m
+[2mdist/[22m[36massets/Investments-BfqBlfVX.js            [39m[1m[2m 27.56 kB[22m[1m[22m[2m │ gzip:   7.92 kB[22m[2m │ map:    84.41 kB[22m
+[2mdist/[22m[36massets/InternationalTransfer-D6b0UQge.js  [39m[1m[2m 28.04 kB[22m[1m[22m[2m │ gzip:   7.61 kB[22m[2m │ map:    84.43 kB[22m
+[2mdist/[22m[36massets/Loans-BbSRNCad.js                  [39m[1m[2m 33.78 kB[22m[1m[22m[2m │ gzip:   7.83 kB[22m[2m │ map:    98.87 kB[22m
+[2mdist/[22m[36massets/socket-vendor-SYmKJpIj.js          [39m[1m[2m 41.66 kB[22m[1m[22m[2m │ gzip:  13.07 kB[22m[2m │ map:   187.03 kB[22m
+[2mdist/[22m[36massets/ScrollTrigger-CezCZ8EY.js          [39m[1m[2m 44.01 kB[22m[1m[22m[2m │ gzip:  18.30 kB[22m[2m │ map:   220.63 kB[22m
+[2mdist/[22m[36massets/utils-vendor-DhXgJQ-f.js           [39m[1m[2m 46.14 kB[22m[1m[22m[2m │ gzip:  17.81 kB[22m[2m │ map:   230.41 kB[22m
+[2mdist/[22m[36massets/Landing-PZver0MJ.js                [39m[1m[2m 74.10 kB[22m[1m[22m[2m │ gzip:  24.36 kB[22m[2m │ map:   178.73 kB[22m
+[2mdist/[22m[36massets/index-C06K3psr.js                  [39m[1m[2m109.17 kB[22m[1m[22m[2m │ gzip:  32.98 kB[22m[2m │ map:   502.48 kB[22m
+[2mdist/[22m[36massets/react-vendor-BMdwfp_2.js           [39m[1m[2m163.64 kB[22m[1m[22m[2m │ gzip:  53.43 kB[22m[2m │ map:   705.41 kB[22m
+[2mdist/[22m[36massets/animation-vendor-DpQudgXw.js       [39m[1m[2m178.19 kB[22m[1m[22m[2m │ gzip:  64.09 kB[22m[2m │ map:   987.32 kB[22m
+[2mdist/[22m[36massets/mui-vendor-DZfeT959.js             [39m[1m[2m348.81 kB[22m[1m[22m[2m │ gzip: 104.91 kB[22m[2m │ map: 1,796.93 kB[22m
+[2mdist/[22m[36massets/charts-vendor-nB9TViSL.js          [39m[1m[2m420.16 kB[22m[1m[22m[2m │ gzip: 111.82 kB[22m[2m │ map: 1,820.35 kB[22m
+[32m✓ built in 2m 14s[39m

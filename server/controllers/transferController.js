@@ -224,7 +224,9 @@ exports.createTransfer = async (req, res, next) => {
           sender: { user: req.user.id, account: sourceAccountId },
           recipient: recipientDetails,
           amount,
-          type: transferType,
+          type: 'transfer',
+          direction: 'debit',
+          description: `Transfer to ${recipientDetails?.name || 'recipient'}`,
           status: transferStatus,
           reference: transfer[0]._id,
           proofImageUrl
@@ -294,7 +296,9 @@ exports.createTransfer = async (req, res, next) => {
         sender: { user: req.user.id, account: sourceAccountId },
         recipient: recipientDetails,
         amount,
-        type: transferType,
+        type: 'transfer',
+        direction: 'debit',
+        description: `Transfer to ${recipientDetails?.name || 'recipient'} - pending admin approval`,
         status: 'pending',
         reference: transfer[0]._id,
         proofImageUrl
