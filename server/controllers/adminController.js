@@ -51,54 +51,20 @@ exports.getDashboardStats = async (req, res, next) => {
 // @access  Private/Admin
 exports.getUsers = async (req, res, next) => {
   try {
-    const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 20;
-    const skip = (page - 1) * limit;
-    const filters = {};
+    const filters = { isVerified: true };
 
     if (req.query.verified === 'all') {
-      filters.isVerified = { $ne: false };
+      delete filters.isVerified;
     } else if (req.query.verified === 'false') {
       filters.isVerified = false;
-    } else {
-      filters.isVerified = true;
     }
 
-    if (req.query.role) {
-      filters.role = req.query.role;
-    }
-
-    if (req.query.isActive !== undefined) {
-      filters.isActive = req.query.isActive === 'true';
-    }
-
-    if (req.query.isFrozen !== undefined) {
-      filters.isFrozen = req.query.isFrozen === 'true';
-    }
-
-    if (req.query.search) {
-      const searchRegex = new RegExp(req.query.search, 'i');
-      filters.$or = [
-        { firstName: searchRegex },
-        { lastName: searchRegex },
-        { email: searchRegex }
-      ];
-    }
-
-    const total = await User.countDocuments(filters);
     const users = await User.find(filters)
-      .select('-password -ssnLastFour -twoFactorSecret')
-      .sort({ createdAt: -1 })
-      .limit(limit)
-      .skip(skip);
+      .select('-password -ssnLastFour -twoFactorSecret');
 
     res.status(200).json({
       success: true,
       count: users.length,
-      total,
-      page,
-      limit,
-      pages: Math.ceil(total / limit),
       data: users
     });
   } catch (error) {

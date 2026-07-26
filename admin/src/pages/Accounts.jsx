@@ -23,7 +23,6 @@ import {
   CardContent,
   Skeleton,
   Tooltip,
-  Pagination
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import BlockIcon from '@mui/icons-material/Block';
@@ -37,31 +36,17 @@ const Accounts = () => {
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
-  const limit = 20;
+
 
   useEffect(() => {
     setLoading(true);
     fetchAccounts();
-  }, [location.pathname, page, searchTerm]);
+  }, [location.pathname]);
 
   const fetchAccounts = async () => {
     try {
-      setLoading(true);
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: limit.toString()
-      });
-      if (searchTerm) {
-        params.append('user', searchTerm);
-      }
-      const response = await api.get(`/admin/accounts?${params.toString()}`);
-      const data = response.data?.data || response.data || {};
-      setAccounts(data.data || []);
-      setTotal(data.total || 0);
-      setTotalPages(data.pages || 1);
+      const response = await api.get('/admin/accounts');
+      setAccounts(response.data?.data || response.data || []);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching accounts:', error);
@@ -91,7 +76,7 @@ const Accounts = () => {
     account.accountType?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalAccounts = total || accounts.length;
+  const totalAccounts = accounts.length;
   const activeAccounts = accounts.filter(a => a.isActive).length;
   const totalBalance = accounts.reduce((sum, a) => sum + (Number(a.balance) || 0), 0);
 
@@ -281,17 +266,6 @@ const Accounts = () => {
             </TableBody>
           </Table>
         </TableContainer>
-        {totalPages > 1 && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-            <Pagination
-              count={totalPages}
-              page={page}
-              onChange={(_, newPage) => setPage(newPage)}
-              color="primary"
-              size="large"
-            />
-          </Box>
-        )}
       </Paper>
 
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>

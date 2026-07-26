@@ -34,7 +34,6 @@ import {
   Tabs,
   Tab,
   InputAdornment,
-  Pagination
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -60,10 +59,6 @@ const Users = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showUnverified, setShowUnverified] = useState(false);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
-  const limit = 20;
   const [openDialog, setOpenDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
@@ -146,28 +141,18 @@ const Users = () => {
   useEffect(() => {
     setLoading(true);
     fetchUsers();
-  }, [location.pathname, page, showUnverified, searchTerm]);
+  }, [location.pathname]);
 
   const fetchUsers = async () => {
     try {
-      setLoading(true);
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: limit.toString()
-      });
+      const params = new URLSearchParams();
       if (showUnverified) {
         params.append('verified', 'all');
       } else {
         params.append('verified', 'true');
       }
-      if (searchTerm) {
-        params.append('search', searchTerm);
-      }
       const response = await api.get(`/admin/users?${params.toString()}`);
-      const data = response.data?.data || response.data || {};
-      setUsers(data.data || []);
-      setTotal(data.total || 0);
-      setTotalPages(data.pages || 1);
+      setUsers(response.data?.data || response.data || []);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -1650,17 +1635,6 @@ const Users = () => {
             </TableBody>
           </Table>
         </TableContainer>
-        {totalPages > 1 && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-            <Pagination
-              count={totalPages}
-              page={page}
-              onChange={(_, newPage) => setPage(newPage)}
-              color="primary"
-              size="large"
-            />
-          </Box>
-        )}
       </Paper>
 
       {/* User Details Dialog */}
