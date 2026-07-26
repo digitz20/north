@@ -62,6 +62,8 @@ const transferSchema = new mongoose.Schema({
       default: Date.now
     }
   }],
+  proofImageUrl: String,
+  proofImageUrls: [String],
   currency: {
     type: String,
     default: 'USD',

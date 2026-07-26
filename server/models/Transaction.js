@@ -92,6 +92,7 @@ const transactionSchema = new mongoose.Schema({
     type: Map,
     of: mongoose.Schema.Types.Mixed
   },
+  proofImageUrl: String,
   processedAt: Date,
   completedAt: Date
 }, {
