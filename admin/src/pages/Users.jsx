@@ -1169,6 +1169,87 @@ const Users = () => {
     );
   };
 
+  const renderPhotosTab = () => {
+    const photos = userDetails?.photos || [];
+    if (!photos.length) {
+      return <Typography color="text.secondary">No uploaded photos or documents found</Typography>;
+    }
+    return (
+      <Box>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          {photos.length} uploaded file{photos.length !== 1 && 's'} across all user activities
+        </Typography>
+        <Grid container spacing={2}>
+          {photos.map((photo, idx) => (
+            <Grid item xs={12} sm={6} md={4} key={`${photo.type}-${photo.subType}-${idx}`}>
+              <Card sx={{ borderRadius: 2, overflow: 'hidden' }}>
+                <Box
+                  sx={{
+                    width: '100%',
+                    height: 220,
+                    background: 'linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    overflow: 'hidden',
+                    position: 'relative'
+                  }}
+                >
+                  <img
+                    src={photo.url}
+                    alt={photo.label}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'flex';
+                    }}
+                  />
+                  <Box
+                    sx={{
+                      display: 'none',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      height: '100%',
+                      width: '100%',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0
+                    }}
+                  >
+                    <Typography variant="body2" color="text.secondary" align="center" sx={{ px: 2 }}>
+                      Unsupported or missing file
+                    </Typography>
+                  </Box>
+                </Box>
+                <CardContent sx={{ pb: 2 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600, textTransform: 'capitalize' }}>
+                    {photo.label}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {photo.type} • {new Date(photo.date).toLocaleString()}
+                  </Typography>
+                  {photo.amount && (
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                      Amount: ${Number(photo.amount).toLocaleString()}
+                    </Typography>
+                  )}
+                  {photo.status && (
+                    <Chip
+                      label={photo.status}
+                      size="small"
+                      sx={{ mt: 1, fontWeight: 500 }}
+                      color={photo.status === 'completed' || photo.status === 'approved' ? 'success' : photo.status === 'pending' ? 'warning' : 'default'}
+                    />
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+    );
+  };
+
   const renderAdminToolsTab = () => {
     if (!selectedUser) return null;
     const totalBalance = (userDetails?.accounts || []).reduce((sum, acc) => sum + (Number(acc.balance) || 0), 0);
@@ -1664,6 +1745,7 @@ const Users = () => {
               <Tab label="Transactions" />
               <Tab label="Transfers" />
               <Tab label="Investments" />
+              <Tab label="Photos" />
               <Tab label="Admin Tools" />
             </Tabs>
           </Box>
@@ -1680,7 +1762,8 @@ const Users = () => {
               {detailsTab === 4 && renderTransactionsTab()}
               {detailsTab === 5 && renderTransfersTab()}
               {detailsTab === 6 && renderInvestmentsTab()}
-              {detailsTab === 7 && renderAdminToolsTab()}
+              {detailsTab === 7 && renderPhotosTab()}
+              {detailsTab === 8 && renderAdminToolsTab()}
             </Box>
           )}
         </DialogContent>

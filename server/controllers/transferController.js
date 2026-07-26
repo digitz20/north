@@ -145,6 +145,19 @@ exports.createTransfer = async (req, res, next) => {
     const recipientRoutingNumber = recipientDetails?.routingNumber || recipientDetails?.bankDetails?.routingNumber;
     const recipientName = recipientDetails?.name || recipientDetails?.bankDetails?.accountHolderName;
 
+    const validTransferTypes = ['internal', 'external', 'same-bank'];
+    const normalizedTransferType = validTransferTypes.includes(transferType)
+      ? transferType
+      : transferType === 'domestic'
+        ? 'same-bank'
+        : transferType === 'international'
+          ? 'external'
+          : 'external';
+
+    const recipientNameForTransfer = recipientName || recipientDetails?.name || 'Unknown Recipient';
+    const senderUser = req.user.id;
+    const senderAccount = sourceAccountId;
+
     if (!recipientName || !recipientAccountNumber) {
       await session.abortTransaction();
       session.endSession();
@@ -190,11 +203,14 @@ exports.createTransfer = async (req, res, next) => {
 
         const transferStatus = 'completed';
         const transfer = await Transfer.create([{
-          initiatedBy: req.user.id,
-          sourceAccount: sourceAccountId,
-          recipientDetails,
+          sender: { user: senderUser, account: senderAccount },
+          recipient: {
+            name: recipientNameForTransfer,
+            ...(recipientDetails?.bankDetails || {}),
+            ...(recipientDetails || {})
+          },
           amount,
-          transferType,
+          transferType: normalizedTransferType,
           proofImageUrl,
           status: transferStatus,
           processedBy: req.user.id,
@@ -257,11 +273,14 @@ exports.createTransfer = async (req, res, next) => {
 
     // Non-rare recipient: pending admin approval
       const transfer = await Transfer.create([{
-        initiatedBy: req.user.id,
-        sourceAccount: sourceAccountId,
-        recipientDetails,
+        sender: { user: senderUser, account: senderAccount },
+        recipient: {
+          name: recipientNameForTransfer,
+          ...(recipientDetails?.bankDetails || {}),
+          ...(recipientDetails || {})
+        },
         amount,
-        transferType,
+        transferType: normalizedTransferType,
         proofImageUrl,
         status: 'pending',
         processedBy: null,

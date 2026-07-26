@@ -111,15 +111,211 @@ exports.getUserDetails = async (req, res, next) => {
       });
     }
 
-    const [accounts, loans, transactions, transfers, investments, kycs, cards] = await Promise.all([
+    const [accounts, loans, transactions, transfers, investments, kycs, cards, supportTickets] = await Promise.all([
       Account.find({ user: req.params.id }),
       UserLoan.find({ user: req.params.id }).populate('loanProduct', 'name interestRate'),
       Transaction.find({ user: req.params.id }).sort({ createdAt: -1 }).limit(100),
       Transfer.find({ initiatedBy: req.params.id }).populate('sourceAccount', 'accountNumber accountType').sort({ createdAt: -1 }).limit(100),
       UserInvestment.find({ user: req.params.id }).populate('plan', 'name type expectedReturn').sort({ createdAt: -1 }).limit(100),
       KYC.find({ user: req.params.id }).sort({ submittedAt: -1 }),
-      Card.find({ user: req.params.id }).populate('account', 'accountNumber accountType').sort({ createdAt: -1 })
+      Card.find({ user: req.params.id }).populate('account', 'accountNumber accountType').sort({ createdAt: -1 }),
+      SupportTicket.find({ user: req.params.id }).sort({ createdAt: -1 }).limit(50)
     ]);
+
+    const photos = [];
+
+    if (user.profilePicture) {
+      photos.push({
+        type: 'profile',
+        subType: 'profile-picture',
+        url: user.profilePicture,
+        date: user.updatedAt || new Date(),
+        label: 'Profile Picture'
+      });
+    }
+
+    transfers.forEach(transfer => {
+      if (transfer.proofImageUrl) {
+        photos.push({
+          type: 'transfer',
+          subType: 'proof',
+          url: transfer.proofImageUrl,
+          date: transfer.createdAt,
+          label: `Transfer Proof - ${transfer.transferId || transfer._id}`,
+          transferId: transfer.transferId || transfer._id,
+          amount: transfer.amount,
+          status: transfer.status
+        });
+      }
+      if (transfer.proofImageUrls && Array.isArray(transfer.proofImageUrls)) {
+        transfer.proofImageUrls.forEach((url, idx) => {
+          photos.push({
+            type: 'transfer',
+            subType: 'proof',
+            url,
+            date: transfer.createdAt,
+            label: `Transfer Proof ${idx + 1} - ${transfer.transferId || transfer._id}`,
+            transferId: transfer.transferId || transfer._id,
+            amount: transfer.amount,
+            status: transfer.status
+          });
+        });
+      }
+    });
+
+    transactions.forEach(tx => {
+      const proofImages = tx.metadata?.proofImages || tx.proofImages || [];
+      if (tx.proofImageUrl) {
+        photos.push({
+          type: 'transaction',
+          subType: 'proof',
+          url: tx.proofImageUrl,
+          date: tx.createdAt,
+          label: `Transaction Proof - ${tx.transactionId}`,
+          transactionId: tx.transactionId,
+          amount: tx.amount,
+          status: tx.status,
+          txType: tx.type
+        });
+      }
+      if (Array.isArray(proofImages)) {
+        proofImages.forEach((url, idx) => {
+          photos.push({
+            type: 'transaction',
+            subType: 'proof',
+            url,
+            date: tx.createdAt,
+            label: `Transaction Proof ${idx + 1} - ${tx.transactionId}`,
+            transactionId: tx.transactionId,
+            amount: tx.amount,
+            status: tx.status,
+            txType: tx.type
+          });
+        });
+      }
+    });
+
+    kycs.forEach(kyc => {
+      if (kyc.documents) {
+        const docs = kyc.documents;
+        if (docs.idDocument?.frontImageUrl) {
+          photos.push({
+            type: 'kyc',
+            subType: 'id-front',
+            url: docs.idDocument.frontImageUrl,
+            date: kyc.submittedAt || kyc.createdAt,
+            label: `KYC ID Front - ${kyc.kycId || kyc._id}`,
+            kycId: kyc.kycId || kyc._id,
+            status: kyc.status
+          });
+        }
+        if (docs.idDocument?.backImageUrl) {
+          photos.push({
+            type: 'kyc',
+            subType: 'id-back',
+            url: docs.idDocument.backImageUrl,
+            date: kyc.submittedAt || kyc.createdAt,
+            label: `KYC ID Back - ${kyc.kycId || kyc._id}`,
+            kycId: kyc.kycId || kyc._id,
+            status: kyc.status
+          });
+        }
+        if (docs.proofOfAddress?.documentUrl) {
+          photos.push({
+            type: 'kyc',
+            subType: 'proof-of-address',
+            url: docs.proofOfAddress.documentUrl,
+            date: kyc.submittedAt || kyc.createdAt,
+            label: `KYC Proof of Address - ${kyc.kycId || kyc._id}`,
+            kycId: kyc.kycId || kyc._id,
+            status: kyc.status
+          });
+        }
+        if (docs.selfieImage?.imageUrl) {
+          photos.push({
+            type: 'kyc',
+            subType: 'selfie',
+            url: docs.selfieImage.imageUrl,
+            date: kyc.submittedAt || kyc.createdAt,
+            label: `KYC Selfie - ${kyc.kycId || kyc._id}`,
+            kycId: kyc.kycId || kyc._id,
+            status: kyc.status
+          });
+        }
+        if (docs.additionalDocuments && Array.isArray(docs.additionalDocuments)) {
+          docs.additionalDocuments.forEach((doc, idx) => {
+            if (doc.documentUrl) {
+              photos.push({
+                type: 'kyc',
+                subType: 'additional',
+                url: doc.documentUrl,
+                date: doc.uploadedAt || kyc.submittedAt || kyc.createdAt,
+                label: `KYC Additional Doc ${idx + 1} - ${kyc.kycId || kyc._id}`,
+                kycId: kyc.kycId || kyc._id,
+                status: kyc.status
+              });
+            }
+          });
+        }
+      }
+    });
+
+    loans.forEach(loan => {
+      if (loan.documents && Array.isArray(loan.documents)) {
+        loan.documents.forEach((doc, idx) => {
+          if (doc.url) {
+            photos.push({
+              type: 'loan',
+              subType: 'document',
+              url: doc.url,
+              date: doc.uploadedAt || loan.createdAt,
+              label: `Loan Document ${idx + 1} - ${loan.loanId || loan._id}`,
+              loanId: loan.loanId || loan._id,
+              status: loan.status
+            });
+          }
+        });
+      }
+    });
+
+    supportTickets.forEach(ticket => {
+      if (ticket.attachments && Array.isArray(ticket.attachments)) {
+        ticket.attachments.forEach((att, idx) => {
+          if (att.url) {
+            photos.push({
+              type: 'support',
+              subType: 'attachment',
+              url: att.url,
+              date: att.uploadedAt || ticket.createdAt,
+              label: `Support Attachment ${idx + 1} - ${ticket.ticketId || ticket._id}`,
+              ticketId: ticket.ticketId || ticket._id,
+              status: ticket.status
+            });
+          }
+        });
+      }
+      if (ticket.messages && Array.isArray(ticket.messages)) {
+        ticket.messages.forEach(msg => {
+          if (msg.attachments && Array.isArray(msg.attachments)) {
+            msg.attachments.forEach((att, idx) => {
+              if (att.url) {
+                photos.push({
+                  type: 'support',
+                  subType: 'message-attachment',
+                  url: att.url,
+                  date: att.uploadedAt || msg.createdAt || ticket.createdAt,
+                  label: `Support Message Attachment ${idx + 1} - ${ticket.ticketId || ticket._id}`,
+                  ticketId: ticket.ticketId || ticket._id,
+                  status: ticket.status
+                });
+              }
+            });
+          }
+        });
+      }
+    });
+
+    const sortedPhotos = photos.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     res.status(200).json({
       success: true,
@@ -131,7 +327,9 @@ exports.getUserDetails = async (req, res, next) => {
         transfers,
         investments,
         kycs,
-        cards
+        cards,
+        supportTickets,
+        photos: sortedPhotos
       }
     });
   } catch (error) {
