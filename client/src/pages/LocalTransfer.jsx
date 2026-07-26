@@ -7,7 +7,7 @@ import {
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowBack, Lock as LockIcon, GetApp, CheckCircle } from '@mui/icons-material';
+import { ArrowBack, Lock as LockIcon, GetApp } from '@mui/icons-material';
 import { createTransfer } from '../store/slices/transactionSlice';
 import { fetchAccounts } from '../store/slices/accountSlice';
 import { getCurrentUser } from '../store/slices/authSlice';
@@ -309,32 +309,52 @@ const LocalTransfer = () => {
 
             {transferResult && (
               <Paper sx={{ p: 4, borderRadius: 2, textAlign: 'center', mb: 3 }}>
-                {transferResult.status === 'completed' ? (
-                  <>
-                    <CheckCircle sx={{ fontSize: 64, color: '#00C896', mb: 2 }} />
-                    <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>Transfer Completed Successfully</Typography>
-                    <Typography variant="body1" sx={{ mb: 3 }}>
-                      Local transfer completed successfully! The amount has been debited from your account.
+                <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
+                  NORTHCREST BANK OF USA
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Payment Slip
+                </Typography>
+                <Box sx={{ border: '1px solid #e2e8f0', borderRadius: 2, p: 3, mb: 3, textAlign: 'left' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1, borderBottom: '1px solid #f1f5f9' }}>
+                    <Typography variant="body2" color="text.secondary">Transaction ID</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{transferResult._id}</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1, borderBottom: '1px solid #f1f5f9' }}>
+                    <Typography variant="body2" color="text.secondary">Date</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{new Date().toLocaleString()}</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1, borderBottom: '1px solid #f1f5f9' }}>
+                    <Typography variant="body2" color="text.secondary">Amount</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 700, color: '#0066FF' }}>${parseFloat(formData.amount).toLocaleString()}</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1, borderBottom: '1px solid #f1f5f9' }}>
+                    <Typography variant="body2" color="text.secondary">Transfer Type</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{transferTypes.find(t => t.value === formData.transferType)?.label || formData.transferType}</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1, borderBottom: '1px solid #f1f5f9' }}>
+                    <Typography variant="body2" color="text.secondary">Recipient</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{formData.beneficiaryName}</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1, borderBottom: '1px solid #f1f5f9' }}>
+                    <Typography variant="body2" color="text.secondary">Account Number</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{formData.beneficiaryAccountNumber}</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1, borderBottom: '1px solid #f1f5f9' }}>
+                    <Typography variant="body2" color="text.secondary">Bank Name</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{formData.bankName}</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1 }}>
+                    <Typography variant="body2" color="text.secondary">Status</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 700, color: transferResult.status === 'completed' ? '#00C896' : '#f59e0b' }}>
+                      {transferResult.status === 'completed' ? 'Completed' : 'Pending Approval'}
                     </Typography>
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle sx={{ fontSize: 64, color: '#f59e0b', mb: 2 }} />
-                    <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>Transfer Pending Approval</Typography>
-                    <Typography variant="body1" sx={{ mb: 3 }}>
-                      Your transfer has been submitted and is pending admin approval.
-                    </Typography>
-                  </>
-                )}
-                {transferResult._id && (
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                    Transaction ID: {transferResult._id}
-                  </Typography>
-                )}
+                  </Box>
+                </Box>
               </Paper>
             )}
             {transferResult && (
-              <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
+              <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
                 <Button
                   variant="contained"
                   startIcon={<GetApp />}
@@ -346,13 +366,6 @@ const LocalTransfer = () => {
                   }}
                 >
                   Download Payment Slip
-                </Button>
-                <Button
-                  variant="outlined"
-                  onClick={() => navigate('/transactions')}
-                  sx={{ borderRadius: 2 }}
-                >
-                  View Transactions
                 </Button>
               </Box>
             )}
