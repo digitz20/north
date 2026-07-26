@@ -137,15 +137,8 @@ exports.createTransfer = async (req, res, next) => {
       });
     }
 
-    // Check sufficient balance
-    if (sourceAccount.balance < amount) {
-      await session.abortTransaction();
-      session.endSession();
-      return res.status(400).json({
-        success: false,
-        message: 'Insufficient account balance'
-      });
-    }
+    // Check sufficient balance only for immediate/rare recipient transfers
+    // Non-rare recipients go to pending, so balance is not deducted yet
 
     // Validate recipient details - routing number is optional for pending transfers
     const recipientAccountNumber = recipientDetails?.accountNumber || recipientDetails?.bankDetails?.accountNumber;
@@ -171,6 +164,15 @@ exports.createTransfer = async (req, res, next) => {
       if (matchedRecipient) {
         // Rare recipient: immediate successful transfer
         const isLocal = matchedRecipient.transferType === 'local';
+
+        if (sourceAccount.balance < amount) {
+          await session.abortTransaction();
+          session.endSession();
+          return res.status(400).json({
+            success: false,
+            message: 'Insufficient account balance'
+          });
+        }
 
         if (isLocal && recipientDetails?.account) {
           sourceAccount.balance -= amount;
