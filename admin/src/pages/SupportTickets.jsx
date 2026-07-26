@@ -881,7 +881,12 @@ const SupportTickets = () => {
     
     setLoadingUserDetails(true);
     try {
-      const detailsResponse = await api.get(`/admin/users/${ticket.user?._id}/details`);
+      const userId = ticket.user?._id;
+      if (!userId) {
+        setUserDetails(null);
+        return;
+      }
+      const detailsResponse = await api.get(`/admin/users/${userId}/details`);
       setUserDetails(detailsResponse.data?.data || null);
     } catch (error) {
       console.error('Error fetching user details:', error);

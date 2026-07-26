@@ -180,9 +180,19 @@ const Users = () => {
         zipCode: '',
         country: 'USA'
       },
-      twoFactorEnabled: false
+      twoFactorEnabled: false,
+      monthlyIncome: 0,
+      monthlyExpenses: 0,
+      netSavings: 0
     });
     setOpenDialog(true);
+  };
+
+  const safeUserId = (user) => user?._id;
+
+  const handleEditUser = async (user) => {
+    if (!safeUserId(user)) return;
+    // ... rest of the function
   };
 
   const handleEditUser = async (user) => {
