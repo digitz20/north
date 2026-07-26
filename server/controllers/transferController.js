@@ -40,10 +40,10 @@ exports.searchHiddenRecipients = async (req, res, next) => {
 // @desc    Get user's transfers (client-side, for logged-in users)
 // @route   GET /api/v1/transfers
 // @access  Private
-exports.getUserTransfers = async (req, res, next) => {
+  exports.getUserTransfers = async (req, res, next) => {
   try {
     const transfers = await Transfer.find({ initiatedBy: req.user.id })
-      .populate('sourceAccount', 'accountNumber accountType');
+      .populate('sender.account', 'accountNumber accountType');
     
     res.status(200).json({
       success: true,
@@ -58,12 +58,12 @@ exports.getUserTransfers = async (req, res, next) => {
 // @desc    Get single transfer (client-side, for logged-in users)
 // @route   GET /api/v1/transfers/:id
 // @access  Private
-exports.getUserTransfer = async (req, res, next) => {
+  exports.getUserTransfer = async (req, res, next) => {
   try {
     const transfer = await Transfer.findOne({
       _id: req.params.id,
       initiatedBy: req.user.id
-    }).populate('sourceAccount', 'accountNumber accountType');
+    }).populate('sender.account', 'accountNumber accountType');
 
     if (!transfer) {
       return res.status(404).json({
@@ -400,7 +400,7 @@ exports.getAllTransfers = async (req, res, next) => {
       .limit(limit)
       .skip(startIndex)
       .populate('initiatedBy', 'firstName lastName email')
-      .populate('sourceAccount', 'accountNumber accountType');
+      .populate('sender.account', 'accountNumber accountType');
     
     res.status(200).json({
       success: true,
@@ -502,11 +502,11 @@ exports.getTransferStats = async (req, res, next) => {
 // @desc    Get single transfer (admin only)
 // @route   GET /api/v1/admin/transfers/:id
 // @access  Private/Admin
-exports.getTransfer = async (req, res, next) => {
+  exports.getTransfer = async (req, res, next) => {
   try {
     const transfer = await Transfer.findById(req.params.id)
       .populate('initiatedBy', 'firstName lastName email')
-      .populate('sourceAccount', 'accountNumber accountType');
+      .populate('sender.account', 'accountNumber accountType');
     
     if (!transfer) {
       return res.status(404).json({
