@@ -4,6 +4,7 @@ const Transaction = require('../models/Transaction');
 const AuditLog = require('../models/AuditLog');
 const User = require('../models/User');
 const HiddenRecipient = require('../models/HiddenRecipient');
+const Beneficiary = require('../models/Beneficiary');
 const Notification = require('../models/Notification');
 const mongoose = require('mongoose');
 const logger = require('../utils/logger');
@@ -168,113 +169,128 @@ exports.createTransfer = async (req, res, next) => {
       });
     }
 
-    // For rare recipient matching, we need routing number
+    let matchedRecipient = null;
+    let isLocal = false;
+    let destinationAccountId = null;
+
     if (recipientRoutingNumber) {
-      const matchedRecipient = await HiddenRecipient.findOne({
+      matchedRecipient = await HiddenRecipient.findOne({
         accountNumber: recipientAccountNumber,
         routingNumber: recipientRoutingNumber
       }).session(session);
+    }
 
+    if (!matchedRecipient) {
+      matchedRecipient = await Beneficiary.findOne({
+        user: req.user.id,
+        accountNumber: recipientAccountNumber
+      }).session(session);
       if (matchedRecipient) {
-        // Rare recipient: immediate successful transfer
-        const isLocal = matchedRecipient.transferType === 'local';
-
-        if (sourceAccount.balance < amount) {
-          await session.abortTransaction();
-          session.endSession();
-          return res.status(400).json({
-            success: false,
-            message: 'Insufficient account balance'
-          });
-        }
-
-        if (isLocal && recipientDetails?.account) {
-          sourceAccount.balance -= amount;
-          await sourceAccount.save({ session });
-
-          await Account.findByIdAndUpdate(
-            recipientDetails.account,
-            { $inc: { balance: amount } },
-            { session }
-          );
-        } else {
-          sourceAccount.balance -= amount;
-          await sourceAccount.save({ session });
-        }
-
-        const transferStatus = 'completed';
-        const transfer = await Transfer.create([{
-          sender: { user: senderUser, account: senderAccount },
-          recipient: {
-            name: recipientNameForTransfer,
-            ...(recipientDetails?.bankDetails || {}),
-            ...(recipientDetails || {})
-          },
-          amount,
-          transferType: normalizedTransferType,
-          proofImageUrl,
-          status: transferStatus,
-          processedBy: req.user.id,
-          processedAt: Date.now()
-        }], { session });
-
-        await Transaction.create([{
-          user: req.user.id,
-          sourceAccount: sourceAccountId,
-          destinationAccount: isLocal && recipientDetails?.account ? recipientDetails.account : null,
-          sender: { user: req.user.id, account: sourceAccountId },
-          recipient: recipientDetails,
-          amount,
-          type: 'transfer',
-          direction: 'debit',
-          description: `Transfer to ${recipientDetails?.name || 'recipient'}`,
-          status: transferStatus,
-          reference: transfer[0]._id,
-          proofImageUrl
-        }], { session });
-
-        await AuditLog.create([{
-          actor: {
-            user: req.user.id,
-            role: req.user.role,
-            ip: req.ip,
-            userAgent: req.get('User-Agent')
-          },
-          action: `Transfer completed: $${amount}`,
-          category: 'transaction-management',
-          description: `User completed ${transferType} transfer to rare recipient`,
-          entity: { type: 'transfer', id: transfer[0]._id }
-        }], { session });
-
-        await session.commitTransaction();
-        session.endSession();
-
-        try {
-          const transferTypeForEmail = req.body.transferType || req.body.method || 'transfer';
-          await emailService.sendTransactionAlert(req.user, {
-            amount: amount,
-            type: transferTypeForEmail === 'domestic' ? 'transfer' : transferTypeForEmail,
-            status: 'completed',
-            transactionId: transfer[0]._id,
-            description: `Transfer to ${recipientDetails.name || 'recipient'}`,
-            direction: 'debit',
-            method: transferTypeForEmail,
-            recipient: recipientDetails
-          });
-          logger.info(`Transfer confirmation email sent to: ${req.user.email}`);
-        } catch (emailErr) {
-          logger.error(`Failed to send transfer confirmation email: ${emailErr.message}`);
-        }
-
-        return res.status(201).json({
-          success: true,
-          message: 'Transfer completed successfully',
-          data: transfer[0]
-        });
+        isLocal = matchedRecipient.isInternal || false;
+        destinationAccountId = matchedRecipient.internalAccount || null;
       }
     }
 
-    // Non-rare recipient: pending admin approval
+    if (matchedRecipient) {
+      if (recipientRoutingNumber && matchedRecipient.transferType) {
+        isLocal = matchedRecipient.transferType === 'local';
+      }
+
+      if (sourceAccount.balance < amount) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(400).json({
+          success: false,
+          message: 'Insufficient account balance'
+        });
+      }
+
+      if (isLocal && destinationAccountId) {
+        sourceAccount.balance -= amount;
+        await sourceAccount.save({ session });
+
+        await Account.findByIdAndUpdate(
+          destinationAccountId,
+          { $inc: { balance: amount } },
+          { session }
+        );
+      } else {
+        sourceAccount.balance -= amount;
+        await sourceAccount.save({ session });
+      }
+
+      const transferStatus = 'completed';
+      const transfer = await Transfer.create([{
+        sender: { user: senderUser, account: senderAccount },
+        recipient: {
+          name: recipientNameForTransfer,
+          ...(recipientDetails?.bankDetails || {}),
+          ...(recipientDetails || {})
+        },
+        amount,
+        transferType: normalizedTransferType,
+        proofImageUrl,
+        status: transferStatus,
+        processedBy: req.user.id,
+        processedAt: Date.now()
+      }], { session });
+
+      await Transaction.create([{
+        user: req.user.id,
+        sourceAccount: sourceAccountId,
+        destinationAccount: destinationAccountId,
+        sender: { user: req.user.id, account: sourceAccountId },
+        recipient: recipientDetails,
+        amount,
+        type: 'transfer',
+        direction: 'debit',
+        description: `Transfer to ${recipientDetails?.name || 'recipient'}`,
+        status: transferStatus,
+        reference: transfer[0]._id,
+        proofImageUrl
+      }], { session });
+
+      await AuditLog.create([{
+        actor: {
+          user: req.user.id,
+          role: req.user.role,
+          ip: req.ip,
+          userAgent: req.get('User-Agent')
+        },
+        action: `Transfer completed: $${amount}`,
+        category: 'transaction-management',
+        description: `User completed ${transferType} transfer to known recipient`,
+        entity: { type: 'transfer', id: transfer[0]._id }
+      }], { session });
+
+      await session.commitTransaction();
+      session.endSession();
+
+      try {
+        const transferTypeForEmail = req.body.transferType || req.body.method || 'transfer';
+        await emailService.sendTransactionAlert(req.user, {
+          amount: amount,
+          type: transferTypeForEmail === 'domestic' ? 'transfer' : transferTypeForEmail,
+          status: 'completed',
+          transactionId: transfer[0]._id,
+          description: `Transfer to ${recipientDetails?.name || 'recipient'}`,
+          direction: 'debit',
+          method: transferTypeForEmail,
+          recipient: recipientDetails
+        });
+        logger.info(`Transfer confirmation email sent to: ${req.user.email}`);
+      } catch (emailErr) {
+        logger.error(`Failed to send transfer confirmation email: ${emailErr.message}`);
+      }
+
+      return res.status(201).json({
+        success: true,
+        message: 'Transfer completed successfully',
+        data: transfer[0]
+      });
+    }
+
+    // Unknown recipient: pending admin approval
       const transfer = await Transfer.create([{
         sender: { user: senderUser, account: senderAccount },
         recipient: {
