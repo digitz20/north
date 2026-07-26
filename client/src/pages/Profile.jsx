@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Box, Typography, Paper, Grid, Avatar, Button, Divider, Chip, CircularProgress, Alert, TextField } from '@mui/material';
+import { Box, Typography, Paper, Grid, Avatar, Button, Divider, Chip, CircularProgress, Alert, TextField, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { Camera } from '@mui/icons-material';
 import { useSelector, useDispatch } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { getCurrentUser, changePassword } from '../store/slices/authSlice';
+import { getCurrentUser, changePassword, setupTransactionPin, changeTransactionPin, forgotTransactionPin } from '../store/slices/authSlice';
 import { fetchAccounts } from '../store/slices/accountSlice';
 import CountUp from 'react-countup';
 import api from '../services/api';
@@ -28,6 +28,16 @@ const Profile = () => {
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState('');
   const [passwordLoading, setPasswordLoading] = useState(false);
+  const [showPinForm, setShowPinForm] = useState(false);
+  const [showForgotPin, setShowForgotPin] = useState(false);
+  const [pinLoading, setPinLoading] = useState(false);
+  const [pinError, setPinError] = useState('');
+  const [pinSuccess, setPinSuccess] = useState('');
+  const [currentPin, setCurrentPin] = useState('');
+  const [newPin, setNewPin] = useState('');
+  const [confirmNewPin, setConfirmNewPin] = useState('');
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotSsn, setForgotSsn] = useState('');
   const fileInputRef = useRef(null);
   
   useEffect(() => {
@@ -140,6 +150,100 @@ const Profile = () => {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
+    }
+  };
+
+  const handleSetupPin = async (e) => {
+    e.preventDefault();
+    setPinError('');
+    setPinSuccess('');
+
+    if (!newPin || !confirmNewPin) {
+      setPinError('Please enter and confirm your PIN');
+      return;
+    }
+    if (newPin !== confirmNewPin) {
+      setPinError('PINs do not match');
+      return;
+    }
+    if (!/^\d{4}$/.test(newPin)) {
+      setPinError('PIN must be exactly 4 digits');
+      return;
+    }
+
+    try {
+      setPinLoading(true);
+      await dispatch(setupTransactionPin({ pin: newPin, confirmPin: confirmNewPin })).unwrap();
+      setPinSuccess('Transaction PIN setup successfully!');
+      setShowPinForm(false);
+      setNewPin('');
+      setConfirmNewPin('');
+      dispatch(getCurrentUser());
+      setTimeout(() => setPinSuccess(''), 3000);
+    } catch (err) {
+      setPinError(err || 'Failed to setup PIN');
+    } finally {
+      setPinLoading(false);
+    }
+  };
+
+  const handleChangePin = async (e) => {
+    e.preventDefault();
+    setPinError('');
+    setPinSuccess('');
+
+    if (!currentPin || !newPin || !confirmNewPin) {
+      setPinError('All fields are required');
+      return;
+    }
+    if (newPin !== confirmNewPin) {
+      setPinError('New PINs do not match');
+      return;
+    }
+    if (!/^\d{4}$/.test(newPin)) {
+      setPinError('PIN must be exactly 4 digits');
+      return;
+    }
+
+    try {
+      setPinLoading(true);
+      await dispatch(changeTransactionPin({ currentPin, newPin, confirmNewPin })).unwrap();
+      setPinSuccess('Transaction PIN changed successfully!');
+      setShowPinForm(false);
+      setCurrentPin('');
+      setNewPin('');
+      setConfirmNewPin('');
+      setTimeout(() => setPinSuccess(''), 3000);
+    } catch (err) {
+      setPinError(err || 'Failed to change PIN');
+    } finally {
+      setPinLoading(false);
+    }
+  };
+
+  const handleForgotPin = async (e) => {
+    e.preventDefault();
+    setPinError('');
+    setPinSuccess('');
+
+    if (!forgotEmail || !forgotSsn) {
+      setPinError('Please provide your email and last 4 digits of SSN');
+      return;
+    }
+
+    try {
+      setPinLoading(true);
+      await dispatch(forgotTransactionPin({ email: forgotEmail, ssnLastFour: forgotSsn })).unwrap();
+      setPinSuccess('A PIN reset link has been sent to your email. Please check your inbox and click the link to set a new PIN.');
+      setShowForgotPin(false);
+      setForgotEmail('');
+      setForgotSsn('');
+      dispatch(getCurrentUser());
+      setTimeout(() => setPinSuccess(''), 5000);
+    } catch (err) {
+      setPinError(err || 'Failed to reset PIN. Please verify your information.');
+    } finally {
+      setPinLoading(false);
     }
   };
 
@@ -336,6 +440,87 @@ const Profile = () => {
 
                 <Divider sx={{ my: 4 }} />
 
+                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>Transaction PIN</Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Your 4-digit PIN is required for all financial transactions
+                </Typography>
+                
+                {!showPinForm ? (
+                  <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                    <Button variant="outlined" onClick={() => setShowPinForm(true)}>
+                      {user?.transactionPin ? 'Change PIN' : 'Setup PIN'}
+                    </Button>
+                    {user?.transactionPin && (
+                      <Button variant="text" color="error" onClick={() => setShowForgotPin(true)}>
+                        Forgot PIN?
+                      </Button>
+                    )}
+                  </Box>
+                ) : (
+                  <Box component="form" onSubmit={user?.transactionPin ? handleChangePin : handleSetupPin}>
+                    <Grid container spacing={2}>
+                      {user?.transactionPin && (
+                        <Grid item xs={12}>
+                          <TextField
+                            fullWidth
+                            label="Current PIN"
+                            value={currentPin}
+                            onChange={(e) => setCurrentPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                            inputProps={{ maxLength: 4, pattern: '\\d*' }}
+                            type="password"
+                            size="small"
+                            required
+                          />
+                        </Grid>
+                      )}
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label={user?.transactionPin ? 'New PIN' : 'Create 4-Digit PIN'}
+                          value={newPin}
+                          onChange={(e) => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                          inputProps={{ maxLength: 4, pattern: '\\d*' }}
+                          type="password"
+                          size="small"
+                          required
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Confirm PIN"
+                          value={confirmNewPin}
+                          onChange={(e) => setConfirmNewPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                          inputProps={{ maxLength: 4, pattern: '\\d*' }}
+                          type="password"
+                          size="small"
+                          required
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+                          <PremiumButton variant="primary" type="submit" disabled={pinLoading}>
+                            {pinLoading ? <CircularProgress size={20} color="inherit" /> : (user?.transactionPin ? 'Update PIN' : 'Setup PIN')}
+                          </PremiumButton>
+                          <Button variant="text" onClick={() => {
+                            setShowPinForm(false);
+                            setCurrentPin('');
+                            setNewPin('');
+                            setConfirmNewPin('');
+                            setPinError('');
+                          }} disabled={pinLoading}>
+                            Cancel
+                          </Button>
+                        </Box>
+                      </Grid>
+                    </Grid>
+                    {pinError && <Alert severity="error" sx={{ mt: 2 }}>{pinError}</Alert>}
+                    {pinSuccess && <Alert severity="success" sx={{ mt: 2 }}>{pinSuccess}</Alert>}
+                  </Box>
+                )}
+
+                <Divider sx={{ my: 4 }} />
+
                 <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>Account Summary</Typography>
                 <Grid container spacing={3}>
                   <Grid item xs={12} sm={6}>
@@ -365,6 +550,62 @@ const Profile = () => {
           </Grid>
         </motion.div>
       </Box>
+
+      {/* Forgot PIN Dialog */}
+      <Dialog open={showForgotPin} onClose={() => setShowForgotPin(false)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)', color: 'white' }}>
+          Reset Transaction PIN
+        </DialogTitle>
+        <DialogContent sx={{ pt: 4 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            Verify your identity by providing the last 4 digits of your SSN. A secure reset link will be sent to your email, where you can set a new transaction PIN.
+          </Typography>
+          <Box component="form" onSubmit={handleForgotPin}>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Email Address"
+                  type="email"
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  required
+                  size="small"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Last 4 Digits of SSN"
+                  value={forgotSsn}
+                  onChange={(e) => setForgotSsn(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  inputProps={{ maxLength: 4, pattern: '\\d*' }}
+                  required
+                  size="small"
+                  type="password"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+                  <PremiumButton variant="primary" type="submit" disabled={pinLoading}>
+                    {pinLoading ? <CircularProgress size={20} color="inherit" /> : 'Reset PIN'}
+                  </PremiumButton>
+                  <Button variant="text" onClick={() => {
+                    setShowForgotPin(false);
+                    setForgotEmail('');
+                    setForgotSsn('');
+                    setPinError('');
+                  }} disabled={pinLoading}>
+                    Cancel
+                  </Button>
+                </Box>
+              </Grid>
+            </Grid>
+            {pinError && <Alert severity="error" sx={{ mt: 2 }}>{pinError}</Alert>}
+            {pinSuccess && <Alert severity="success" sx={{ mt: 2 }}>{pinSuccess}</Alert>}
+          </Box>
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 };

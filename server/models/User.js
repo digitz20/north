@@ -143,6 +143,28 @@ const userSchema = new mongoose.Schema({
       type: Boolean,
       default: false
     }
+  },
+  transactionPin: {
+    type: String,
+    select: false
+  },
+  pinSetupRequired: {
+    type: Boolean,
+    default: false
+  },
+  pinFailedAttempts: {
+    type: Number,
+    default: 0
+  },
+  pinLockedUntil: {
+    type: Date
+  },
+  transactionPinResetToken: {
+    type: String,
+    select: false
+  },
+  transactionPinResetExpire: {
+    type: Date
   }
 }, {
   timestamps: true,

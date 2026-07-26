@@ -13,6 +13,14 @@ const {
   uploadProfilePicture,
   changePassword
 } = require('../controllers/authController');
+const {
+  setupTransactionPin,
+  verifyTransactionPin,
+  changeTransactionPin,
+  forgotTransactionPin,
+  resetTransactionPin,
+  getPinStatus
+} = require('../controllers/pinController');
 const { protect } = require('../middlewares/auth');
 
 // Public routes
@@ -32,5 +40,13 @@ router.post('/initialize-saved-wallets', protect, require('../controllers/authCo
 router.put('/profile-picture', protect, uploadProfilePicture);
 router.post('/settings', protect, require('../controllers/authController').updateSettings);
 router.post('/change-password', protect, changePassword);
+
+// Transaction PIN routes
+router.post('/setup-transaction-pin', protect, setupTransactionPin);
+router.post('/verify-transaction-pin', protect, verifyTransactionPin);
+router.post('/change-transaction-pin', protect, changeTransactionPin);
+router.post('/forgot-transaction-pin', protect, forgotTransactionPin);
+router.post('/reset-transaction-pin', resetTransactionPin);
+router.get('/pin-status', protect, getPinStatus);
 
 module.exports = router;

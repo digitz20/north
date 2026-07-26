@@ -19,6 +19,7 @@ import api from '../services/api';
 import PremiumCard from '../components/PremiumCard';
 import PremiumButton from '../components/PremiumButton';
 import NorthCrestLogo from '../components/common/NorthCrestLogo';
+import PinVerifyModal from '../components/PinVerifyModal';
 
 const cryptoOptions = [
   { 
@@ -143,6 +144,9 @@ const Deposit = () => {
   });
   
   const [errors, setErrors] = useState({});
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pendingDepositData, setPendingDepositData] = useState(null);
+  const [pinVerified, setPinVerified] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -244,7 +248,6 @@ const Deposit = () => {
     if (Object.keys(newErrors).length > 0) return;
 
     const depositData = {
-
       destinationAccountId: cryptoForm.destinationAccount,
       source: {
         crypto: cryptoForm.crypto,
@@ -256,12 +259,44 @@ const Deposit = () => {
       email: cryptoForm.email
     };
 
-    try {
-      await dispatch(processCryptoDeposit(depositData)).unwrap();
-      setTransferComplete(true);
-      setActiveStep(2);
-    } catch (error) {
-      setErrors({ submit: error.message || 'Deposit failed. Please try again.' });
+    const executeDeposit = async () => {
+      try {
+        await dispatch(processCryptoDeposit(depositData)).unwrap();
+        setTransferComplete(true);
+        setActiveStep(2);
+        setPinVerified(false);
+      } catch (error) {
+        setErrors({ submit: error.message || 'Deposit failed. Please try again.' });
+        setPinVerified(false);
+      }
+    };
+
+    if (user?.transactionPin && !pinVerified) {
+      setPendingDepositData(depositData);
+      setShowPinModal(true);
+      return;
+    }
+
+    await executeDeposit();
+  };
+
+  const handlePinVerified = async () => {
+    setPinVerified(true);
+    setShowPinModal(false);
+    
+    if (pendingDepositData) {
+      const depositData = pendingDepositData;
+      setPendingDepositData(null);
+      
+      try {
+        await dispatch(processCryptoDeposit(depositData)).unwrap();
+        setTransferComplete(true);
+        setActiveStep(2);
+        setPinVerified(false);
+      } catch (error) {
+        setErrors({ submit: error.message || 'Deposit failed. Please try again.' });
+        setPinVerified(false);
+      }
     }
   };
 
@@ -714,6 +749,17 @@ const Deposit = () => {
           </Paper>
         </motion.div>
       </Box>
+
+      <PinVerifyModal
+        open={showPinModal}
+        onClose={() => {
+          setShowPinModal(false);
+          setPendingDepositData(null);
+        }}
+        onVerified={handlePinVerified}
+        title="Confirm Deposit"
+        description="Enter your 4-digit PIN to authorize this crypto deposit"
+      />
     </Box>
   );
 };

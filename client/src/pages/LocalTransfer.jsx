@@ -2,16 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   Box, Typography, Paper, TextField, Button, Grid,
-  Chip, Alert, CircularProgress
+  Chip, Alert, CircularProgress, Autocomplete, Dialog, DialogTitle, DialogContent, DialogActions
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowBack } from '@mui/icons-material';
+import { ArrowBack, Lock as LockIcon } from '@mui/icons-material';
 import { createTransfer } from '../store/slices/transactionSlice';
 import { fetchAccounts } from '../store/slices/accountSlice';
 import { getCurrentUser } from '../store/slices/authSlice';
+import api from '../services/api';
 import PremiumCard from '../components/PremiumCard';
 import PremiumButton from '../components/PremiumButton';
+import PinVerifyModal from '../components/PinVerifyModal';
 
 const LocalTransfer = () => {
   const dispatch = useDispatch();
@@ -25,6 +27,7 @@ const LocalTransfer = () => {
     beneficiaryName: '',
     beneficiaryAccountNumber: '',
     bankName: '',
+    routingNumber: '',
     transferType: 'online-banking',
     description: '',
     transactionPin: ''
@@ -33,6 +36,11 @@ const LocalTransfer = () => {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [myBeneficiaries, setMyBeneficiaries] = useState([]);
+  const [beneficiariesLoading, setBeneficiariesLoading] = useState(false);
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pendingTransferData, setPendingTransferData] = useState(null);
+  const [pinVerified, setPinVerified] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -54,31 +62,102 @@ const LocalTransfer = () => {
     setFormData({ ...formData, amount: amount.toString() });
   };
 
+  useEffect(() => {
+    let isMounted = true;
+    const fetchMyBeneficiaries = async () => {
+      if (!user) return;
+      setBeneficiariesLoading(true);
+      try {
+        const response = await api.get('/beneficiaries');
+        const data = response.data?.data || [];
+        if (isMounted) {
+          setMyBeneficiaries(data);
+        }
+      } catch (err) {
+        console.error('Failed to load beneficiaries:', err);
+      } finally {
+        if (isMounted) setBeneficiariesLoading(false);
+      }
+    };
+    fetchMyBeneficiaries();
+    return () => { isMounted = false; };
+  }, [user]);
+
+  const handleBeneficiarySelect = (selected) => {
+    if (!selected) {
+      setFormData({
+        ...formData,
+        beneficiaryName: '',
+        beneficiaryAccountNumber: '',
+        bankName: '',
+        routingNumber: ''
+      });
+      return;
+    }
+    setFormData({
+      ...formData,
+      beneficiaryName: selected.name || '',
+      beneficiaryAccountNumber: selected.accountNumber || '',
+      bankName: selected.bankName || '',
+      routingNumber: selected.routingNumber || ''
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSuccess(false);
     setError('');
     setLoading(true);
 
+    const transferData = {
+      sourceAccountId: formData.fromAccount,
+      recipientDetails: {
+        name: formData.beneficiaryName,
+        accountNumber: formData.beneficiaryAccountNumber,
+        bankName: formData.bankName
+      },
+      amount: parseFloat(formData.amount),
+      transferType: 'domestic',
+      description: formData.description
+    };
+
+    if (user?.transactionPin && !pinVerified) {
+      setPendingTransferData(transferData);
+      setShowPinModal(true);
+      setLoading(false);
+      return;
+    }
+
     try {
-      await dispatch(createTransfer({
-        sourceAccountId: formData.fromAccount,
-        recipientDetails: {
-          name: formData.beneficiaryName,
-          accountNumber: formData.beneficiaryAccountNumber,
-          bankName: formData.bankName
-        },
-        amount: parseFloat(formData.amount),
-        transferType: 'domestic',
-        description: formData.description
-      })).unwrap();
-      
+      await dispatch(createTransfer(transferData)).unwrap();
       setSuccess(true);
       setTimeout(() => {
         navigate('/dashboard');
       }, 3000);
     } catch (err) {
-      setError(err.message || 'Transfer failed. Please try again.');
+      setError(err.message || err || 'Transfer failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePinVerified = async () => {
+    setPinVerified(true);
+    setShowPinModal(false);
+    setLoading(true);
+
+    if (!pendingTransferData) return;
+
+    try {
+      await dispatch(createTransfer(pendingTransferData)).unwrap();
+      setSuccess(true);
+      setPendingTransferData(null);
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 3000);
+    } catch (err) {
+      setError(err.message || err || 'Transfer failed');
+      setPinVerified(false);
     } finally {
       setLoading(false);
     }
@@ -163,8 +242,8 @@ const LocalTransfer = () => {
             </Box>
 
             {success && (
-              <Alert severity="warning" sx={{ mb: 3 }}>
-                Transfer request submitted successfully! Pending admin approval. Your balance will not be deducted until approved.
+              <Alert severity="success" sx={{ mb: 3 }}>
+                Local transfer completed successfully! The amount has been debited from your account.
               </Alert>
             )}
             {error && (
@@ -215,13 +294,29 @@ const LocalTransfer = () => {
                     <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, mt: 2 }}>Beneficiary Details</Typography>
                   </Grid>
                   <Grid item xs={12} md={6}>
-                    <TextField
+                    <Autocomplete
                       fullWidth
-                      label="Beneficiary Account Name"
-                      name="beneficiaryName"
-                      value={formData.beneficiaryName}
-                      onChange={handleChange}
-                      required
+                      options={myBeneficiaries}
+                      getOptionLabel={(option) => option.name}
+                      loading={beneficiariesLoading}
+                      onChange={(e, newValue) => handleBeneficiarySelect(newValue)}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="My Beneficiaries"
+                          required
+                          InputProps={{
+                            ...params.InputProps,
+                            endAdornment: (
+                              <>
+                                {beneficiariesLoading ? <CircularProgress size={20} /> : null}
+                                {params.InputProps.endAdornment}
+                              </>
+                            )
+                          }}
+                        />
+                      )}
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                     />
                   </Grid>
                   <Grid item xs={12} md={6}>
@@ -373,6 +468,17 @@ const LocalTransfer = () => {
           </PremiumCard>
         </motion.div>
       </Box>
+
+      <PinVerifyModal
+        open={showPinModal}
+        onClose={() => {
+          setShowPinModal(false);
+          setPendingTransferData(null);
+        }}
+        onVerified={handlePinVerified}
+        title="Confirm Transaction"
+        description="Enter your 4-digit PIN to authorize this transfer"
+      />
     </Box>
   );
 };

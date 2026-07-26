@@ -13,6 +13,8 @@ const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
+const PinSetup = lazy(() => import('./pages/PinSetup'));
+const ResetTransactionPin = lazy(() => import('./pages/ResetTransactionPin'));
 const Accounts = lazy(() => import('./pages/Accounts'));
 const Transactions = lazy(() => import('./pages/Transactions'));
 const Transfer = lazy(() => import('./pages/Transfer'));
@@ -43,6 +45,7 @@ function App() {
         <Route path="/forgot-password" element={!isAuthenticated ? <ForgotPassword /> : <Navigate to="/dashboard" replace />} />
         <Route path="/reset-password" element={!isAuthenticated ? <ResetPassword /> : <Navigate to="/dashboard" replace />} />
         <Route path="/verify-email" element={!isAuthenticated ? <VerifyEmail /> : <Navigate to="/dashboard" replace />} />
+        <Route path="/reset-transaction-pin" element={!isAuthenticated ? <ResetTransactionPin /> : <Navigate to="/dashboard" replace />} />
       </Route>
 
       {/* Protected dashboard routes */}
@@ -63,6 +66,7 @@ function App() {
           <Route path="/settings" element={<Settings />} />
           <Route path="/profile" element={<Profile />} />
         </Route>
+        <Route path="/pin-setup" element={<PinSetup />} />
       </Route>
 
         {/* Catch-all redirect */}

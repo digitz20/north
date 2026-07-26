@@ -81,6 +81,22 @@ const getMessageStatus = (message, currentUserId) => {
   return <CheckIcon fontSize="small" sx={{ fontSize: 14, opacity: 0.7 }} />;
 };
 
+const mapBackendStatus = (status) => {
+  switch (status) {
+    case 'open':
+    case 'awaiting-user':
+      return 'waiting';
+    case 'in-progress':
+    case 'escalated':
+    case 'resolved':
+      return 'active';
+    case 'closed':
+      return 'closed';
+    default:
+      return status;
+  }
+};
+
 const MessageBubble = memo(function MessageBubble({ msg, user, editingMessageId, selectedTicketId, onEdit, onDelete, onImageClick, editInputRef, handleEditMessage }) {
   const senderId = msg.sender?._id || msg.sender;
   const isOwn = senderId?.toString?.() === user?._id?.toString?.();
@@ -149,13 +165,13 @@ const MessageBubble = memo(function MessageBubble({ msg, user, editingMessageId,
                                   onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); onImageClick(url); }} />
                               );
                             }
-                            if (lower.startsWith('data:audio/') || lower.match(/\.(mp3|wav|ogg|webm)$/i)) {
-                              return (
-                                <Box sx={{ mt: 1 }}>
-                                  <audio controls src={url} style={{ maxWidth: '100%', height: 40 }} />
-                                </Box>
-                              );
-                            }
+                             if (lower.startsWith('data:audio/') || lower.match(/\.(mp3|wav|ogg|webm)$/i)) {
+                               return (
+                                 <Box sx={{ mt: 1 }}>
+                                   <audio controls src={url} style={{ maxWidth: '100%', height: 40 }} playsInline preload="metadata" onError={(e) => { e.target.style.display = 'none'; }} />
+                                 </Box>
+                               );
+                             }
                             if (lower.startsWith('data:') || lower.startsWith('blob:')) {
                               const mime = lower.match(/^data:([^;]+)/)?.[1] || lower.match(/^blob:([^;]+)/)?.[1];
                               if (mime?.startsWith('image/')) {
@@ -165,13 +181,13 @@ const MessageBubble = memo(function MessageBubble({ msg, user, editingMessageId,
                                     onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); onImageClick(url); }} />
                                 );
                               }
-                              if (mime?.startsWith('audio/')) {
-                                return (
-                                  <Box sx={{ mt: 1 }}>
-                                    <audio controls src={url} style={{ maxWidth: '100%', height: 40 }} />
-                                  </Box>
-                                );
-                              }
+                               if (mime?.startsWith('audio/')) {
+                                 return (
+                                   <Box sx={{ mt: 1 }}>
+                                     <audio controls src={url} style={{ maxWidth: '100%', height: 40 }} playsInline preload="metadata" onError={(e) => { e.target.style.display = 'none'; }} />
+                                   </Box>
+                                 );
+                               }
                               if (mime?.startsWith('video/')) {
                                 return (
                                   <Box sx={{ mt: 1 }}>
@@ -294,6 +310,22 @@ const SupportTickets = () => {
     return Array.from(merged.values()).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
   };
 
+  const mapBackendStatus = (status) => {
+    switch (status) {
+      case 'open':
+      case 'awaiting-user':
+        return 'waiting';
+      case 'in-progress':
+      case 'escalated':
+      case 'resolved':
+        return 'active';
+      case 'closed':
+        return 'closed';
+      default:
+        return status;
+    }
+  };
+
   const visibleMessages = useMemo(() => {
     if (!selectedTicket) return [];
     const all = ticketMessages[selectedTicket._id] || [];
@@ -358,19 +390,22 @@ const SupportTickets = () => {
     });
   }, [saveMessagesToStorage]);
 
-  const fetchTickets = async () => {
+  const fetchTickets = useCallback(async () => {
     try {
       const response = await api.get('/support/admin/tickets');
       const ticketsData = response.data?.data?.tickets || response.data?.tickets || [];
-      setTickets(Array.isArray(ticketsData) ? ticketsData : []);
-
+      const mappedTickets = (Array.isArray(ticketsData) ? ticketsData : []).map(ticket => ({
+        ...ticket,
+        status: mapBackendStatus(ticket.status)
+      }));
+      setTickets(mappedTickets);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching support tickets:', error);
       setTickets([]);
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -475,7 +510,7 @@ const SupportTickets = () => {
     };
 
     const handleTicketUpdated = (updatedTicket) => {
-      setTickets(prev => prev.map(t => t._id === updatedTicket._id ? updatedTicket : t));
+      setTickets(prev => prev.map(t => t._id === updatedTicket._id ? { ...updatedTicket, status: mapBackendStatus(updatedTicket.status) } : t));
     };
 
     const handleTicketDeleted = (data) => {
@@ -714,20 +749,39 @@ const SupportTickets = () => {
         const audioFile = new File([audioBlob], `voice-message-${Date.now()}.${ext}`, { type: mimeType || 'audio/webm' });
         if (selectedTicket) {
           try {
-            const reader = new FileReader();
-            const audioDataUrl = await new Promise((resolve, reject) => {
-              reader.onload = () => resolve(reader.result);
-              reader.onerror = reject;
-              reader.readAsDataURL(audioFile);
-            });
-
-            const attachment = {
-              name: '🎤 Voice Message',
-              url: audioDataUrl,
-              size: audioBlob.size,
-              mimetype: mimeType || 'audio/webm',
-              uploadedAt: new Date().toISOString()
-            };
+            let attachment;
+            try {
+              const formData = new FormData();
+              formData.append('file', audioFile);
+              const uploadResponse = await api.post(`/support/tickets/${selectedTicket._id}/upload`, formData);
+              const uploadData = uploadResponse.data?.data;
+              if (uploadData?.url) {
+                attachment = {
+                  name: '🎤 Voice Message',
+                  url: uploadData.url,
+                  size: audioBlob.size,
+                  mimetype: uploadData.mimetype || mimeType || 'audio/webm',
+                  uploadedAt: new Date().toISOString()
+                };
+              } else {
+                throw new Error('Upload failed');
+              }
+            } catch (uploadError) {
+              console.error('Audio upload failed, falling back to data URL:', uploadError);
+              const reader = new FileReader();
+              const audioDataUrl = await new Promise((resolve, reject) => {
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(audioFile);
+              });
+              attachment = {
+                name: '🎤 Voice Message',
+                url: audioDataUrl,
+                size: audioBlob.size,
+                mimetype: mimeType || 'audio/webm',
+                uploadedAt: new Date().toISOString()
+              };
+            }
 
             if (isConnected && socket) {
               sendMessage({
@@ -786,8 +840,8 @@ const SupportTickets = () => {
       return prev;
     });
     
-    const cachedMessages = ticketMessages[ticket._id];
-    if (!cachedMessages) {
+    const cachedMessages = ticketMessages[ticket._id] || ticket.messages || [];
+    if (cachedMessages.length === 0) {
       try {
         const response = await api.get(`/support/tickets/${ticket._id}`);
         const ticketData = response.data?.data || response.data;
@@ -800,16 +854,24 @@ const SupportTickets = () => {
           }));
           setMessagesPage(prev => ({ ...prev, [ticket._id]: 1 }));
           setHasMoreMessages(prev => ({ ...prev, [ticket._id]: allMessages.length > MESSAGES_PER_PAGE }));
+          
+          initialMessages.forEach(msg => {
+            if (!msg.read && msg.sender !== user._id) {
+              markMessageAsRead(ticket._id, msg._id);
+            }
+          });
         }
       } catch (error) {
         console.error('Error fetching ticket messages:', error);
       }
     } else {
+      setTicketMessages(prev => ({
+        ...prev,
+        [ticket._id]: cachedMessages
+      }));
       setMessagesPage(prev => ({ ...prev, [ticket._id]: 1 }));
       setHasMoreMessages(prev => ({ ...prev, [ticket._id]: false }));
-    }
-    
-    if (cachedMessages) {
+      
       cachedMessages.forEach(msg => {
         if (!msg.read && msg.sender !== user._id) {
           markMessageAsRead(ticket._id, msg._id);
@@ -852,7 +914,7 @@ const SupportTickets = () => {
     try {
       await api.patch(`/admin/support-tickets/${ticket._id}`, {
         status: 'active',
-        assignedTo: user._id
+        agentId: user._id
       });
       handleOpenChat(ticket);
       fetchTickets();
@@ -876,13 +938,14 @@ const SupportTickets = () => {
   const handleReopenTicket = useCallback(async (ticketId) => {
     try {
       await api.patch(`/admin/support-tickets/${ticketId}`, {
-        status: 'active'
+        status: 'active',
+        agentId: user._id
       });
       fetchTickets();
     } catch (error) {
       console.error('Error reopening ticket:', error);
     }
-  }, [fetchTickets]);
+  }, [fetchTickets, user._id]);
 
   const handleDeleteTicket = useCallback(async (ticketId) => {
     setDeleteLoading(true);
@@ -1141,7 +1204,7 @@ const SupportTickets = () => {
                           </Typography>
                           <Typography variant="caption" color="text.secondary">
                             Created: {new Date(ticket.createdAt).toLocaleString()}
-                            {ticket.lastMessageAt && ` - Last message: ${new Date(ticket.lastMessageAt).toLocaleTimeString()}`}
+                            {ticket.messages?.length > 0 && ` - Last message: ${new Date(ticket.messages[ticket.messages.length - 1].createdAt).toLocaleTimeString()}`}
                           </Typography>
                         </Box>
                       </Box>
@@ -1346,7 +1409,7 @@ const SupportTickets = () => {
                   <ListItem sx={{ px: 0, py: 1 }}>
                     <PersonIcon fontSize="small" sx={{ mr: 2, color: 'text.secondary' }} />
                     <ListItemText
-                      primary={selectedTicket.user?.accountType || 'Standard'}
+                      primary={userDetails?.accounts?.[0]?.accountType || 'Standard'}
                       secondary="Account Type"
                       primaryTypographyProps={{ variant: 'body2' }}
                     />
@@ -1416,7 +1479,7 @@ const SupportTickets = () => {
                         {userDetails.transfers.slice(0, 3).map((transfer) => (
                           <Box key={transfer._id} sx={{ ml: 3, mb: 0.5 }}>
                             <Typography variant="caption" color="text.secondary">
-                              {transfer.type} -${transfer.amount?.toLocaleString()}
+                              {transfer.transferType || 'Transfer'} -${transfer.amount?.toLocaleString()}
                             </Typography>
                             <Typography variant="caption" display="block" color="text.secondary">
                               {new Date(transfer.createdAt).toLocaleDateString()}
@@ -1462,7 +1525,7 @@ const SupportTickets = () => {
                               {inv.plan?.name || 'Investment'}
                             </Typography>
                             <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                              ${inv.amount?.toLocaleString() || '0.00'}
+                              ${inv.amountInvested?.toLocaleString() || inv.currentValue?.toLocaleString() || '0.00'}
                             </Typography>
                           </Box>
                         ))}

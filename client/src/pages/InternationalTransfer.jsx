@@ -27,6 +27,7 @@ import {
 import { getCurrentUser } from '../store/slices/authSlice';
 import { fetchAccounts } from '../store/slices/accountSlice';
 import { createInternationalTransfer, processCryptoDeposit } from '../store/slices/transactionSlice';
+import PinVerifyModal from '../components/PinVerifyModal';
 
 // Supported cryptocurrencies with permanent system addresses
 const cryptoOptions = [
@@ -166,6 +167,12 @@ const InternationalTransfer = () => {
     crypto: 'btc'
   });
 
+  const [myBeneficiaries, setMyBeneficiaries] = useState([]);
+  const [beneficiariesLoading, setBeneficiariesLoading] = useState(false);
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pendingTransferAction, setPendingTransferAction] = useState(null);
+  const [pinVerified, setPinVerified] = useState(false);
+
   useEffect(() => {
     if (!user) {
       dispatch(getCurrentUser());
@@ -175,6 +182,42 @@ const InternationalTransfer = () => {
       setTransferForm(prev => ({ ...prev, recipientEmail: user.email }));
     }
   }, [dispatch, user]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchMyBeneficiaries = async () => {
+      if (!user) return;
+      setBeneficiariesLoading(true);
+      try {
+        const response = await api.get('/beneficiaries');
+        const data = response.data?.data || [];
+        if (isMounted) {
+          setMyBeneficiaries(data);
+        }
+      } catch (err) {
+        console.error('Failed to load beneficiaries:', err);
+      } finally {
+        if (isMounted) setBeneficiariesLoading(false);
+      }
+    };
+    fetchMyBeneficiaries();
+    return () => { isMounted = false; };
+  }, [user]);
+
+  const handleMyBeneficiarySelect = (selected) => {
+    if (!selected) return;
+    setTransferForm(prev => ({
+      ...prev,
+      recipientName: selected.name || prev.recipientName,
+      recipientBankDetails: {
+        ...prev.recipientBankDetails,
+        accountNumber: selected.accountNumber || prev.recipientBankDetails.accountNumber,
+        routingNumber: selected.routingNumber || prev.recipientBankDetails.routingNumber,
+        bankName: selected.bankName || prev.recipientBankDetails.bankName,
+        swiftCode: selected.routingNumber || prev.recipientBankDetails.swiftCode
+      }
+    }));
+  };
 
   // Copy address to clipboard
   const copyToClipboard = (text) => {
@@ -305,51 +348,79 @@ const InternationalTransfer = () => {
     const isValid = validateTransferForm();
     if (!isValid) return;
     
-    // Handle crypto deposits with the specific crypto deposit API
-    if (transferForm.method === 'crypto-transfer') {
-      const depositData = {
-        type: 'deposit',
-        direction: 'credit',
-        category: 'deposit',
-        amount: parseFloat(transferForm.amount),
-        destinationAccountId: transferForm.destinationAccount,
-        source: {
-          crypto: transferForm.crypto,
-          walletAddress: transferForm.sourceWalletAddress,
-          transactionHash: transferForm.transactionHash,
-          network: selectedCrypto.network,
-          proofImages: uploadedProofs.map(proof => proof.data)
-        },
-        email: transferForm.recipientEmail
-      };
-      
-      const result = await dispatch(processCryptoDeposit(depositData)).unwrap();
-      setTransactionId(result.transactionId || result._id || 'N/A');
-      // After successful deposit, move to completion step
-      setActiveStep(2);
-    } else {
-      // Use regular international transfer API for bank/wire transfers
-      const transferData = {
-        type: 'international',
-        amount: parseFloat(transferForm.amount),
-        destinationAccountId: transferForm.destinationAccount,
-        method: transferForm.method,
-        source: {
-          walletAddress: transferForm.sourceWalletAddress,
-          transactionHash: transferForm.transactionHash,
-          crypto: transferForm.crypto
-        },
-        recipient: {
-          email: transferForm.recipientEmail,
-          name: transferForm.recipientName,
-          bankDetails: transferForm.recipientBankDetails
-        },
-        proofImageUrls: uploadedProofs.map(proof => proof.data)
-      };
-      
-      const result = await dispatch(createInternationalTransfer(transferData)).unwrap();
-      setTransactionId(result.transactionId || result._id || 'N/A');
-      setActiveStep(2);
+    const executeTransfer = async () => {
+      if (transferForm.method === 'crypto-transfer') {
+        const depositData = {
+          type: 'deposit',
+          direction: 'credit',
+          category: 'deposit',
+          amount: parseFloat(transferForm.amount),
+          destinationAccountId: transferForm.destinationAccount,
+          source: {
+            crypto: transferForm.crypto,
+            walletAddress: transferForm.sourceWalletAddress,
+            transactionHash: transferForm.transactionHash,
+            network: selectedCrypto.network,
+            proofImages: uploadedProofs.map(proof => proof.data)
+          },
+          email: transferForm.recipientEmail
+        };
+        
+        const result = await dispatch(processCryptoDeposit(depositData)).unwrap();
+        setTransactionId(result.transactionId || result._id || 'N/A');
+        setActiveStep(2);
+      } else {
+        const transferData = {
+          type: 'international',
+          amount: parseFloat(transferForm.amount),
+          destinationAccountId: transferForm.destinationAccount,
+          method: transferForm.method,
+          source: {
+            walletAddress: transferForm.sourceWalletAddress,
+            transactionHash: transferForm.transactionHash,
+            crypto: transferForm.crypto
+          },
+          recipient: {
+            email: transferForm.recipientEmail,
+            name: transferForm.recipientName,
+            bankDetails: transferForm.recipientBankDetails
+          },
+          proofImageUrls: uploadedProofs.map(proof => proof.data)
+        };
+        
+        const result = await dispatch(createInternationalTransfer(transferData)).unwrap();
+        setTransactionId(result.transactionId || result._id || 'N/A');
+        setActiveStep(2);
+      }
+    };
+
+    if (user?.transactionPin && !pinVerified) {
+      setPendingTransferAction(() => executeTransfer);
+      setShowPinModal(true);
+      return;
+    }
+
+    try {
+      await executeTransfer();
+    } catch (err) {
+      console.error('Transfer failed:', err);
+      setErrors(prev => ({ ...prev, submit: err.message || 'Transfer failed' }));
+    }
+  };
+
+  const handlePinVerified = async () => {
+    setPinVerified(true);
+    setShowPinModal(false);
+    
+    if (pendingTransferAction) {
+      try {
+        await pendingTransferAction();
+        setPendingTransferAction(null);
+      } catch (err) {
+        console.error('Transfer after PIN failed:', err);
+        setErrors(prev => ({ ...prev, submit: err.message || 'Transfer failed' }));
+        setPinVerified(false);
+      }
     }
   };
 
@@ -560,6 +631,31 @@ const InternationalTransfer = () => {
                   error={!!errors.amount}
                   helperText={errors.amount}
                   placeholder="Enter amount in USD"
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Autocomplete
+                  fullWidth
+                  options={myBeneficiaries}
+                  getOptionLabel={(option) => option.name}
+                  loading={beneficiariesLoading}
+                  onChange={(e, newValue) => handleMyBeneficiarySelect(newValue)}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="My Beneficiaries"
+                      InputProps={{
+                        ...params.InputProps,
+                        endAdornment: (
+                          <>
+                            {beneficiariesLoading ? <CircularProgress size={20} /> : null}
+                            {params.InputProps.endAdornment}
+                          </>
+                        )
+                      }}
+                    />
+                  )}
                   sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                 />
               </Grid>
@@ -1035,63 +1131,74 @@ const InternationalTransfer = () => {
               </Grid>
             </Grid>
           )}
-        </Paper>
-      </motion.div>
-    );
-  };
+         </Paper>
+       </motion.div>
+     );
+   };
 
-  return (
-    <Box sx={{ 
-      position: 'relative', 
-      overflow: 'hidden',
-      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%)',
-      minHeight: '100vh',
-      p: { xs: 2, md: 0 }
-    }}>
-      <Box sx={{
-        position: 'fixed',
-        top: '-15%',
-        right: '-10%',
-        width: '700px',
-        height: '700px',
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(0,102,255,0.3) 0%, rgba(0,102,255,0) 70%)',
-        filter: 'blur(80px)',
-        pointerEvents: 'none',
-        zIndex: 0,
-        animation: 'none',
-        display: { xs: 'none', md: 'block' }
-      }} />
-      <Box sx={{
-        position: 'fixed',
-        bottom: '-15%',
-        left: '-10%',
-        width: '800px',
-        height: '800px',
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(0,191,255,0.25) 0%, rgba(0,191,255,0) 70%)',
-        filter: 'blur(90px)',
-        pointerEvents: 'none',
-        zIndex: 0,
-        animation: 'none',
-        display: { xs: 'none', md: 'block' }
-      }} />
+   return (
+     <Box sx={{ 
+       position: 'relative', 
+       overflow: 'hidden',
+       background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%)',
+       minHeight: '100vh',
+       p: { xs: 2, md: 0 }
+     }}>
+       <Box sx={{
+         position: 'fixed',
+         top: '-15%',
+         right: '-10%',
+         width: '700px',
+         height: '700px',
+         borderRadius: '50%',
+         background: 'radial-gradient(circle, rgba(0,102,255,0.3) 0%, rgba(0,102,255,0) 70%)',
+         filter: 'blur(80px)',
+         pointerEvents: 'none',
+         zIndex: 0,
+         animation: 'none',
+         display: { xs: 'none', md: 'block' }
+       }} />
+       <Box sx={{
+         position: 'fixed',
+         bottom: '-15%',
+         left: '-10%',
+         width: '800px',
+         height: '800px',
+         borderRadius: '50%',
+         background: 'radial-gradient(circle, rgba(0,191,255,0.25) 0%, rgba(0,191,255,0) 70%)',
+         filter: 'blur(90px)',
+         pointerEvents: 'none',
+         zIndex: 0,
+         animation: 'none',
+         display: { xs: 'none', md: 'block' }
+       }} />
 
-      <Box sx={{ position: 'relative', zIndex: 1, pt: 4, px: { xs: 2, md: 4 } }}>
-        <div
-          style={{ opacity: 0, y: -30 }}
-        >
-          <Typography variant="h3" sx={{ 
-            fontWeight: 800, 
-            mb: 2,
-            color: 'white'
-          }}>International Transfer</Typography>
-        </div>
-        
-        {selectedMethod ? renderMethodForm() : renderMethodCards()}
-      </Box>
-    </Box>
-  );
+       <Box sx={{ position: 'relative', zIndex: 1, pt: 4, px: { xs: 2, md: 4 } }}>
+         <div
+           style={{ opacity: 0, y: -30 }}
+         >
+           <Typography variant="h3" sx={{ 
+             fontWeight: 800, 
+             mb: 2,
+             color: 'white'
+           }}>International Transfer</Typography>
+         </div>
+         
+         {selectedMethod ? renderMethodForm() : renderMethodCards()}
+       </Box>
+
+       <PinVerifyModal
+         open={showPinModal}
+         onClose={() => {
+           setShowPinModal(false);
+           setPendingTransferAction(null);
+         }}
+         onVerified={handlePinVerified}
+         title="Confirm Transaction"
+         description="Enter your 4-digit PIN to authorize this transfer"
+       />
+     </Box>
+   );
 };
 
 export default InternationalTransfer;

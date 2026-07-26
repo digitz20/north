@@ -17,7 +17,8 @@ const initialState = {
   loanTypesLoading: false,
   error: null,
   loanEligibility: null,
-  availableLoanTypes: []
+  availableLoanTypes: [],
+  pendingLoanApplication: null
 };
 
 // Get available loan types
@@ -133,6 +134,7 @@ const loanSlice = createSlice({
       .addCase(getUserLoans.fulfilled, (state, action) => {
         state.loading = false;
         state.loans = action.payload?.loans || [];
+        state.pendingLoanApplication = null;
       })
       .addCase(getUserLoans.rejected, (state, action) => {
         state.loading = false;
@@ -142,9 +144,16 @@ const loanSlice = createSlice({
       .addCase(calculateLoanEligibility.fulfilled, (state, action) => {
         state.loanEligibility = action.payload;
       })
-      // Apply for loan cases
+      // Apply for loan cases - do NOT push pending loans into visible loans list
+      .addCase(applyForLoan.pending, (state) => {
+        state.pendingLoanApplication = null;
+      })
       .addCase(applyForLoan.fulfilled, (state, action) => {
-        state.loans.push(action.payload);
+        state.pendingLoanApplication = action.payload;
+      })
+      .addCase(applyForLoan.rejected, (state, action) => {
+        state.pendingLoanApplication = null;
+        state.error = action.payload;
       })
       // Make payment case
       .addCase(makeLoanPayment.fulfilled, (state, action) => {

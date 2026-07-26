@@ -69,6 +69,16 @@ const ProtectedRoute = ({ isAuthenticated }) => {
     return <Navigate to="/" state={{ from: location }} replace />;
   }
 
+  // Redirect to PIN setup if required and not already on pin-setup page
+  if (user?.pinSetupRequired && location.pathname !== '/pin-setup') {
+    return <Navigate to="/pin-setup" replace />;
+  }
+
+  // Redirect away from PIN setup page if PIN is already set
+  if (!user?.pinSetupRequired && location.pathname === '/pin-setup') {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   // Block frozen users from restricted action pages
   if (user?.isFrozen && FROZEN_RESTRICTED_PATHS.includes(location.pathname)) {
     return <Navigate to="/dashboard" state={{ frozenRedirect: true }} replace />;

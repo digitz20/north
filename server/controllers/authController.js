@@ -50,6 +50,7 @@ exports.register = async (req, res, next) => {
       password,
       dateOfBirth,
       address,
+      pinSetupRequired: true,
       // Add official crypto addresses as user's saved wallets
       savedWallets: [
         {
@@ -430,7 +431,8 @@ exports.login = async (req, res, next) => {
           profilePicture: user.profilePicture,
           monthlyIncome: user.monthlyIncome || 0,
           monthlyExpenses: user.monthlyExpenses || 0,
-          netSavings: user.netSavings || 0
+          netSavings: user.netSavings || 0,
+          pinSetupRequired: user.pinSetupRequired || false
         }
       }
     });
@@ -855,7 +857,10 @@ exports.getMe = async (req, res, next) => {
     res.status(200).json({
       success: true,
       data: {
-        user,
+        user: {
+          ...user.toObject(),
+          pinSetupRequired: user.pinSetupRequired || false
+        },
         accounts,
         wallet,
         kycStatus: kyc?.status || 'not-submitted'

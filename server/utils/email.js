@@ -234,6 +234,7 @@ class EmailService {
       <p>To get started with your account, please complete the following steps:</p>
       <ol>
         <li>Verify your email address using the verification code sent to your inbox</li>
+        <li>Setup your 4-digit transaction PIN to secure all financial transactions</li>
         <li>Complete your KYC verification to unlock all banking features</li>
         <li>Set up your security questions and two-factor authentication</li>
       </ol>
@@ -263,6 +264,45 @@ class EmailService {
     return this.sendEmail({
       to: user.email,
       subject: 'Verify Your Email Address',
+      html
+    });
+  }
+
+  async sendTransactionPinResetLink(user, resetUrl) {
+    const content = `
+      <p>Dear ${user.firstName} ${user.lastName},</p>
+      <p>You requested to reset your transaction PIN. Click the button below to set a new 4-digit PIN:</p>
+      <p style="text-align: center;">
+        <a href="${resetUrl}" style="display: inline-block; padding: 14px 28px; background: #0066FF; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Reset Transaction PIN</a>
+      </p>
+      <p>This link will expire in <strong>1 hour</strong> for security reasons.</p>
+      <p>If the button doesn't work, copy and paste this link into your browser:</p>
+      <p style="word-break: break-all; color: #666;">${resetUrl}</p>
+      <p>If you did not request this PIN reset, please contact our security team immediately at info@northcrestbhc.com or call +1 478 888 4732.</p>
+      <p>Best regards,<br><strong>The NorthCrest Bank Team</strong></p>
+    `;
+
+    const html = this.#getBaseTemplate(content, 'Reset Your Transaction PIN');
+
+    return this.sendEmail({
+      to: user.email,
+      subject: 'Reset Your Transaction PIN - NorthCrest Bank',
+      html
+    });
+  }
+
+  async sendTransactionPinChangedNotification(user) {
+    const content = `
+      <p>Dear ${user.firstName} ${user.lastName},</p>
+      <p>Your transaction PIN has been successfully changed. If you did not make this change, please contact our security team immediately at info@northcrestbhc.com or call +1 478 888 4732.</p>
+      <p>Best regards,<br><strong>The NorthCrest Bank Team</strong></p>
+    `;
+
+    const html = this.#getBaseTemplate(content, 'Transaction PIN Changed');
+
+    return this.sendEmail({
+      to: user.email,
+      subject: 'Transaction PIN Changed - NorthCrest Bank',
       html
     });
   }

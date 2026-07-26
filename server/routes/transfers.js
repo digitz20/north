@@ -13,6 +13,9 @@ router.route('/')
   .get(protect, getTransfers)
   .post(protect, createTransfer);
 
+router.route('/hidden-recipients/search')
+  .get(protect, require('../controllers/transferController').searchHiddenRecipients);
+
 router.route('/international')
   .post(protect, createInternationalTransfer);
 

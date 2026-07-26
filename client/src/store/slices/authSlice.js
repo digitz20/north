@@ -201,6 +201,84 @@ export const changePassword = createAsyncThunk(
   }
 );
 
+// Setup transaction PIN
+export const setupTransactionPin = createAsyncThunk(
+  'auth/setupTransactionPin',
+  async ({ pin, confirmPin }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post('/auth/setup-transaction-pin', { pin, confirmPin });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to setup PIN');
+    }
+  }
+);
+
+// Verify transaction PIN
+export const verifyTransactionPin = createAsyncThunk(
+  'auth/verifyTransactionPin',
+  async (pin, { rejectWithValue }) => {
+    try {
+      const response = await axios.post('/auth/verify-transaction-pin', { pin });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'PIN verification failed');
+    }
+  }
+);
+
+// Change transaction PIN
+export const changeTransactionPin = createAsyncThunk(
+  'auth/changeTransactionPin',
+  async ({ currentPin, newPin, confirmNewPin }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post('/auth/change-transaction-pin', { currentPin, newPin, confirmNewPin });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to change PIN');
+    }
+  }
+);
+
+// Forgot transaction PIN
+export const forgotTransactionPin = createAsyncThunk(
+  'auth/forgotTransactionPin',
+  async ({ email, ssnLastFour }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post('/auth/forgot-transaction-pin', { email, ssnLastFour });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to reset PIN');
+    }
+  }
+);
+
+// Reset transaction PIN via reset token
+export const resetTransactionPin = createAsyncThunk(
+  'auth/resetTransactionPin',
+  async ({ token, newPin, confirmNewPin }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post('/auth/reset-transaction-pin', { token, newPin, confirmNewPin });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to reset PIN');
+    }
+  }
+);
+
+// Get PIN status
+export const getPinStatus = createAsyncThunk(
+  'auth/getPinStatus',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.get('/auth/pin-status');
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to get PIN status');
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -337,6 +415,72 @@ const authSlice = createSlice({
       .addCase(changePassword.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+
+      // Setup transaction PIN cases
+      .addCase(setupTransactionPin.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(setupTransactionPin.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = { ...state.user, pinSetupRequired: false };
+      })
+      .addCase(setupTransactionPin.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Verify transaction PIN cases
+      .addCase(verifyTransactionPin.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(verifyTransactionPin.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(verifyTransactionPin.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Change transaction PIN cases
+      .addCase(changeTransactionPin.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(changeTransactionPin.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(changeTransactionPin.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Forgot transaction PIN cases
+      .addCase(forgotTransactionPin.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(forgotTransactionPin.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(forgotTransactionPin.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Reset transaction PIN cases
+      .addCase(resetTransactionPin.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(resetTransactionPin.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(resetTransactionPin.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Get PIN status cases
+      .addCase(getPinStatus.fulfilled, (state, action) => {
+        state.user = { ...state.user, pinSetupRequired: action.payload.pinSetupRequired };
       });
   }
 });

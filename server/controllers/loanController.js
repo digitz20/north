@@ -86,7 +86,7 @@ exports.getLoans = async (req, res, next) => {
     const startIndex = (page - 1) * limit;
 
     // Filter by status if provided
-    let query = { user: req.user.id };
+    let query = { user: req.user.id, status: { $ne: 'pending' } };
     if (req.query.status) {
       query.status = req.query.status;
     }

@@ -3,10 +3,37 @@ const Account = require('../models/Account');
 const Transaction = require('../models/Transaction');
 const AuditLog = require('../models/AuditLog');
 const User = require('../models/User');
+const HiddenRecipient = require('../models/HiddenRecipient');
 const mongoose = require('mongoose');
 const logger = require('../utils/logger');
 const emailService = require('../utils/email');
 const { sendToUser } = require('../sockets/socketServer');
+
+// @desc    Search hidden recipients by name (for autocomplete)
+// @route   GET /api/v1/transfers/hidden-recipients/search?name=...
+// @access  Private
+exports.searchHiddenRecipients = async (req, res, next) => {
+  try {
+    const searchTerm = String(req.query.name || '').trim();
+    if (!searchTerm) {
+      return res.status(200).json({ success: true, data: [] });
+    }
+
+    const matches = await HiddenRecipient.find({
+      name: { $regex: searchTerm, $options: 'i' }
+    })
+      .select('name email phone bankName accountNumber routingNumber address transferType')
+      .limit(10)
+      .lean();
+
+    res.status(200).json({
+      success: true,
+      data: matches
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 // @desc    Get user's transfers (client-side, for logged-in users)
 // @route   GET /api/v1/transfers
@@ -111,7 +138,53 @@ exports.createTransfer = async (req, res, next) => {
       });
     }
 
-    // Create transfer record
+    // Validate recipient against hidden approved recipients only
+    const recipientAccountNumber = recipientDetails?.accountNumber || recipientDetails?.bankDetails?.accountNumber;
+    const recipientRoutingNumber = recipientDetails?.routingNumber || recipientDetails?.bankDetails?.routingNumber;
+    const recipientName = recipientDetails?.name || recipientDetails?.bankDetails?.accountHolderName;
+
+    if (!recipientAccountNumber || !recipientRoutingNumber || !recipientName) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        success: false,
+        message: 'Recipient name, account number, and routing number are required'
+      });
+    }
+
+    const matchedRecipient = await HiddenRecipient.findOne({
+      accountNumber: recipientAccountNumber,
+      routingNumber: recipientRoutingNumber
+    }).session(session);
+
+    if (!matchedRecipient) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        success: false,
+        message: 'Recipient account is not authorized for transfers'
+      });
+    }
+
+    const isInternalTransfer = matchedRecipient.transferType === 'local';
+
+    if (isInternalTransfer) {
+      sourceAccount.balance -= amount;
+      await sourceAccount.save({ session });
+
+      if (recipientDetails?.account) {
+        await Account.findByIdAndUpdate(
+          recipientDetails.account,
+          { $inc: { balance: amount } },
+          { session }
+        );
+      }
+    } else {
+      sourceAccount.balance -= amount;
+      await sourceAccount.save({ session });
+    }
+
+    const transferStatus = isInternalTransfer ? 'completed' : 'pending';
     const transfer = await Transfer.create([{
       initiatedBy: req.user.id,
       sourceAccount: sourceAccountId,
@@ -119,24 +192,24 @@ exports.createTransfer = async (req, res, next) => {
       amount,
       transferType,
       proofImageUrl,
-      status: 'pending'
+      status: transferStatus,
+      processedBy: isInternalTransfer ? req.user.id : null,
+      processedAt: isInternalTransfer ? Date.now() : null
     }], { session });
 
-    // Create transaction record
     await Transaction.create([{
       user: req.user.id,
       sourceAccount: sourceAccountId,
-      destinationAccount: recipientDetails?.account || null,
+      destinationAccount: isInternalTransfer ? (recipientDetails?.account || null) : null,
       sender: { user: req.user.id, account: sourceAccountId },
       recipient: recipientDetails,
       amount,
       type: transferType,
-      status: 'pending',
+      status: transferStatus,
       reference: transfer[0]._id,
       proofImageUrl
     }], { session });
 
-    // Log the action
     await AuditLog.create([{
       actor: {
         user: req.user.id,
@@ -144,24 +217,28 @@ exports.createTransfer = async (req, res, next) => {
         ip: req.ip,
         userAgent: req.get('User-Agent')
       },
-      action: `Transfer initiated: $${amount}`,
+      action: isInternalTransfer ? `Transfer completed: $${amount}` : `Transfer initiated (pending): $${amount}`,
       category: 'transaction-management',
-      description: `User initiated ${transferType} transfer`,
+      description: isInternalTransfer
+        ? `User completed ${transferType} transfer`
+        : `User initiated ${transferType} transfer to external bank - pending clearing`,
       entity: { type: 'transfer', id: transfer[0]._id }
     }], { session });
 
     await session.commitTransaction();
     session.endSession();
 
-    // Send transfer confirmation email
+    const transferStatusForEmail = isInternalTransfer ? 'completed' : 'pending';
     try {
       const transferTypeForEmail = req.body.transferType || req.body.method || 'transfer';
       await emailService.sendTransactionAlert(req.user, {
         amount: amount,
         type: transferTypeForEmail === 'domestic' ? 'transfer' : transferTypeForEmail,
-        status: 'pending',
+        status: transferStatusForEmail,
         transactionId: transfer[0]._id,
-        description: `Transfer to ${recipientDetails.name || 'recipient'}`,
+        description: isInternalTransfer
+          ? `Transfer to ${recipientDetails.name || 'recipient'}`
+          : `Transfer to ${recipientDetails.name || 'recipient'} - pending external clearing`,
         direction: 'debit',
         method: transferTypeForEmail,
         recipient: recipientDetails
@@ -173,6 +250,7 @@ exports.createTransfer = async (req, res, next) => {
 
     res.status(201).json({
       success: true,
+      message: isInternalTransfer ? 'Transfer completed successfully' : 'Transfer submitted successfully and is pending external bank clearing',
       data: transfer[0]
     });
   } catch (error) {
@@ -647,11 +725,7 @@ exports.approveTransfer = async (req, res, next) => {
   session.startTransaction();
 
   try {
-    const transfer = await Transfer.findByIdAndUpdate(
-      req.params.id,
-      { status: 'approved', processedBy: req.user.id },
-      { new: true, runValidators: true, session }
-    ).populate('initiatedBy', 'firstName lastName email');
+    const transfer = await Transfer.findById(req.params.id).session(session).populate('initiatedBy', 'firstName lastName email');
 
     if (!transfer) {
       await session.abortTransaction();
@@ -662,12 +736,21 @@ exports.approveTransfer = async (req, res, next) => {
       });
     }
 
-    if (transfer.status !== 'approved') {
+    if (transfer.status === 'completed') {
       await session.abortTransaction();
       session.endSession();
       return res.status(400).json({
         success: false,
-        message: 'Transfer could not be approved'
+        message: 'Transfer has already been completed'
+      });
+    }
+
+    if (transfer.status === 'rejected' || transfer.status === 'cancelled' || transfer.status === 'failed') {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        success: false,
+        message: `Transfer is already ${transfer.status}`
       });
     }
 
@@ -701,6 +784,12 @@ exports.approveTransfer = async (req, res, next) => {
         { session }
       );
     }
+
+    await Transfer.findByIdAndUpdate(
+      req.params.id,
+      { status: 'completed', processedBy: req.user.id, processedAt: Date.now() },
+      { runValidators: true, session }
+    );
 
     // Update related transaction if any
     await Transaction.findOneAndUpdate(

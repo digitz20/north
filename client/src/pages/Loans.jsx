@@ -13,7 +13,7 @@ const Loans = () => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const location = useLocation();
-  const { loans, loading, loanTypesLoading, error, availableLoanTypes } = useSelector((state) => state.loans);
+  const { loans, loading, loanTypesLoading, error, availableLoanTypes, pendingLoanApplication } = useSelector((state) => state.loans);
   const [openPaymentDialog, setOpenPaymentDialog] = useState(false);
   const [openApplyDialog, setOpenApplyDialog] = useState(false);
   const [tabValue, setTabValue] = useState(0); // 0 = Loans, 1 = IRS Tax Refund
@@ -688,6 +688,11 @@ border: '1px solid rgba(0,200,150,0.1)',
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
         >
+          {pendingLoanApplication && (
+            <Alert severity="info" sx={{ mt: 4, mb: 3, borderRadius: 2, bgcolor: 'rgba(0,102,255,0.08)', border: '1px solid rgba(0,102,255,0.3)' }}>
+              Your loan application for <strong>${pendingLoanApplication.amount?.toLocaleString()}</strong> has been submitted and is <strong>pending admin approval</strong>. Once approved, it will appear in your active loans list.
+            </Alert>
+          )}
           {loading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 10 }}>
               <CircularProgress size={56} sx={{ color: '#0066FF' }} />

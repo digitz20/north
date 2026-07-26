@@ -17,6 +17,7 @@ import { processCryptoDeposit } from '../store/slices/transactionSlice';
 import { getCurrentUser } from '../store/slices/authSlice';
 import { fetchAccounts } from '../store/slices/accountSlice';
 import NorthCrestLogo from '../components/common/NorthCrestLogo';
+import PinVerifyModal from '../components/PinVerifyModal';
 
 // New supported cryptocurrencies with your specified addresses
 const cryptoOptions = [
@@ -110,6 +111,9 @@ const Investments = () => {
   const [uploadedImages, setUploadedImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
   const plansSectionRef = useRef(null);
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pendingInvestmentAction, setPendingInvestmentAction] = useState(null);
+  const [pinVerified, setPinVerified] = useState(false);
   
   // Form states
   const [investmentForm, setInvestmentForm] = useState({
@@ -271,7 +275,7 @@ const Investments = () => {
       newErrors.amount = `Minimum investment for this plan is $${currentPlan.minAmount.toLocaleString()}`;
     }
 
-    if (investmentForm.investmentCategory === 'crypto' && !investmentForm.transactionHash) {
+    if (!investmentForm.transactionHash) {
       newErrors.transactionHash = 'Please enter your transaction hash or source wallet address';
     }
     
@@ -356,45 +360,67 @@ const Investments = () => {
       }
     };
 
-    try {
-      console.log('Attempting API call with:', depositData);
-      
-      await dispatch(processCryptoDeposit(depositData)).unwrap();
-      await dispatch(createInvestment({
-        planId: investmentForm.selectedPlan,
-        amount: parseFloat(investmentForm.amount),
-        accountId: investmentForm.destinationAccount,
-        category: investmentForm.investmentCategory,
-        proofImages: uploadedImages.map(img => img.data)
-      })).unwrap();
-      
-       console.log('API calls succeeded');
-       setShowSuccessPopup(true);
-       setTransferComplete(true);
-       setActiveStep(2);
-      
-      setTimeout(() => {
-        handleCloseDialog();
-        setShowSuccessPopup(false);
-        setActiveStep(0);
-        setInvestmentForm({
-          investmentCategory: 'crypto',
-          selectedPlan: investmentPlans.crypto[0]?.id || '',
-          amount: '',
-          destinationAccount: accounts[0]?._id || '',
-          crypto: 'btc',
-          transactionHash: '',
-          walletAddress: '',
-          savedWalletAddress: '',
-          email: user?.email || ''
-        });
-        setUploadedImages([]);
-        setImagePreviews([]);
-        setErrors({});
-      }, 3000);
-    } catch (error) {
-      console.error('Investment submission error:', error);
-      setErrors({ submit: error.message || 'Failed to submit investment. Please try again.' });
+    const executeInvestment = async () => {
+      try {
+        console.log('Attempting API call with:', depositData);
+        
+        await dispatch(processCryptoDeposit(depositData)).unwrap();
+        await dispatch(createInvestment({
+          planId: investmentForm.selectedPlan,
+          amount: parseFloat(investmentForm.amount),
+          accountId: investmentForm.destinationAccount,
+          category: investmentForm.investmentCategory,
+          proofImages: uploadedImages.map(img => img.data)
+        })).unwrap();
+        
+        console.log('API calls succeeded');
+        setShowSuccessPopup(true);
+        setTransferComplete(true);
+        setActiveStep(2);
+        
+        setTimeout(() => {
+          handleCloseDialog();
+          setShowSuccessPopup(false);
+          setActiveStep(0);
+          setInvestmentForm({
+            investmentCategory: 'crypto',
+            selectedPlan: investmentPlans.crypto[0]?.id || '',
+            amount: '',
+            destinationAccount: accounts[0]?._id || '',
+            crypto: 'btc',
+            transactionHash: '',
+            walletAddress: '',
+            savedWalletAddress: '',
+            email: user?.email || ''
+          });
+          setUploadedImages([]);
+          setImagePreviews([]);
+          setErrors({});
+          setPinVerified(false);
+        }, 3000);
+      } catch (error) {
+        console.error('Investment submission error:', error);
+        setErrors({ submit: error.message || 'Failed to submit investment. Please try again.' });
+        setPinVerified(false);
+      }
+    };
+
+    if (user?.transactionPin && !pinVerified) {
+      setPendingInvestmentAction(() => executeInvestment);
+      setShowPinModal(true);
+      return;
+    }
+
+    await executeInvestment();
+  };
+
+  const handlePinVerified = async () => {
+    setPinVerified(true);
+    setShowPinModal(false);
+    
+    if (pendingInvestmentAction) {
+      await pendingInvestmentAction();
+      setPendingInvestmentAction(null);
     }
   };
 
@@ -769,7 +795,7 @@ const Investments = () => {
               minWidth: '350px'
             }}>
               <Typography variant="h4" gutterBottom color="success.main">🎉 Congratulations!</Typography>
-              <Typography variant="body1" sx={{ mb: 3 }}>Your investment has been submitted and is being reviewed.</Typography>
+              <Typography variant="body1" sx={{ mb: 3 }}>Your investment has been submitted and is pending admin approval.</Typography>
               <CircularProgress />
             </Box>
           )}
@@ -900,53 +926,52 @@ const Investments = () => {
                 <Typography variant="h6" gutterBottom>Complete your payment:</Typography>
               </Grid>
 
-              {/* Show crypto-specific fields only for crypto category */}
-              {investmentForm.investmentCategory === 'crypto' && (
-                <>
-                  <Grid item xs={12} md={6}>
+              {/* Show crypto payment fields for ALL categories */}
+              <>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    select
+                    fullWidth
+                    label="Cryptocurrency"
+                    value={investmentForm.crypto}
+                    onChange={(e) => handleCryptoChange(e.target.value)}
+                    sx={{ mt: 1 }}
+                  >
+                    {cryptoOptions.map((crypto) => (
+                      <MenuItem key={crypto.id} value={crypto.id}>
+                        {crypto.name} ({crypto.symbol})
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Destination Account"
+                    select
+                    value={investmentForm.destinationAccount}
+                    onChange={(e) => setInvestmentForm({...investmentForm, destinationAccount: e.target.value})}
+                    error={!!errors.destinationAccount}
+                    helperText={errors.destinationAccount}
+                  >
+                     {accounts.map((account) => (
+                       <MenuItem key={account._id} value={account._id}>
+                         {account.nickname} - ${account.balance.toLocaleString()}
+                       </MenuItem>
+                     ))}
+                  </TextField>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-end' }}>
                     <TextField
                       select
                       fullWidth
-                      label="Cryptocurrency"
-                      value={investmentForm.crypto}
-                      onChange={(e) => handleCryptoChange(e.target.value)}
-                      sx={{ mt: 1 }}
+                      label="Your Saved Wallet Address (Source)"
+                      value={investmentForm.savedWalletAddress || ''}
+                      onChange={(e) => setInvestmentForm(prev => ({ ...prev, transactionHash: e.target.value, savedWalletAddress: e.target.value }))}
+                      helperText="Select from your saved crypto wallets or enter a new one below"
                     >
-                      {cryptoOptions.map((crypto) => (
-                    <MenuItem key={crypto.id} value={crypto.id}>
-                      {crypto.name} ({crypto.symbol})
-                    </MenuItem>
-                  ))}
-                    </TextField>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Destination Account"
-                      select
-                      value={investmentForm.destinationAccount}
-                      onChange={(e) => setInvestmentForm({...investmentForm, destinationAccount: e.target.value})}
-                      error={!!errors.destinationAccount}
-                      helperText={errors.destinationAccount}
-                    >
-                       {accounts.map((account) => (
-                         <MenuItem key={account._id} value={account._id}>
-                           {account.nickname} - ${account.balance.toLocaleString()}
-                         </MenuItem>
-                       ))}
-                    </TextField>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-end' }}>
-                      <TextField
-                        select
-                        fullWidth
-                        label="Your Saved Wallet Address (Source)"
-                        value={investmentForm.savedWalletAddress || ''}
-                        onChange={(e) => setInvestmentForm(prev => ({ ...prev, transactionHash: e.target.value, savedWalletAddress: e.target.value }))}
-                        helperText="Select from your saved crypto wallets or enter a new one below"
-                      >
-                        {userWallets.filter(wallet => wallet.crypto === investmentForm.crypto).map((wallet) => (
+                      {userWallets.filter(wallet => wallet.crypto === investmentForm.crypto).map((wallet) => (
                 <MenuItem key={wallet.id || wallet._id || wallet.address} value={wallet.address}>
                   {wallet.label} - {wallet.address.substring(0, 10)}...{wallet.address.substring(wallet.address.length - 8)}
                 </MenuItem>
@@ -954,115 +979,65 @@ const Investments = () => {
               {userWallets.filter(wallet => wallet.crypto === investmentForm.crypto).length === 0 && (
                 <MenuItem value="" disabled>No saved addresses for this cryptocurrency</MenuItem>
               )}
-                      </TextField>
-                      {investmentForm.savedWalletAddress && (
-                        <Tooltip title="Copy address">
-                          <IconButton 
-                            color="primary" 
-                            onClick={() => {
-                              navigator.clipboard.writeText(investmentForm.savedWalletAddress);
-                            }}
-                            sx={{ mb: 1 }}
-                          >
-                            <ContentCopy />
-                          </IconButton>
-                        </Tooltip>
-                      )}
-                    </Box>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Transaction Hash / Source Wallet Address"
-                      value={investmentForm.transactionHash}
-                      onChange={(e) => setInvestmentForm({...investmentForm, transactionHash: e.target.value, savedWalletAddress: ''})}
-                      error={!!errors.transactionHash}
-                      helperText={errors.transactionHash || `Enter your ${selectedCrypto.symbol} transaction hash`}
-                    />
-                  </Grid>
+                    </TextField>
+                    {investmentForm.savedWalletAddress && (
+                      <Tooltip title="Copy address">
+                        <IconButton 
+                          color="primary" 
+                          onClick={() => {
+                            navigator.clipboard.writeText(investmentForm.savedWalletAddress);
+                          }}
+                          sx={{ mb: 1 }}
+                        >
+                          <ContentCopy />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                  </Box>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Transaction Hash / Source Wallet Address"
+                    value={investmentForm.transactionHash}
+                    onChange={(e) => setInvestmentForm({...investmentForm, transactionHash: e.target.value, savedWalletAddress: ''})}
+                    error={!!errors.transactionHash}
+                    helperText={errors.transactionHash || `Enter your ${selectedCrypto.symbol} transaction hash`}
+                  />
+                </Grid>
 
-                   {/* Our official crypto address to send payment to */}
-                   <Grid item xs={12}>
-                     <Card sx={{ p: 3, bgcolor: 'background.default', borderRadius: 3 }}>
-                      <Typography variant="subtitle1" gutterBottom>
-                        Send your {selectedCrypto.name} to our official address:
-                      </Typography>
-                      <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
-                        <img src={selectedCrypto.qrCode} alt="QR Code" style={{ width: 100, height: 100 }} />
-                        <Box flexGrow={1}>
-                          <Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-all' }}>
-                            {selectedCrypto.address}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            Network: {selectedCrypto.network}
-                          </Typography>
-                          <Box mt={1}>
-                            <Tooltip title={copied ? "Copied!" : "Copy address"}>
-                              <IconButton onClick={() => copyToClipboard(selectedCrypto.address)} size="small">
-                                <ContentCopy />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip title="View QR Code">
-                              <IconButton onClick={() => window.open(selectedCrypto.qrCode, '_blank')} size="small">
-                                <Visibility />
-                              </IconButton>
-                            </Tooltip>
-                          </Box>
+                 {/* Our official crypto address to send payment to */}
+                 <Grid item xs={12}>
+                   <Card sx={{ p: 3, bgcolor: 'background.default', borderRadius: 3 }}>
+                    <Typography variant="subtitle1" gutterBottom>
+                      Send your {selectedCrypto.name} to our official address:
+                    </Typography>
+                    <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
+                      <img src={selectedCrypto.qrCode} alt="QR Code" style={{ width: 100, height: 100 }} />
+                      <Box flexGrow={1}>
+                        <Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-all' }}>
+                          {selectedCrypto.address}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Network: {selectedCrypto.network}
+                        </Typography>
+                        <Box mt={1}>
+                          <Tooltip title={copied ? "Copied!" : "Copy address"}>
+                            <IconButton onClick={() => copyToClipboard(selectedCrypto.address)} size="small">
+                              <ContentCopy />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="View QR Code">
+                            <IconButton onClick={() => window.open(selectedCrypto.qrCode, '_blank')} size="small">
+                              <Visibility />
+                            </IconButton>
+                          </Tooltip>
                         </Box>
                       </Box>
-                    </Card>
-                  </Grid>
-                </>
-              )}
-
-              {/* Show bank transfer fields for stocks and real estate categories */}
-              {investmentForm.investmentCategory !== 'crypto' && (
-                <>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      select
-                      label="Destination Account"
-                      value={investmentForm.destinationAccount}
-                      onChange={(e) => setInvestmentForm({...investmentForm, destinationAccount: e.target.value})}
-                      error={!!errors.destinationAccount}
-                      helperText={errors.destinationAccount}
-                    >
-                       {accounts.map((account) => (
-                         <MenuItem key={account._id} value={account._id}>
-                           {account.nickname} - ${account.balance.toLocaleString()}
-                         </MenuItem>
-                       ))}
-                    </TextField>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Transaction ID / Bank Reference"
-                      value={investmentForm.transactionHash}
-                      onChange={(e) => setInvestmentForm({...investmentForm, transactionHash: e.target.value})}
-                      error={!!errors.transactionHash}
-                      helperText={errors.transactionHash || 'Enter your bank transfer reference ID'}
-                    />
-                  </Grid>
-
-                   {/* Bank transfer details for fiat payments */}
-                   <Grid item xs={12}>
-                     <Card sx={{ p: 3, bgcolor: 'background.default', borderRadius: 3 }}>
-                      <Typography variant="subtitle1" gutterBottom>
-                        Bank Transfer Details:
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Bank Name: NorthCrest Bank USA<br/>
-                        Routing Number: 021000021<br/>
-                        Account Number: 1234567890<br/>
-                        SWIFT/BIC: NCBKUS33<br/>
-                        Reference: Include your account ID for automatic verification
-                      </Typography>
-                    </Card>
-                  </Grid>
-                </>
-              )}
+                    </Box>
+                  </Card>
+                </Grid>
+              </>
 
               {/* Common fields for ALL categories */}
               <Grid item xs={12} md={6}>
@@ -1158,7 +1133,7 @@ const Investments = () => {
                         <Typography variant="body2" color="text.secondary">Category</Typography>
                         <Typography variant="h6">{investmentForm.investmentCategory.charAt(0).toUpperCase() + investmentForm.investmentCategory.slice(1)}</Typography>
                       </Grid>
-                      {investmentForm.investmentCategory === 'crypto' && (
+                      {investmentForm.transactionHash && (
                         <>
                           <Grid item xs={6}>
                             <Typography variant="body2" color="text.secondary">Cryptocurrency</Typography>
@@ -1213,7 +1188,7 @@ const Investments = () => {
               <CheckCircle sx={{ fontSize: 80, color: 'success.main', mb: 2 }} />
               <Typography variant="h5" gutterBottom>Investment Submitted Successfully!</Typography>
               <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-                Your investment is being processed and will reflect in your account shortly.
+                Your investment is pending admin approval. It will be active once approved.
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 A confirmation email has been sent to {investmentForm.email}
@@ -1227,9 +1202,21 @@ const Investments = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      <PinVerifyModal
+        open={showPinModal}
+        onClose={() => {
+          setShowPinModal(false);
+          setPendingInvestmentAction(null);
+        }}
+        onVerified={handlePinVerified}
+        title="Confirm Investment"
+        description="Enter your 4-digit PIN to authorize this investment"
+      />
     </Box>
   </Box>
   );
 };
 
 export default Investments;
+
