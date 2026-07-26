@@ -798,7 +798,7 @@ const Dashboard = () => {
                     <Box key={account._id} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1.5, borderBottom: index < accounts.length - 1 ? '1px solid rgba(0,0,0,0.05)' : 'none' }}>
                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: index === 0 ? '#0066FF' : index === 1 ? '#00BFFF' : '#00C896', mr: 2 }} />
-                        <Typography variant="body2">{account.nickname || `${account.accountType.charAt(0).toUpperCase() + account.accountType.slice(1)} Account`}</Typography>
+                        <Typography variant="body2">{account.nickname || `${(account.accountType || '').charAt(0).toUpperCase() + (account.accountType || '').slice(1)} Account`}</Typography>
                       </Box>
                       <Typography variant="body2" sx={{ fontWeight: 600 }}>
                         {hideBalance ? '••••••••' : `$${account.balance.toLocaleString()}`}
@@ -922,7 +922,7 @@ const Dashboard = () => {
                               <Typography variant="body1" sx={{ fontWeight: 600 }}>{tx.description}</Typography>
                             }
                             secondary={
-                              <Typography variant="body2" color="text.secondary">{tx.category.charAt(0).toUpperCase() + tx.category.slice(1)} • {tx.time}</Typography>
+                               <Typography variant="body2" color="text.secondary">{(tx.category || '').charAt(0).toUpperCase() + (tx.category || '').slice(1)} • {tx.time}</Typography>
                             }
                           />
                           <Typography
@@ -1087,7 +1087,7 @@ const Dashboard = () => {
                             **** **** **** {account.accountNumber?.slice(-4) || '0000'}
                           </Typography>
                           <Chip
-                            label={account.accountType.charAt(0).toUpperCase() + account.accountType.slice(1)}
+                            label={((account.accountType || '').charAt(0).toUpperCase() + (account.accountType || '').slice(1)) || 'Account'}
                             size="small"
                             sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontSize: '0.7rem' }}
                           />

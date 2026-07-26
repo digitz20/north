@@ -251,29 +251,55 @@ const InternationalTransfer = () => {
       bankName: transferForm.recipientBankDetails.bankName,
       status: transferResult?.status === 'completed' ? 'Completed' : 'Pending Approval'
     };
-    
-    const receiptText = `
-NORTHCREST BANK OF USA
-========================
-Transaction Receipt
-========================
-Transaction ID: ${receipt.transactionId}
-Date: ${receipt.date}
-Amount: $${parseFloat(receipt.amount).toLocaleString()}
-Method: ${receipt.method}
-Recipient: ${receipt.recipient}
-Account Number: ${receipt.accountNumber}
-Bank Name: ${receipt.bankName}
-Status: ${receipt.status}
-========================
-Keep this receipt for your records.
-    `;
-    
-    const blob = new Blob([receiptText], { type: 'text/plain' });
+
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Payment Slip - NorthCrest Bank</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+    .receipt { background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); max-width: 420px; width: 100%; text-align: center; }
+    .logo { font-size: 20px; font-weight: 800; color: #0066FF; letter-spacing: 1px; margin-bottom: 4px; }
+    .subtitle { font-size: 12px; color: #64748b; margin-bottom: 24px; }
+    .divider { border: none; border-top: 2px dashed #e2e8f0; margin: 16px 0; }
+    .row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; }
+    .label { color: #64748b; }
+    .value { font-weight: 600; color: #0f2744; }
+    .amount { font-size: 28px; font-weight: 800; color: #0066FF; margin: 16px 0; }
+    .status { display: inline-block; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-top: 8px; }
+    .status-completed { background: #dcfce7; color: #166534; }
+    .status-pending { background: #fef3c7; color: #92400e; }
+    .footer { margin-top: 24px; font-size: 12px; color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <div class="receipt">
+    <div class="logo">NORTHCREST BANK OF USA</div>
+    <div class="subtitle">Payment Slip</div>
+    <hr class="divider">
+    <div class="row"><span class="label">Transaction ID</span><span class="value">${receipt.transactionId}</span></div>
+    <div class="row"><span class="label">Date</span><span class="value">${receipt.date}</span></div>
+    <hr class="divider">
+    <div class="amount">$${parseFloat(receipt.amount).toLocaleString()}</div>
+    <hr class="divider">
+    <div class="row"><span class="label">Method</span><span class="value">${receipt.method}</span></div>
+    <div class="row"><span class="label">Recipient</span><span class="value">${receipt.recipient}</span></div>
+    <div class="row"><span class="label">Account Number</span><span class="value">${receipt.accountNumber}</span></div>
+    <div class="row"><span class="label">Bank Name</span><span class="value">${receipt.bankName}</span></div>
+    <div class="row"><span class="label">Status</span><span class="value">${receipt.status}</span></div>
+    <hr class="divider">
+    <div class="status ${receipt.status === 'Completed' ? 'status-completed' : 'status-pending'}">${receipt.status}</div>
+    <div class="footer">Keep this slip for your records.</div>
+  </div>
+</body>
+</html>`;
+
+    const blob = new Blob([htmlContent], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `receipt-${transactionId || 'transfer'}.txt`;
+    a.download = `payment-slip-${transactionId || 'transfer'}.html`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -1142,29 +1168,49 @@ Keep this receipt for your records.
             <Grid container spacing={{ xs: 2, sm: 3 }}>
               <Grid item xs={12}>
                 <Paper sx={{ p: 4, borderRadius: 2, textAlign: 'center' }}>
-                  {transferResult?.status === 'completed' ? (
-                    <>
-                      <CheckCircle sx={{ fontSize: 64, color: '#00C896', mb: 2 }} />
-                      <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>Transfer Completed Successfully</Typography>
-                      <Typography variant="body1" sx={{ mb: 3 }}>
-                        Your international transfer has been processed successfully. The amount has been debited from your account.
+                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
+                    NORTHCREST BANK OF USA
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    Payment Slip
+                  </Typography>
+                  <Box sx={{ border: '1px solid #e2e8f0', borderRadius: 2, p: 3, mb: 3, textAlign: 'left' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1, borderBottom: '1px solid #f1f5f9' }}>
+                      <Typography variant="body2" color="text.secondary">Transaction ID</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{transactionId}</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1, borderBottom: '1px solid #f1f5f9' }}>
+                      <Typography variant="body2" color="text.secondary">Date</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{new Date().toLocaleString()}</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1, borderBottom: '1px solid #f1f5f9' }}>
+                      <Typography variant="body2" color="text.secondary">Amount</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 700, color: '#0066FF' }}>${parseFloat(transferForm.amount).toLocaleString()}</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1, borderBottom: '1px solid #f1f5f9' }}>
+                      <Typography variant="body2" color="text.secondary">Method</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{selectedMethod?.name}</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1, borderBottom: '1px solid #f1f5f9' }}>
+                      <Typography variant="body2" color="text.secondary">Recipient</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{transferForm.recipientName}</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1, borderBottom: '1px solid #f1f5f9' }}>
+                      <Typography variant="body2" color="text.secondary">Account Number</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{transferForm.recipientBankDetails.accountNumber}</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1, borderBottom: '1px solid #f1f5f9' }}>
+                      <Typography variant="body2" color="text.secondary">Bank Name</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{transferForm.recipientBankDetails.bankName}</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1 }}>
+                      <Typography variant="body2" color="text.secondary">Status</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 700, color: transferResult?.status === 'completed' ? '#00C896' : '#f59e0b' }}>
+                        {transferResult?.status === 'completed' ? 'Completed' : 'Pending Approval'}
                       </Typography>
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle sx={{ fontSize: 64, color: '#f59e0b', mb: 2 }} />
-                      <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>Transfer Pending Approval</Typography>
-                      <Typography variant="body1" sx={{ mb: 3 }}>
-                        Your international transfer has been submitted and is pending admin approval. Funds will only be debited once approved.
-                      </Typography>
-                    </>
-                  )}
-                  {transactionId && (
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                      Transaction ID: {transactionId}
-                    </Typography>
-                  )}
-                  <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+                    </Box>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                     <Button
                       variant="contained"
                       onClick={downloadReceipt}
@@ -1175,13 +1221,6 @@ Keep this receipt for your records.
                       }}
                     >
                       Download Payment Slip
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      onClick={() => navigate('/transactions')}
-                      sx={{ borderRadius: 2 }}
-                    >
-                      View Transactions
                     </Button>
                   </Box>
                 </Paper>

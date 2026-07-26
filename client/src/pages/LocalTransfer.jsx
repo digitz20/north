@@ -300,12 +300,13 @@ const LocalTransfer = () => {
             maxWidth: 900,
             mx: 'auto'
           }}>
-            {/* Available Balance Card */}
-            <Box sx={{ mb: 4, p: 3, borderRadius: 3, background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)', color: 'white' }}>
-              <Typography variant="body1" sx={{ opacity: 0.9, mb: 1 }}>Available Balance</Typography>
-              <Typography variant="h3" sx={{ fontWeight: 700 }}>${totalBalance.toLocaleString()}</Typography>
-              <Typography variant="body2" sx={{ opacity: 0.8, mt: 1 }}>Available for transfer</Typography>
-            </Box>
+            {!transferResult && (
+              <Box sx={{ mb: 4, p: 3, borderRadius: 3, background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)', color: 'white' }}>
+                <Typography variant="body1" sx={{ opacity: 0.9, mb: 1 }}>Available Balance</Typography>
+                <Typography variant="h3" sx={{ fontWeight: 700 }}>${totalBalance.toLocaleString()}</Typography>
+                <Typography variant="body2" sx={{ opacity: 0.8, mt: 1 }}>Available for transfer</Typography>
+              </Box>
+            )}
 
             {transferResult && (
               <Paper sx={{ p: 4, borderRadius: 2, textAlign: 'center', mb: 3 }}>
@@ -375,251 +376,257 @@ const LocalTransfer = () => {
               </Alert>
             )}
 
-             {!showPreview ? (
-               <form onSubmit={(e) => { e.preventDefault(); setShowPreview(true); }}>
-                 <Grid container spacing={3}>
-                   {/* From Account */}
-                   <Grid item xs={12}>
-                     <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>From Account</Typography>
-                     <TextField
-                       select
-                       fullWidth
-                       label="Select Source Account"
-                       value={formData.fromAccount}
-                       onChange={(e) => setFormData({ ...formData, fromAccount: e.target.value })}
-                       error={!!error && !formData.fromAccount}
-                       helperText={!formData.fromAccount ? 'Please select a source account' : ''}
-                       sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                     >
-                       {accounts?.map((account) => (
-                         <MenuItem key={account._id} value={account._id}>
-                           {account.nickname} - ${account.balance.toLocaleString()}
-                         </MenuItem>
-                       ))}
-                     </TextField>
-                   </Grid>
+             {!transferResult && (
+               <>
+                 {!showPreview ? (
+                   <form onSubmit={(e) => { e.preventDefault(); setShowPreview(true); }}>
+                     <Grid container spacing={3}>
+                       {/* From Account */}
+                       <Grid item xs={12}>
+                         <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>From Account</Typography>
+                         <TextField
+                           select
+                           fullWidth
+                           label="Select Source Account"
+                           value={formData.fromAccount}
+                           onChange={(e) => setFormData({ ...formData, fromAccount: e.target.value })}
+                           error={!!error && !formData.fromAccount}
+                           helperText={!formData.fromAccount ? 'Please select a source account' : ''}
+                           sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                         >
+                           {accounts?.map((account) => (
+                             <MenuItem key={account._id} value={account._id}>
+                               {account.nickname} - ${account.balance.toLocaleString()}
+                             </MenuItem>
+                           ))}
+                         </TextField>
+                       </Grid>
 
-                   {/* Transfer Amount */}
-                   <Grid item xs={12}>
-                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Transfer Amount</Typography>
-                    <TextField
-                      fullWidth
-                      label="Enter Amount"
-                      name="amount"
-                      value={formData.amount}
-                      onChange={handleChange}
-                      type="number"
-                      required
-                      placeholder="$0.00"
-                      InputProps={{
-                        startAdornment: <Typography sx={{ mr: 1 }}>$</Typography>,
-                      }}
-                      sx={{ mb: 2 }}
-                    />
-                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                      {[100, 500, 1000].map((amount) => (
-                        <Chip 
-                          key={amount}
-                          label={`$${amount}`} 
-                          onClick={() => handleQuickAmount(amount)}
-                          sx={{ cursor: 'pointer' }}
-                        />
-                      ))}
-                      <Chip 
-                        label="All" 
-                        onClick={() => handleQuickAmount(totalBalance)}
-                        sx={{ cursor: 'pointer' }}
-                      />
-                    </Box>
-                  </Grid>
-
-                  {/* Beneficiary Details */}
-                  <Grid item xs={12}>
-                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, mt: 2 }}>Beneficiary Details</Typography>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <FormControl fullWidth>
-                      <InputLabel id="beneficiary-select-label">Select Beneficiary</InputLabel>
-                      <Select
-                        labelId="beneficiary-select-label"
-                        value={selectedBeneficiary}
-                        label="Select Beneficiary"
-                        onChange={(e) => {
-                          const id = e.target.value;
-                          setSelectedBeneficiary(id);
-                          const found = Array.isArray(myBeneficiaries) ? myBeneficiaries.find((b) => b._id === id) : null;
-                          if (found) {
-                            setFormData((prev) => ({
-                              ...prev,
-                              beneficiaryName: found.name || '',
-                              beneficiaryAccountNumber: found.accountNumber || '',
-                              bankName: found.bankName || '',
-                              routingNumber: found.routingNumber || ''
-                            }));
-                          }
-                        }}
-                      >
-                        <MenuItem value=""><em>-- New Recipient --</em></MenuItem>
-                        {Array.isArray(myBeneficiaries) && myBeneficiaries.map((b) => (
-                          <MenuItem key={b._id} value={b._id}>{b.name}</MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Account Holder Name"
-                      name="beneficiaryName"
-                      value={formData.beneficiaryName}
-                      onChange={handleChange}
-                      required
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Account Number"
-                      name="beneficiaryAccountNumber"
-                      value={formData.beneficiaryAccountNumber}
-                      onChange={handleChange}
-                      required
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Bank Name"
-                      name="bankName"
-                      value={formData.bankName}
-                      onChange={handleChange}
-                      required
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Routing Number"
-                      name="routingNumber"
-                      value={formData.routingNumber}
-                      onChange={handleChange}
-                      required
-                    />
-                  </Grid>
-
-                  {/* Transfer Type */}
-                  <Grid item xs={12}>
-                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, mt: 2 }}>Transfer Type</Typography>
-                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
-                      {transferTypes.map((type) => (
-                        <Chip
-                          key={type.value}
-                          label={type.label}
-                          variant={formData.transferType === type.value ? 'filled' : 'outlined'}
-                          onClick={() => setFormData({ ...formData, transferType: type.value })}
-                          sx={{ 
-                            p: 2, 
-                            fontSize: '1rem',
-                            justifyContent: 'center',
-                            bgcolor: formData.transferType === type.value ? 'primary.main' : 'transparent',
-                            color: formData.transferType === type.value ? 'white' : 'inherit'
+                       {/* Transfer Amount */}
+                       <Grid item xs={12}>
+                        <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Transfer Amount</Typography>
+                        <TextField
+                          fullWidth
+                          label="Enter Amount"
+                          name="amount"
+                          value={formData.amount}
+                          onChange={handleChange}
+                          type="number"
+                          required
+                          placeholder="$0.00"
+                          InputProps={{
+                            startAdornment: <Typography sx={{ mr: 1 }}>$</Typography>,
                           }}
+                          sx={{ mb: 2 }}
                         />
-                      ))}
-                    </Box>
-                  </Grid>
+                        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                          {[100, 500, 1000].map((amount) => (
+                            <Chip 
+                              key={amount}
+                              label={`$${amount}`} 
+                              onClick={() => handleQuickAmount(amount)}
+                              sx={{ cursor: 'pointer' }}
+                            />
+                          ))}
+                          <Chip 
+                            label="All" 
+                            onClick={() => handleQuickAmount(totalBalance)}
+                            sx={{ cursor: 'pointer' }}
+                          />
+                        </Box>
+                      </Grid>
 
-                  {/* Additional Information */}
-                  <Grid item xs={12}>
-                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, mt: 2 }}>Additional Information</Typography>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Description/Memo"
-                      name="description"
-                      value={formData.description}
-                      onChange={handleChange}
-                      multiline
-                      rows={3}
-                    />
-                  </Grid>
+                      {/* Beneficiary Details */}
+                      <Grid item xs={12}>
+                        <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, mt: 2 }}>Beneficiary Details</Typography>
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <FormControl fullWidth>
+                          <InputLabel id="beneficiary-select-label">Select Beneficiary</InputLabel>
+                          <Select
+                            labelId="beneficiary-select-label"
+                            value={selectedBeneficiary}
+                            label="Select Beneficiary"
+                            onChange={(e) => {
+                              const id = e.target.value;
+                              setSelectedBeneficiary(id);
+                              const found = Array.isArray(myBeneficiaries) ? myBeneficiaries.find((b) => b._id === id) : null;
+                              if (found) {
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  beneficiaryName: found.name || '',
+                                  beneficiaryAccountNumber: found.accountNumber || '',
+                                  bankName: found.bankName || '',
+                                  routingNumber: found.routingNumber || ''
+                                }));
+                              }
+                            }}
+                          >
+                            <MenuItem value=""><em>-- New Recipient --</em></MenuItem>
+                            {Array.isArray(myBeneficiaries) && myBeneficiaries.map((b) => (
+                              <MenuItem key={b._id} value={b._id}>{b.name}</MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <TextField
+                          fullWidth
+                          label="Account Holder Name"
+                          name="beneficiaryName"
+                          value={formData.beneficiaryName}
+                          onChange={handleChange}
+                          required
+                        />
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <TextField
+                          fullWidth
+                          label="Account Number"
+                          name="beneficiaryAccountNumber"
+                          value={formData.beneficiaryAccountNumber}
+                          onChange={handleChange}
+                          required
+                        />
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <TextField
+                          fullWidth
+                          label="Bank Name"
+                          name="bankName"
+                          value={formData.bankName}
+                          onChange={handleChange}
+                          required
+                        />
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <TextField
+                          fullWidth
+                          label="Routing Number"
+                          name="routingNumber"
+                          value={formData.routingNumber}
+                          onChange={handleChange}
+                          required
+                        />
+                      </Grid>
 
-                  <Grid item xs={12} sx={{ mt: 3 }}>
-                    <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-                      <PremiumButton variant="ghost" onClick={() => navigate('/transfer')}>
-                        Back to Transfer
+                      {/* Transfer Type */}
+                      <Grid item xs={12}>
+                        <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, mt: 2 }}>Transfer Type</Typography>
+                        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+                          {transferTypes.map((type) => (
+                            <Chip
+                              key={type.value}
+                              label={type.label}
+                              variant={formData.transferType === type.value ? 'filled' : 'outlined'}
+                              onClick={() => setFormData({ ...formData, transferType: type.value })}
+                              sx={{ 
+                                p: 2, 
+                                fontSize: '1rem',
+                                justifyContent: 'center',
+                                bgcolor: formData.transferType === type.value ? 'primary.main' : 'transparent',
+                                color: formData.transferType === type.value ? 'white' : 'inherit'
+                              }}
+                            />
+                          ))}
+                        </Box>
+                      </Grid>
+
+                      {/* Additional Information */}
+                      <Grid item xs={12}>
+                        <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, mt: 2 }}>Additional Information</Typography>
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <TextField
+                          fullWidth
+                          label="Description/Memo"
+                          name="description"
+                          value={formData.description}
+                          onChange={handleChange}
+                          multiline
+                          rows={3}
+                        />
+                      </Grid>
+
+                      <Grid item xs={12} sx={{ mt: 3 }}>
+                        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+                          <PremiumButton variant="ghost" onClick={() => navigate('/transfer')}>
+                            Back to Transfer
+                          </PremiumButton>
+                          <PremiumButton 
+                            type="submit"
+                            variant="primary"
+                          >
+                            Preview Transfer
+                          </PremiumButton>
+                        </Box>
+                      </Grid>
+                    </Grid>
+                  </form>
+                ) : (
+                  /* Preview Section */
+                  <Box>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>Transfer Preview</Typography>
+                    <Grid container spacing={3}>
+                      <Grid item xs={12} md={6}>
+                        <Typography variant="body2" color="text.secondary">Amount</Typography>
+                        <Typography variant="h6">${parseFloat(formData.amount).toLocaleString()}</Typography>
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <Typography variant="body2" color="text.secondary">Beneficiary</Typography>
+                        <Typography variant="h6">{formData.beneficiaryName}</Typography>
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <Typography variant="body2" color="text.secondary">Account Number</Typography>
+                        <Typography variant="body1">{formData.beneficiaryAccountNumber}</Typography>
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <Typography variant="body2" color="text.secondary">Bank</Typography>
+                        <Typography variant="body1">{formData.bankName}</Typography>
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <Typography variant="body2" color="text.secondary">Transfer Type</Typography>
+                        <Typography variant="body1">{transferTypes.find(t => t.value === formData.transferType)?.label}</Typography>
+                      </Grid>
+                      {formData.description && (
+                        <Grid item xs={12}>
+                          <Typography variant="body2" color="text.secondary">Description</Typography>
+                          <Typography variant="body1">{formData.description}</Typography>
+                        </Grid>
+                      )}
+                    </Grid>
+                    <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 4 }}>
+                      <PremiumButton variant="ghost" onClick={() => setShowPreview(false)}>
+                        Back to Edit
                       </PremiumButton>
                       <PremiumButton 
-                        type="submit"
                         variant="primary"
+                        onClick={handleSubmit}
+                        disabled={loading}
                       >
-                        Preview Transfer
+                        {loading ? <CircularProgress size={24} sx={{ color: 'white' }} /> : 'Confirm & Send Transfer'}
                       </PremiumButton>
                     </Box>
-                  </Grid>
-                </Grid>
-              </form>
-            ) : (
-              /* Preview Section */
-              <Box>
-                <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>Transfer Preview</Typography>
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="body2" color="text.secondary">Amount</Typography>
-                    <Typography variant="h6">${parseFloat(formData.amount).toLocaleString()}</Typography>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="body2" color="text.secondary">Beneficiary</Typography>
-                    <Typography variant="h6">{formData.beneficiaryName}</Typography>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="body2" color="text.secondary">Account Number</Typography>
-                    <Typography variant="body1">{formData.beneficiaryAccountNumber}</Typography>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="body2" color="text.secondary">Bank</Typography>
-                    <Typography variant="body1">{formData.bankName}</Typography>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="body2" color="text.secondary">Transfer Type</Typography>
-                    <Typography variant="body1">{transferTypes.find(t => t.value === formData.transferType)?.label}</Typography>
-                  </Grid>
-                  {formData.description && (
-                    <Grid item xs={12}>
-                      <Typography variant="body2" color="text.secondary">Description</Typography>
-                      <Typography variant="body1">{formData.description}</Typography>
-                    </Grid>
-                  )}
-                </Grid>
-                <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 4 }}>
-                  <PremiumButton variant="ghost" onClick={() => setShowPreview(false)}>
-                    Back to Edit
-                  </PremiumButton>
-                  <PremiumButton 
-                    variant="primary"
-                    onClick={handleSubmit}
-                    disabled={loading}
-                  >
-                    {loading ? <CircularProgress size={24} sx={{ color: 'white' }} /> : 'Confirm & Send Transfer'}
-                  </PremiumButton>
-                </Box>
-              </Box>
+                  </Box>
+                )}
+              </>
             )}
 
             {/* Security Notice */}
-            <Paper sx={{ 
-              mt: 4,
-              p: 3, 
-              borderRadius: 2,
-              background: 'rgba(0,102,255,0.05)',
-              border: '1px solid rgba(0,102,255,0.1)',
-              textAlign: 'center'
-            }}>
-              <Typography variant="body2" color="text.secondary">
-                Secure Transaction - All transfers are encrypted and processed securely. Your financial information is never stored on our servers.
-              </Typography>
-            </Paper>
+            {!transferResult && (
+              <Paper sx={{ 
+                mt: 4,
+                p: 3, 
+                borderRadius: 2,
+                background: 'rgba(0,102,255,0.05)',
+                border: '1px solid rgba(0,102,255,0.1)',
+                textAlign: 'center'
+              }}>
+                <Typography variant="body2" color="text.secondary">
+                  Secure Transaction - All transfers are encrypted and processed securely. Your financial information is never stored on our servers.
+                </Typography>
+              </Paper>
+            )}
           </PremiumCard>
         </motion.div>
       </Box>
