@@ -115,7 +115,7 @@ exports.getUserDetails = async (req, res, next) => {
       Account.find({ user: req.params.id }),
       UserLoan.find({ user: req.params.id }).populate('loanProduct', 'name interestRate'),
       Transaction.find({ user: req.params.id }).sort({ createdAt: -1 }).limit(100),
-      Transfer.find({ initiatedBy: req.params.id }).populate('sourceAccount', 'accountNumber accountType').sort({ createdAt: -1 }).limit(100),
+      Transfer.find({ initiatedBy: req.params.id }).populate('sender.account', 'accountNumber accountType').sort({ createdAt: -1 }).limit(100),
       UserInvestment.find({ user: req.params.id }).populate('plan', 'name type expectedReturn').sort({ createdAt: -1 }).limit(100),
       KYC.find({ user: req.params.id }).sort({ submittedAt: -1 }),
       Card.find({ user: req.params.id }).populate('account', 'accountNumber accountType').sort({ createdAt: -1 }),
