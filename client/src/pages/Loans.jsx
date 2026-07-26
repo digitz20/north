@@ -2,11 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 import { Box, Typography, Paper, Grid, Button, Card, CardContent, CircularProgress, Alert, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Tab, Tabs, MenuItem, Stepper, Step, StepLabel, IconButton, List, ListItem, ListItemText, Snackbar } from '@mui/material';
-import { Close, AttachFile, InsertDriveFile, Delete, Email as EmailIcon, CloudUpload } from '@mui/icons-material';
+import { Close, AttachFile, InsertDriveFile, Delete, Email as EmailIcon, CloudUpload, Lock as LockIcon } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { getUserLoans, getAvailableLoanTypes, applyForLoan, makeLoanPayment, submitTaxRefundRequest } from '../store/slices/loanSlice';
 import api from '../services/api';
 import NorthCrestLogo from '../components/common/NorthCrestLogo';
+import PinVerifyModal from '../components/PinVerifyModal';
 
 const Loans = () => {
   const dispatch = useDispatch();
@@ -14,6 +15,10 @@ const Loans = () => {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const location = useLocation();
   const { loans, loading, loanTypesLoading, error, availableLoanTypes, pendingLoanApplication } = useSelector((state) => state.loans);
+  const { user } = useSelector((state) => state.auth);
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pinVerified, setPinVerified] = useState(false);
+  const [pendingLoanAction, setPendingLoanAction] = useState(null);
   const [openPaymentDialog, setOpenPaymentDialog] = useState(false);
   const [openApplyDialog, setOpenApplyDialog] = useState(false);
   const [tabValue, setTabValue] = useState(0); // 0 = Loans, 1 = IRS Tax Refund
@@ -75,13 +80,25 @@ const Loans = () => {
   };
 
   const handlePaymentSubmit = () => {
-    if (selectedLoan && paymentAmount) {
+    if (!selectedLoan || !paymentAmount) return;
+
+    const executePayment = () => {
       dispatch(makeLoanPayment({ 
         id: selectedLoan.id, 
         paymentData: { amount: parseFloat(paymentAmount) } 
       }));
       setOpenPaymentDialog(false);
+      setPaymentAmount('');
+      setLoanPaymentStep(0);
+    };
+
+    if (user?.transactionPin && !pinVerified) {
+      setPendingLoanAction(() => executePayment);
+      setShowPinModal(true);
+      return;
     }
+
+    executePayment();
   };
 
   const handleApplyClick = (loanType) => {
@@ -116,7 +133,9 @@ const Loans = () => {
   };
 
   const handleApplySubmit = () => {
-    if (selectedLoanType && loanAmount && loanTerm) {
+    if (!selectedLoanType || !loanAmount || !loanTerm) return;
+
+    const executeApplication = () => {
       dispatch(applyForLoan({
         loanType: selectedLoanType.type,
         amount: parseFloat(loanAmount),
@@ -124,6 +143,23 @@ const Loans = () => {
       }));
       setOpenApplyDialog(false);
       setLoanApplicationStep(0);
+    };
+
+    if (user?.transactionPin && !pinVerified) {
+      setPendingLoanAction(() => executeApplication);
+      setShowPinModal(true);
+      return;
+    }
+
+    executeApplication();
+  };
+
+  const handlePinVerified = async () => {
+    setPinVerified(true);
+    setShowPinModal(false);
+    if (pendingLoanAction) {
+      await pendingLoanAction();
+      setPendingLoanAction(null);
     }
   };
 
@@ -1370,6 +1406,17 @@ border: '1px solid rgba(0,200,150,0.1)',
           {snackbarMessage}
         </Alert>
       </Snackbar>
+
+      <PinVerifyModal
+        open={showPinModal}
+        onClose={() => {
+          setShowPinModal(false);
+          setPendingLoanAction(null);
+        }}
+        onVerified={handlePinVerified}
+        title="Confirm Transaction"
+        description="Enter your 4-digit PIN to authorize this transaction"
+      />
     </Box>
   );
 };
