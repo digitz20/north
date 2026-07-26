@@ -29,8 +29,7 @@ const LocalTransfer = () => {
     bankName: '',
     routingNumber: '',
     transferType: 'online-banking',
-    description: '',
-    transactionPin: ''
+    description: ''
   });
   const [showPreview, setShowPreview] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -375,18 +374,6 @@ const LocalTransfer = () => {
                       onChange={handleChange}
                       multiline
                       rows={3}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Transaction PIN"
-                      name="transactionPin"
-                      type="password"
-                      value={formData.transactionPin}
-                      onChange={handleChange}
-                      required
-                      helperText="This is your transaction PIN, not your login password"
                     />
                   </Grid>
 
