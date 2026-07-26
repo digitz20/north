@@ -17,7 +17,9 @@ import {
   MenuItem,
   Alert,
   Chip,
-  Autocomplete
+  FormControl,
+  InputLabel,
+  Select
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
@@ -28,6 +30,7 @@ import {
 import { getCurrentUser } from '../store/slices/authSlice';
 import { fetchAccounts } from '../store/slices/accountSlice';
 import { createInternationalTransfer, processCryptoDeposit } from '../store/slices/transactionSlice';
+import api from '../services/api';
 import PinVerifyModal from '../components/PinVerifyModal';
 
 // Supported cryptocurrencies with permanent system addresses
@@ -148,6 +151,7 @@ const InternationalTransfer = () => {
   const [uploadedProofs, setUploadedProofs] = useState([]);
   const [errors, setErrors] = useState({});
   const [transactionId, setTransactionId] = useState('');
+  const [transferResult, setTransferResult] = useState(null);
   
   // Form state using proper backend field names
   const [transferForm, setTransferForm] = useState({
@@ -170,6 +174,7 @@ const InternationalTransfer = () => {
 
   const [myBeneficiaries, setMyBeneficiaries] = useState([]);
   const [beneficiariesLoading, setBeneficiariesLoading] = useState(false);
+  const [selectedBeneficiary, setSelectedBeneficiary] = useState('');
   const [showPinModal, setShowPinModal] = useState(false);
   const [pendingTransferAction, setPendingTransferAction] = useState(null);
   const [pinVerified, setPinVerified] = useState(false);
@@ -185,18 +190,25 @@ const InternationalTransfer = () => {
   }, [dispatch, user]);
 
   useEffect(() => {
+    if (accounts && accounts.length > 0 && !transferForm.destinationAccount) {
+      setTransferForm(prev => ({ ...prev, destinationAccount: accounts[0]._id }));
+    }
+  }, [accounts, transferForm.destinationAccount]);
+
+  useEffect(() => {
     let isMounted = true;
     const fetchMyBeneficiaries = async () => {
       if (!user) return;
       setBeneficiariesLoading(true);
       try {
         const response = await api.get('/beneficiaries');
-        const data = response.data?.data || [];
+        const beneficiaries = response.data?.data?.beneficiaries || [];
         if (isMounted) {
-          setMyBeneficiaries(data);
+          setMyBeneficiaries(Array.isArray(beneficiaries) ? beneficiaries : []);
         }
       } catch (err) {
         console.error('Failed to load beneficiaries:', err);
+        if (isMounted) setMyBeneficiaries([]);
       } finally {
         if (isMounted) setBeneficiariesLoading(false);
       }
@@ -207,7 +219,7 @@ const InternationalTransfer = () => {
 
   const handleMyBeneficiarySelect = (selected) => {
     if (!selected) return;
-    setTransferForm(prev => ({
+    setTransferForm((prev) => ({
       ...prev,
       recipientName: selected.name || prev.recipientName,
       recipientBankDetails: {
@@ -225,6 +237,47 @@ const InternationalTransfer = () => {
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  // Generate and download receipt
+  const downloadReceipt = () => {
+    const receipt = {
+      transactionId,
+      date: new Date().toLocaleString(),
+      amount: transferForm.amount,
+      method: selectedMethod?.name,
+      recipient: transferForm.recipientName,
+      accountNumber: transferForm.recipientBankDetails.accountNumber,
+      bankName: transferForm.recipientBankDetails.bankName,
+      status: transferResult?.status === 'completed' ? 'Completed' : 'Pending Approval'
+    };
+    
+    const receiptText = `
+NORTHCREST BANK OF USA
+========================
+Transaction Receipt
+========================
+Transaction ID: ${receipt.transactionId}
+Date: ${receipt.date}
+Amount: $${parseFloat(receipt.amount).toLocaleString()}
+Method: ${receipt.method}
+Recipient: ${receipt.recipient}
+Account Number: ${receipt.accountNumber}
+Bank Name: ${receipt.bankName}
+Status: ${receipt.status}
+========================
+Keep this receipt for your records.
+    `;
+    
+    const blob = new Blob([receiptText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `receipt-${transactionId || 'transfer'}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   // Handle file upload for transfer proofs - convert to base64
@@ -270,6 +323,48 @@ const InternationalTransfer = () => {
       newErrors.amount = 'Please enter a valid amount';
     }
     
+    if (transferForm.method !== 'crypto-transfer') {
+      if (!transferForm.destinationAccount) {
+        newErrors.destinationAccount = 'Please select a source account to send from';
+      }
+      if (!transferForm.recipientName) {
+        newErrors.recipientName = 'Please enter recipient name';
+      }
+    }
+    
+    if (transferForm.method === 'wire-transfer') {
+      if (!transferForm.recipientBankDetails.bankName) {
+        newErrors.bankName = 'Please enter recipient bank name';
+      }
+      if (!transferForm.recipientBankDetails.swiftCode && !transferForm.recipientBankDetails.routingNumber) {
+        newErrors.swiftCode = 'Please enter SWIFT/BIC or routing number';
+      }
+      if (!transferForm.recipientBankDetails.country) {
+        newErrors.country = 'Please select recipient country';
+      }
+      if (!transferForm.recipientBankDetails.accountNumber) {
+        newErrors.accountNumber = 'Please enter beneficiary account number';
+      }
+      if (!transferForm.recipientBankDetails.routingNumber) {
+        newErrors.routingNumber = 'Please enter routing/transit number';
+      }
+    }
+    
+    if (transferForm.method === 'bank-transfer') {
+      if (!transferForm.recipientBankDetails.bankName) {
+        newErrors.bankName = 'Please enter recipient bank name';
+      }
+      if (!transferForm.recipientBankDetails.accountNumber) {
+        newErrors.accountNumber = 'Please enter account number';
+      }
+      if (!transferForm.recipientBankDetails.routingNumber) {
+        newErrors.routingNumber = 'Please enter routing number';
+      }
+      if (!transferForm.recipientBankDetails.country) {
+        newErrors.country = 'Please select country';
+      }
+    }
+    
     // Crypto-specific validation
     if (transferForm.method === 'crypto-transfer') {
       if (!transferForm.sourceWalletAddress || transferForm.sourceWalletAddress === 'new') {
@@ -283,38 +378,6 @@ const InternationalTransfer = () => {
       }
     }
     
-    // Wire transfer specific validation
-    if (transferForm.method === 'wire-transfer') {
-      if (!transferForm.recipientName) {
-        newErrors.recipientName = 'Please enter recipient name';
-      }
-      if (!transferForm.recipientBankDetails.swiftCode) {
-        newErrors.swiftCode = 'Please enter SWIFT code';
-      }
-      if (!transferForm.recipientBankDetails.country) {
-        newErrors.country = 'Please select recipient country';
-      }
-    }
-    
-    // Bank transfer specific validation
-    if (transferForm.method === 'bank-transfer') {
-      if (!transferForm.recipientName) {
-        newErrors.recipientName = 'Please enter recipient name';
-      }
-      if (!transferForm.recipientBankDetails.accountNumber) {
-        newErrors.accountNumber = 'Please enter account number';
-      }
-      if (!transferForm.recipientBankDetails.routingNumber) {
-        newErrors.routingNumber = 'Please enter routing number';
-      }
-      if (!transferForm.recipientBankDetails.bankName) {
-        newErrors.bankName = 'Please enter bank name';
-      }
-      if (!transferForm.recipientBankDetails.country) {
-        newErrors.country = 'Please select country';
-      }
-    }
-    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -324,11 +387,9 @@ const InternationalTransfer = () => {
     setSelectedMethod(method);
     setTransferForm(prev => ({ ...prev, method: method.id }));
     setActiveStep(0);
-    setUploadedProofs([]);
     setErrors({});
     setTransactionId('');
     
-    // Set default crypto if method is crypto
     if (method.id === 'crypto-transfer') {
       const firstCrypto = cryptoOptions[0];
       setSelectedCrypto(firstCrypto);
@@ -339,7 +400,6 @@ const InternationalTransfer = () => {
   const handleBackToMethods = () => {
     setSelectedMethod(null);
     setActiveStep(0);
-    setUploadedProofs([]);
     setErrors({});
     setTransactionId('');
   };
@@ -369,6 +429,7 @@ const InternationalTransfer = () => {
         
         const result = await dispatch(processCryptoDeposit(depositData)).unwrap();
         setTransactionId(result.transactionId || result._id || 'N/A');
+        setTransferResult(result);
         setActiveStep(2);
       } else {
         const transferData = {
@@ -376,21 +437,16 @@ const InternationalTransfer = () => {
           amount: parseFloat(transferForm.amount),
           destinationAccountId: transferForm.destinationAccount,
           method: transferForm.method,
-          source: {
-            walletAddress: transferForm.sourceWalletAddress,
-            transactionHash: transferForm.transactionHash,
-            crypto: transferForm.crypto
-          },
           recipient: {
             email: transferForm.recipientEmail,
             name: transferForm.recipientName,
             bankDetails: transferForm.recipientBankDetails
-          },
-          proofImageUrls: uploadedProofs.map(proof => proof.data)
+          }
         };
         
         const result = await dispatch(createInternationalTransfer(transferData)).unwrap();
         setTransactionId(result.transactionId || result._id || 'N/A');
+        setTransferResult(result);
         setActiveStep(2);
       }
     };
@@ -636,29 +692,37 @@ const InternationalTransfer = () => {
                 />
               </Grid>
               <Grid item xs={12} md={6}>
-                <Autocomplete
-                  fullWidth
-                  options={myBeneficiaries}
-                  getOptionLabel={(option) => option.name}
-                  loading={beneficiariesLoading}
-                  onChange={(e, newValue) => handleMyBeneficiarySelect(newValue)}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="My Beneficiaries"
-                      InputProps={{
-                        ...params.InputProps,
-                        endAdornment: (
-                          <>
-                            {beneficiariesLoading ? <CircularProgress size={20} /> : null}
-                            {params.InputProps.endAdornment}
-                          </>
-                        )
-                      }}
-                    />
-                  )}
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                />
+                <FormControl fullWidth>
+                  <InputLabel id="intl-beneficiary-select-label">Select Beneficiary</InputLabel>
+                  <Select
+                    labelId="intl-beneficiary-select-label"
+                    value={selectedBeneficiary}
+                    label="Select Beneficiary"
+                    onChange={(e) => {
+                      const id = e.target.value;
+                      setSelectedBeneficiary(id);
+                      const found = Array.isArray(myBeneficiaries) ? myBeneficiaries.find((b) => b._id === id) : null;
+                      if (found) {
+                        setTransferForm((prev) => ({
+                          ...prev,
+                          recipientName: found.name || prev.recipientName,
+                          recipientBankDetails: {
+                            ...prev.recipientBankDetails,
+                            accountNumber: found.accountNumber || prev.recipientBankDetails.accountNumber,
+                            routingNumber: found.routingNumber || prev.recipientBankDetails.routingNumber,
+                            bankName: found.bankName || prev.recipientBankDetails.bankName,
+                            swiftCode: found.routingNumber || prev.recipientBankDetails.swiftCode
+                          }
+                        }));
+                      }
+                    }}
+                  >
+                    <MenuItem value=""><em>-- New Recipient --</em></MenuItem>
+                    {Array.isArray(myBeneficiaries) && myBeneficiaries.map((b) => (
+                      <MenuItem key={b._id} value={b._id}>{b.name}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
               </Grid>
               <Grid item xs={12} md={6}>
                 <TextField
@@ -835,6 +899,34 @@ const InternationalTransfer = () => {
                   <Grid item xs={12} md={6}>
                     <TextField
                       fullWidth
+                      label="Beneficiary Account Number"
+                      value={transferForm.recipientBankDetails.accountNumber}
+                      onChange={(e) => setTransferForm(prev => ({ 
+                        ...prev, 
+                        recipientBankDetails: { ...prev.recipientBankDetails, accountNumber: e.target.value }
+                      }))}
+                      error={!!errors.accountNumber}
+                      helperText={errors.accountNumber}
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Routing / Transit Number"
+                      value={transferForm.recipientBankDetails.routingNumber}
+                      onChange={(e) => setTransferForm(prev => ({ 
+                        ...prev, 
+                        recipientBankDetails: { ...prev.recipientBankDetails, routingNumber: e.target.value }
+                      }))}
+                      error={!!errors.routingNumber}
+                      helperText={errors.routingNumber}
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
                       label="SWIFT / BIC Code"
                       value={transferForm.recipientBankDetails.swiftCode}
                       onChange={(e) => setTransferForm(prev => ({ 
@@ -867,36 +959,6 @@ const InternationalTransfer = () => {
                         </MenuItem>
                       ))}
                     </TextField>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Button
-                      variant="outlined"
-                      component="label"
-                      startIcon={<UploadFile />}
-                      sx={{ borderRadius: 2 }}
-                    >
-                      Upload Transfer Proof / Invoice
-                      <input
-                        type="file"
-                        hidden
-                        multiple
-                        accept="image/*,.pdf"
-                        onChange={handleProofUpload}
-                      />
-                    </Button>
-                    {uploadedProofs.length > 0 && (
-                      <Box sx={{ mt: 2 }}>
-                        {uploadedProofs.map((proof, index) => (
-                          <Chip 
-                            key={index} 
-                            label={proof.name} 
-                            sx={{ mr: 1, mb: 1 }}
-                            onDelete={() => setUploadedProofs(prev => prev.filter((_, i) => i !== index))}
-                          />
-                        ))}
-                      </Box>
-                    )}
-                    {errors.proofs && <Typography color="error" variant="body2" sx={{ mt: 1 }}>{errors.proofs}</Typography>}
                   </Grid>
                 </>
               )}
@@ -967,43 +1029,16 @@ const InternationalTransfer = () => {
                       ))}
                     </TextField>
                   </Grid>
-                  <Grid item xs={12}>
-                    <Button
-                      variant="outlined"
-                      component="label"
-                      startIcon={<UploadFile />}
-                      sx={{ borderRadius: 2 }}
-                    >
-                      Upload Transfer Proof / Invoice
-                      <input
-                        type="file"
-                        hidden
-                        multiple
-                        accept="image/*,.pdf"
-                        onChange={handleProofUpload}
-                      />
-                    </Button>
-                    {uploadedProofs.length > 0 && (
-                      <Box sx={{ mt: 2 }}>
-                        {uploadedProofs.map((proof, index) => (
-                          <Chip 
-                            key={index} 
-                            label={proof.name} 
-                            sx={{ mr: 1, mb: 1 }}
-                            onDelete={() => setUploadedProofs(prev => prev.filter((_, i) => i !== index))}
-                          />
-                        ))}
-                      </Box>
-                    )}
-                    {errors.proofs && <Typography color="error" variant="body2" sx={{ mt: 1 }}>{errors.proofs}</Typography>}
-                  </Grid>
                 </>
               )}
 
               <Grid item xs={12}>
                 <Button
                   variant="contained"
-                  onClick={() => setActiveStep(1)}
+                  onClick={() => {
+                    const valid = validateTransferForm();
+                    if (valid) setActiveStep(1);
+                  }}
                   sx={{
                     py: 1.5,
                     px: 4,
@@ -1107,27 +1142,48 @@ const InternationalTransfer = () => {
             <Grid container spacing={{ xs: 2, sm: 3 }}>
               <Grid item xs={12}>
                 <Paper sx={{ p: 4, borderRadius: 2, textAlign: 'center' }}>
-                  <CheckCircle sx={{ fontSize: 64, color: '#f59e0b', mb: 2 }} />
-                  <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>Transfer Pending Approval</Typography>
-                  <Typography variant="body1" sx={{ mb: 3 }}>
-                    Your international transfer has been submitted and is pending admin approval. Funds will only be added to your account once approved.
-                  </Typography>
+                  {transferResult?.status === 'completed' ? (
+                    <>
+                      <CheckCircle sx={{ fontSize: 64, color: '#00C896', mb: 2 }} />
+                      <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>Transfer Completed Successfully</Typography>
+                      <Typography variant="body1" sx={{ mb: 3 }}>
+                        Your international transfer has been processed successfully. The amount has been debited from your account.
+                      </Typography>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle sx={{ fontSize: 64, color: '#f59e0b', mb: 2 }} />
+                      <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>Transfer Pending Approval</Typography>
+                      <Typography variant="body1" sx={{ mb: 3 }}>
+                        Your international transfer has been submitted and is pending admin approval. Funds will only be debited once approved.
+                      </Typography>
+                    </>
+                  )}
                   {transactionId && (
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                       Transaction ID: {transactionId}
                     </Typography>
                   )}
-                  <Button
-                    variant="contained"
-                    onClick={() => navigate('/transactions')}
-                    sx={{
-                      borderRadius: 2,
-                      background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
-                      boxShadow: '0 8px 24px rgba(0, 102, 255, 0.35)',
-                    }}
-                  >
-                    View Transactions
-                  </Button>
+                  <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+                    <Button
+                      variant="contained"
+                      onClick={downloadReceipt}
+                      sx={{
+                        borderRadius: 2,
+                        background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
+                        boxShadow: '0 8px 24px rgba(0, 102, 255, 0.35)',
+                      }}
+                    >
+                      Download Payment Slip
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      onClick={() => navigate('/transactions')}
+                      sx={{ borderRadius: 2 }}
+                    >
+                      View Transactions
+                    </Button>
+                  </Box>
                 </Paper>
               </Grid>
             </Grid>

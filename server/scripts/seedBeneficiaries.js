@@ -288,10 +288,10 @@ async function seed() {
     const Account = mongoose.models.Account || require('../models/Account');
     const User = mongoose.models.User || require('../models/User');
 
-    // Use Alaekeka Ebuka as the owner of all seed beneficiaries
-    const owner = await User.findOne({ email: 'alaekekaebuka200@gmail.com' });
+    // Use the first available user as the owner of all seed beneficiaries
+    const owner = await User.findOne({});
     if (!owner) {
-      console.error('Owner user not found. Please ensure the user exists.');
+      console.error('No user found in database. Please register a user first.');
       process.exit(1);
     }
     console.log('Using owner user:', owner.firstName, owner.lastName, owner._id);

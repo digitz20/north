@@ -209,7 +209,6 @@ const DashboardLayout = () => {
         opacity: 0.5
       }
     }}>
-    }}>
       <style>
         {`
           @keyframes shimmer {

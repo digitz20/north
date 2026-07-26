@@ -240,26 +240,26 @@ exports.changeTransactionPin = async (req, res, next) => {
   }
 };
 
-// @desc    Forgot transaction PIN - initiates reset via email link
+// @desc    Forgot transaction PIN - generates and emails a new PIN
 // @route   POST /api/v1/auth/forgot-transaction-pin
 // @access  Private
 exports.forgotTransactionPin = async (req, res, next) => {
   try {
-    const { email, ssnLastFour } = req.body;
+    const { email } = req.body;
     const userId = req.user?.id;
 
-    if (!email && !userId) {
+    if (!email) {
       return res.status(400).json({
         success: false,
         message: 'Please provide your email address'
       });
     }
 
-    const user = await User.findOne({ email: email || req.user.email }).select('+transactionPin +ssnLastFour');
+    const user = await User.findOne({ email }).select('+transactionPin');
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'No account found with that email address'
       });
     }
 
@@ -270,56 +270,41 @@ exports.forgotTransactionPin = async (req, res, next) => {
       });
     }
 
-    if (!ssnLastFour || !user.ssnLastFour || ssnLastFour !== user.ssnLastFour) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid SSN verification. Please provide the last 4 digits of your SSN.'
-      });
-    }
-
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    const resetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
-    
-    user.transactionPinResetToken = resetTokenHash;
-    user.transactionPinResetExpire = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    const newPin = Math.floor(1000 + Math.random() * 9000).toString();
+    const hashedPin = await bcrypt.hash(newPin, 12);
+    user.transactionPin = hashedPin;
+    user.pinSetupRequired = false;
+    user.pinFailedAttempts = 0;
+    user.pinLockedUntil = undefined;
+    user.transactionPinResetToken = undefined;
+    user.transactionPinResetExpire = undefined;
     await user.save();
-
-    const resetUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-transaction-pin?token=${resetToken}`;
 
     await AuditLog.log({
       actor: { user: user._id, role: user.role, ip: req.ip, userAgent: req.get('User-Agent') },
-      action: 'transaction_pin_reset_requested',
+      action: 'transaction_pin_reset',
       category: 'security',
-      description: 'Transaction PIN reset requested via email',
+      description: 'Transaction PIN reset via email',
       entity: { type: 'user', id: user._id }
     });
 
     try {
-      await emailService.sendTransactionPinResetLink(user, resetUrl);
+      await emailService.sendTransactionPinReset(user, newPin);
     } catch (emailErr) {
       logger.error(`Failed to send PIN reset email: ${emailErr.message}`);
-      user.transactionPinResetToken = undefined;
-      user.transactionPinResetExpire = undefined;
-      await user.save();
-      
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to send reset email. Please try again later.'
-      });
     }
 
     sendToUser(user._id.toString(), 'notification', {
       type: 'security',
       title: 'Transaction PIN Reset',
-      message: 'A PIN reset link has been sent to your email address.'
+      message: 'A new transaction PIN has been sent to your email address.'
     });
 
     res.status(200).json({
       success: true,
-      message: 'A PIN reset link has been sent to your email. Please check your inbox and follow the instructions.',
+      message: 'A new transaction PIN has been sent to your email.',
       data: {
-        email: user.email,
-        resetUrl: process.env.NODE_ENV === 'development' ? resetUrl : undefined
+        email: user.email
       }
     });
   } catch (error) {

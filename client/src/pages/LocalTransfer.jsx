@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   Box, Typography, Paper, TextField, Button, Grid,
-  Chip, Alert, CircularProgress, Autocomplete, Dialog, DialogTitle, DialogContent, DialogActions
+  Chip, Alert, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions,
+  FormControl, InputLabel, Select, MenuItem
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowBack, Lock as LockIcon } from '@mui/icons-material';
+import { ArrowBack, Lock as LockIcon, GetApp } from '@mui/icons-material';
 import { createTransfer } from '../store/slices/transactionSlice';
 import { fetchAccounts } from '../store/slices/accountSlice';
 import { getCurrentUser } from '../store/slices/authSlice';
@@ -31,8 +32,15 @@ const LocalTransfer = () => {
     transferType: 'online-banking',
     description: ''
   });
+
+  useEffect(() => {
+    if (accounts && accounts.length > 0 && !formData.fromAccount) {
+      setFormData(prev => ({ ...prev, fromAccount: accounts[0]._id }));
+    }
+  }, [accounts, formData.fromAccount]);
+  const [selectedBeneficiary, setSelectedBeneficiary] = useState('');
   const [showPreview, setShowPreview] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [transferResult, setTransferResult] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [myBeneficiaries, setMyBeneficiaries] = useState([]);
@@ -68,12 +76,13 @@ const LocalTransfer = () => {
       setBeneficiariesLoading(true);
       try {
         const response = await api.get('/beneficiaries');
-        const data = response.data?.data || [];
+        const beneficiaries = response.data?.data?.beneficiaries || [];
         if (isMounted) {
-          setMyBeneficiaries(data);
+          setMyBeneficiaries(Array.isArray(beneficiaries) ? beneficiaries : []);
         }
       } catch (err) {
         console.error('Failed to load beneficiaries:', err);
+        if (isMounted) setMyBeneficiaries([]);
       } finally {
         if (isMounted) setBeneficiariesLoading(false);
       }
@@ -83,30 +92,27 @@ const LocalTransfer = () => {
   }, [user]);
 
   const handleBeneficiarySelect = (selected) => {
-    if (!selected) {
-      setFormData({
-        ...formData,
-        beneficiaryName: '',
-        beneficiaryAccountNumber: '',
-        bankName: '',
-        routingNumber: ''
-      });
-      return;
-    }
-    setFormData({
-      ...formData,
+    if (!selected) return;
+    setFormData((prev) => ({
+      ...prev,
       beneficiaryName: selected.name || '',
       beneficiaryAccountNumber: selected.accountNumber || '',
       bankName: selected.bankName || '',
       routingNumber: selected.routingNumber || ''
-    });
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSuccess(false);
     setError('');
     setLoading(true);
+    setTransferResult(null);
+
+    if (!formData.fromAccount) {
+      setError('Please select a source account');
+      setLoading(false);
+      return;
+    }
 
     const transferData = {
       sourceAccountId: formData.fromAccount,
@@ -128,11 +134,8 @@ const LocalTransfer = () => {
     }
 
     try {
-      await dispatch(createTransfer(transferData)).unwrap();
-      setSuccess(true);
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 3000);
+      const result = await dispatch(createTransfer(transferData)).unwrap();
+      setTransferResult(result);
     } catch (err) {
       setError(err.message || err || 'Transfer failed');
     } finally {
@@ -148,12 +151,9 @@ const LocalTransfer = () => {
     if (!pendingTransferData) return;
 
     try {
-      await dispatch(createTransfer(pendingTransferData)).unwrap();
-      setSuccess(true);
+      const result = await dispatch(createTransfer(pendingTransferData)).unwrap();
+      setTransferResult(result);
       setPendingTransferData(null);
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 3000);
     } catch (err) {
       setError(err.message || err || 'Transfer failed');
       setPinVerified(false);
@@ -168,6 +168,47 @@ const LocalTransfer = () => {
     { value: 'checking', label: 'Checking' },
     { value: 'savings-account', label: 'Savings Account' }
   ];
+
+  const downloadPaymentSlip = () => {
+    if (!transferResult) return;
+    const receipt = {
+      transactionId: transferResult._id,
+      date: new Date().toLocaleString(),
+      amount: formData.amount,
+      type: transferTypes.find(t => t.value === formData.transferType)?.label || formData.transferType,
+      recipient: formData.beneficiaryName,
+      accountNumber: formData.beneficiaryAccountNumber,
+      bankName: formData.bankName,
+      status: transferResult.status === 'completed' ? 'Completed' : 'Pending Approval'
+    };
+
+    const receiptText = `
+NORTHCREST BANK OF USA
+========================
+Payment Slip
+========================
+Transaction ID: ${receipt.transactionId}
+Date: ${receipt.date}
+Amount: $${parseFloat(receipt.amount).toLocaleString()}
+Transfer Type: ${receipt.type}
+Recipient: ${receipt.recipient}
+Account Number: ${receipt.accountNumber}
+Bank Name: ${receipt.bankName}
+Status: ${receipt.status}
+========================
+Keep this slip for your records.
+    `;
+
+    const blob = new Blob([receiptText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `payment-slip-${receipt.transactionId || 'transfer'}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <Box sx={{ 
@@ -240,10 +281,35 @@ const LocalTransfer = () => {
               <Typography variant="body2" sx={{ opacity: 0.8, mt: 1 }}>Available for transfer</Typography>
             </Box>
 
-            {success && (
-              <Alert severity="success" sx={{ mb: 3 }}>
-                Local transfer completed successfully! The amount has been debited from your account.
+            {transferResult && (
+              <Alert severity={transferResult.status === 'completed' ? 'success' : 'info'} sx={{ mb: 3 }}>
+                {transferResult.status === 'completed'
+                  ? 'Local transfer completed successfully! The amount has been debited from your account.'
+                  : 'Your transfer has been submitted and is pending admin approval.'}
               </Alert>
+            )}
+            {transferResult && (
+              <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                <Button
+                  variant="contained"
+                  startIcon={<GetApp />}
+                  onClick={downloadPaymentSlip}
+                  sx={{
+                    borderRadius: 2,
+                    background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
+                    boxShadow: '0 8px 24px rgba(0, 102, 255, 0.35)',
+                  }}
+                >
+                  Download Payment Slip
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={() => navigate('/transactions')}
+                  sx={{ borderRadius: 2 }}
+                >
+                  View Transactions
+                </Button>
+              </Box>
             )}
             {error && (
               <Alert severity="error" sx={{ mb: 3 }}>
@@ -251,11 +317,32 @@ const LocalTransfer = () => {
               </Alert>
             )}
 
-            {!showPreview ? (
-              <form onSubmit={(e) => { e.preventDefault(); setShowPreview(true); }}>
-                <Grid container spacing={3}>
-                  {/* Transfer Amount */}
-                  <Grid item xs={12}>
+             {!showPreview ? (
+               <form onSubmit={(e) => { e.preventDefault(); setShowPreview(true); }}>
+                 <Grid container spacing={3}>
+                   {/* From Account */}
+                   <Grid item xs={12}>
+                     <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>From Account</Typography>
+                     <TextField
+                       select
+                       fullWidth
+                       label="Select Source Account"
+                       value={formData.fromAccount}
+                       onChange={(e) => setFormData({ ...formData, fromAccount: e.target.value })}
+                       error={!!error && !formData.fromAccount}
+                       helperText={!formData.fromAccount ? 'Please select a source account' : ''}
+                       sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                     >
+                       {accounts?.map((account) => (
+                         <MenuItem key={account._id} value={account._id}>
+                           {account.nickname} - ${account.balance.toLocaleString()}
+                         </MenuItem>
+                       ))}
+                     </TextField>
+                   </Grid>
+
+                   {/* Transfer Amount */}
+                   <Grid item xs={12}>
                     <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Transfer Amount</Typography>
                     <TextField
                       fullWidth
@@ -293,35 +380,48 @@ const LocalTransfer = () => {
                     <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, mt: 2 }}>Beneficiary Details</Typography>
                   </Grid>
                   <Grid item xs={12} md={6}>
-                    <Autocomplete
+                    <FormControl fullWidth>
+                      <InputLabel id="beneficiary-select-label">Select Beneficiary</InputLabel>
+                      <Select
+                        labelId="beneficiary-select-label"
+                        value={selectedBeneficiary}
+                        label="Select Beneficiary"
+                        onChange={(e) => {
+                          const id = e.target.value;
+                          setSelectedBeneficiary(id);
+                          const found = Array.isArray(myBeneficiaries) ? myBeneficiaries.find((b) => b._id === id) : null;
+                          if (found) {
+                            setFormData((prev) => ({
+                              ...prev,
+                              beneficiaryName: found.name || '',
+                              beneficiaryAccountNumber: found.accountNumber || '',
+                              bankName: found.bankName || '',
+                              routingNumber: found.routingNumber || ''
+                            }));
+                          }
+                        }}
+                      >
+                        <MenuItem value=""><em>-- New Recipient --</em></MenuItem>
+                        {Array.isArray(myBeneficiaries) && myBeneficiaries.map((b) => (
+                          <MenuItem key={b._id} value={b._id}>{b.name}</MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
                       fullWidth
-                      options={myBeneficiaries}
-                      getOptionLabel={(option) => option.name}
-                      loading={beneficiariesLoading}
-                      onChange={(e, newValue) => handleBeneficiarySelect(newValue)}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label="My Beneficiaries"
-                          required
-                          InputProps={{
-                            ...params.InputProps,
-                            endAdornment: (
-                              <>
-                                {beneficiariesLoading ? <CircularProgress size={20} /> : null}
-                                {params.InputProps.endAdornment}
-                              </>
-                            )
-                          }}
-                        />
-                      )}
-                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                      label="Account Holder Name"
+                      name="beneficiaryName"
+                      value={formData.beneficiaryName}
+                      onChange={handleChange}
+                      required
                     />
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <TextField
                       fullWidth
-                      label="Beneficiary Account Number"
+                      label="Account Number"
                       name="beneficiaryAccountNumber"
                       value={formData.beneficiaryAccountNumber}
                       onChange={handleChange}
@@ -334,6 +434,16 @@ const LocalTransfer = () => {
                       label="Bank Name"
                       name="bankName"
                       value={formData.bankName}
+                      onChange={handleChange}
+                      required
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Routing Number"
+                      name="routingNumber"
+                      value={formData.routingNumber}
                       onChange={handleChange}
                       required
                     />

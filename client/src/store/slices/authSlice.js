@@ -243,9 +243,9 @@ export const changeTransactionPin = createAsyncThunk(
 // Forgot transaction PIN
 export const forgotTransactionPin = createAsyncThunk(
   'auth/forgotTransactionPin',
-  async ({ email, ssnLastFour }, { rejectWithValue }) => {
+  async (email, { rejectWithValue }) => {
     try {
-      const response = await axios.post('/auth/forgot-transaction-pin', { email, ssnLastFour });
+      const response = await axios.post('/auth/forgot-transaction-pin', { email });
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to reset PIN');

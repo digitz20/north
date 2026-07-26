@@ -6,7 +6,8 @@ const initialState = {
   filteredTransactions: [],
   totalTransactions: 0,
   loading: false,
-  error: null
+  error: null,
+  selectedTransaction: null
 };
 
 // Get all transactions
@@ -30,6 +31,19 @@ export const getTransactions = createAsyncThunk(
 
 // Alias for backward compatibility
 export const fetchTransactions = getTransactions;
+
+// Get single transaction by ID
+export const getTransactionById = createAsyncThunk(
+  'transactions/getById',
+  async (transactionId, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/transactions/${transactionId}`);
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch transaction details');
+    }
+  }
+);
 
 // Create new transaction (deposit/withdraw)
 export const createTransaction = createAsyncThunk(
@@ -139,6 +153,19 @@ const transactionSlice = createSlice({
         state.totalTransactions = action.payload.total;
       })
       .addCase(getTransactions.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Get transaction by ID cases
+      .addCase(getTransactionById.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getTransactionById.fulfilled, (state, action) => {
+        state.loading = false;
+        state.selectedTransaction = action.payload;
+      })
+      .addCase(getTransactionById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

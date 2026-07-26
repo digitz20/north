@@ -291,6 +291,26 @@ class EmailService {
     });
   }
 
+  async sendTransactionPinReset(user, newPin) {
+    const content = `
+      <p>Dear ${user.firstName} ${user.lastName},</p>
+      <p>You requested to reset your transaction PIN. Your new 4-digit transaction PIN is:</p>
+      <div class="otp-box" style="font-size: 28px; letter-spacing: 12px; text-align: center;">${newPin}</div>
+      <p><strong>Please keep this PIN secure and do not share it with anyone.</strong></p>
+      <p>You can use this PIN immediately for all transactions. If you prefer, you can change it later from your Profile.</p>
+      <p>If you did not request this PIN reset, please contact our security team immediately at info@northcrestbhc.com or call +1 478 888 4732.</p>
+      <p>Best regards,<br><strong>The NorthCrest Bank Team</strong></p>
+    `;
+
+    const html = this.#getBaseTemplate(content, 'Your New Transaction PIN');
+
+    return this.sendEmail({
+      to: user.email,
+      subject: 'Your New Transaction PIN - NorthCrest Bank',
+      html
+    });
+  }
+
   async sendTransactionPinChangedNotification(user) {
     const content = `
       <p>Dear ${user.firstName} ${user.lastName},</p>

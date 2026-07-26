@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Box, Typography, Grid, Chip, Avatar, Divider, TextField, MenuItem, InputAdornment, CircularProgress, Alert, IconButton, Button } from '@mui/material';
+import { Box, Typography, Grid, Chip, Avatar, Divider, TextField, MenuItem, InputAdornment, CircularProgress, Alert, IconButton, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
 import { useLocation } from 'react-router-dom';
-import { fetchTransactions } from '../store/slices/transactionSlice';
+import { fetchTransactions, getTransactionById } from '../store/slices/transactionSlice';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import CountUp from 'react-countup';
@@ -29,6 +29,9 @@ const Transactions = () => {
   const containerRef = useRef(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('all');
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   useEffect(() => {
     dispatch(fetchTransactions());
@@ -100,6 +103,61 @@ const Transactions = () => {
     travel: <Flight />,
     healthcare: <LocalHospital />,
     default: <Payment />
+  };
+
+  const handleTransactionClick = async (transaction) => {
+    setDetailLoading(true);
+    setDetailOpen(true);
+    try {
+      const result = await dispatch(getTransactionById(transaction._id || transaction.id)).unwrap();
+      setSelectedTransaction(result);
+    } catch (err) {
+      setSelectedTransaction(transaction);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  const downloadTransactionReceipt = (tx) => {
+    const receipt = {
+      transactionId: tx.transactionId || tx._id,
+      date: new Date(tx.createdAt).toLocaleString(),
+      amount: tx.amount,
+      type: tx.type,
+      status: tx.status,
+      description: tx.description,
+      reference: tx.reference,
+      sender: tx.sender,
+      recipient: tx.recipient
+    };
+
+    const receiptText = `
+NORTHCREST BANK OF USA
+========================
+Transaction Receipt
+========================
+Transaction ID: ${receipt.transactionId}
+Date: ${receipt.date}
+Amount: $${parseFloat(receipt.amount).toLocaleString()}
+Type: ${receipt.type}
+Status: ${receipt.status}
+Description: ${receipt.description}
+Reference: ${receipt.reference}
+${receipt.sender ? `Sender User: ${receipt.sender.user || 'N/A'}` : ''}
+${receipt.recipient ? `Recipient: ${receipt.recipient.name || 'N/A'}` : ''}
+========================
+Keep this receipt for your records.
+    `;
+
+    const blob = new Blob([receiptText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `transaction-${receipt.transactionId || 'receipt'}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const containerVariants = {
@@ -493,13 +551,17 @@ const Transactions = () => {
                   whileHover={{ bgcolor: 'rgba(0,102,255,0.02)' }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Box sx={{ 
-                    p: 3, 
-                    borderBottom: index < filteredTransactions.length - 1 ? '1px solid #f0f0f0' : 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 3
-                  }}>
+                  <Box 
+                    sx={{ 
+                      p: 3, 
+                      borderBottom: index < filteredTransactions.length - 1 ? '1px solid #f0f0f0' : 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 3,
+                      cursor: 'pointer'
+                    }}
+                    onClick={() => handleTransactionClick(transaction)}
+                  >
                     <Avatar sx={{ 
                       bgcolor: transaction.type === 'credit' ? 'rgba(0,200,150,0.1)' : 'rgba(255,107,107,0.1)',
                       color: transaction.type === 'credit' ? '#00C896' : '#FF6B6B',
@@ -556,6 +618,88 @@ const Transactions = () => {
             </Box>
           )}
         </PremiumCard>
+
+        <Dialog open={detailOpen} onClose={() => setDetailOpen(false)} maxWidth="sm" fullWidth>
+          <DialogTitle sx={{ background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)', color: 'white' }}>
+            Transaction Details
+          </DialogTitle>
+          <DialogContent sx={{ mt: 2 }}>
+            {detailLoading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                <CircularProgress sx={{ color: '#0066FF' }} />
+              </Box>
+            ) : selectedTransaction ? (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Typography variant="body2" color="text.secondary">Transaction ID</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>{selectedTransaction.transactionId || selectedTransaction._id}</Typography>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Typography variant="body2" color="text.secondary">Date</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>{new Date(selectedTransaction.createdAt).toLocaleString()}</Typography>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Typography variant="body2" color="text.secondary">Type</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, textTransform: 'capitalize' }}>{selectedTransaction.type}</Typography>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Typography variant="body2" color="text.secondary">Amount</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 700 }}>${parseFloat(selectedTransaction.amount).toLocaleString()}</Typography>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Typography variant="body2" color="text.secondary">Status</Typography>
+                  <Chip label={selectedTransaction.status} size="small" color={selectedTransaction.status === 'Completed' ? 'success' : 'warning'} />
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Typography variant="body2" color="text.secondary">Description</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, textAlign: 'right', maxWidth: '60%' }}>{selectedTransaction.description}</Typography>
+                </Box>
+                {selectedTransaction.reference && (
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" color="text.secondary">Reference</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{String(selectedTransaction.reference)}</Typography>
+                  </Box>
+                )}
+                {selectedTransaction.sender && (
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" color="text.secondary">Sender</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{selectedTransaction.sender.user || 'N/A'}</Typography>
+                  </Box>
+                )}
+                {selectedTransaction.recipient && (
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" color="text.secondary">Recipient</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600, textAlign: 'right', maxWidth: '60%' }}>{selectedTransaction.recipient.name || 'N/A'}</Typography>
+                  </Box>
+                )}
+                {selectedTransaction.metadata && (
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" color="text.secondary">Details</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600, textAlign: 'right', maxWidth: '60%' }}>{JSON.stringify(selectedTransaction.metadata)}</Typography>
+                  </Box>
+                )}
+              </Box>
+            ) : (
+              <Typography>No transaction details available.</Typography>
+            )}
+          </DialogContent>
+          <DialogActions sx={{ p: 3 }}>
+            <Button onClick={() => setDetailOpen(false)}>Close</Button>
+            {selectedTransaction && (
+              <Button
+                variant="contained"
+                startIcon={<GetApp />}
+                onClick={() => downloadTransactionReceipt(selectedTransaction)}
+                sx={{
+                  background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
+                  boxShadow: '0 8px 24px rgba(0, 102, 255, 0.35)',
+                }}
+              >
+                Download Transaction
+              </Button>
+            )}
+          </DialogActions>
+        </Dialog>
       </motion.div>
     </motion.div>
   );
