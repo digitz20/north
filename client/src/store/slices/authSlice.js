@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, createAction } from '@reduxjs/toolkit';
 import axios from '../../services/api';
 
 // Initial state
@@ -481,9 +481,17 @@ const authSlice = createSlice({
       // Get PIN status cases
       .addCase(getPinStatus.fulfilled, (state, action) => {
         state.user = { ...state.user, pinSetupRequired: action.payload.pinSetupRequired };
+      })
+      
+      // Token refresh case
+      .addCase(tokenRefreshed, (state, action) => {
+        state.token = action.payload.token;
       });
   }
 });
+
+// Token refreshed action
+export const tokenRefreshed = createAction('auth/tokenRefreshed');
 
 export const { clearError } = authSlice.actions;
 export default authSlice.reducer;

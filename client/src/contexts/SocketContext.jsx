@@ -16,13 +16,16 @@ export const SocketProvider = ({ children }) => {
   const socketRef = useRef(null);
 
   useEffect(() => {
+    const tokenFromStorage = sessionStorage.getItem('token');
+    const userFromStorage = sessionStorage.getItem('user');
+    
     // Prevent duplicate socket connections - only create if no existing socket and we have valid credentials
-    if (token && user && !socketRef.current) {
+    if (tokenFromStorage && userFromStorage && !socketRef.current) {
       const socketUrl = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL || 'https://established-vanny-digitz-b5fdc94b.koyeb.app';
       
       const newSocket = io(socketUrl, {
-        auth: { token },
-        query: { token },
+        auth: { token: tokenFromStorage },
+        query: { token: tokenFromStorage },
         reconnection: true,
         reconnectionAttempts: 5, // Limit reconnection attempts to prevent infinite loops
         reconnectionDelay: 1000,
@@ -74,7 +77,7 @@ export const SocketProvider = ({ children }) => {
         }
       };
     }
-  }, [token, user]);
+  }, [token, user]); // No dependencies - socket manages its own connection lifecycle
 
   // Join a chat room
   const joinChat = useCallback((ticketId) => {

@@ -45,6 +45,9 @@ api.interceptors.response.use(
           sessionStorage.setItem('token', token);
           originalRequest.headers.Authorization = `Bearer ${token}`;
           
+          // Dispatch custom event to update Redux state
+          window.dispatchEvent(new CustomEvent('token-refreshed', { detail: { token } }));
+          
           return api(originalRequest);
         }
       } catch (refreshError) {

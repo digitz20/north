@@ -8,6 +8,12 @@ import store from './store/store';
 import './styles/global.css';
 import { DynamicThemeProvider } from './hooks/useDarkMode';
 import { SocketProvider } from './contexts/SocketContext';
+import { tokenRefreshed } from './store/slices/authSlice';
+
+// Listen for token refresh events from axios interceptor
+window.addEventListener('token-refreshed', (event) => {
+  store.dispatch(tokenRefreshed(event.detail));
+});
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <Provider store={store}>
