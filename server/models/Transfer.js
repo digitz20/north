@@ -13,6 +13,11 @@ const transferSchema = new mongoose.Schema({
       required: true
     }
   },
+  initiatedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
   recipient: {
     user: {
       type: mongoose.Schema.Types.ObjectId,

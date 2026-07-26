@@ -222,6 +222,7 @@ exports.createTransfer = async (req, res, next) => {
       const transferStatus = 'completed';
       const transfer = await Transfer.create([{
         sender: { user: senderUser, account: senderAccount },
+        initiatedBy: senderUser,
         recipient: {
           name: recipientNameForTransfer,
           ...(recipientDetails?.bankDetails || {}),
@@ -293,6 +294,7 @@ exports.createTransfer = async (req, res, next) => {
     // Unknown recipient: pending admin approval
       const transfer = await Transfer.create([{
         sender: { user: senderUser, account: senderAccount },
+        initiatedBy: senderUser,
         recipient: {
           name: recipientNameForTransfer,
           ...(recipientDetails?.bankDetails || {}),
