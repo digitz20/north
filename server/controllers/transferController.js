@@ -4,6 +4,7 @@ const Transaction = require('../models/Transaction');
 const AuditLog = require('../models/AuditLog');
 const User = require('../models/User');
 const HiddenRecipient = require('../models/HiddenRecipient');
+const Notification = require('../models/Notification');
 const mongoose = require('mongoose');
 const logger = require('../utils/logger');
 const emailService = require('../utils/email');
