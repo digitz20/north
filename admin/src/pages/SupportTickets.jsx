@@ -99,7 +99,7 @@ const mapBackendStatus = (status) => {
 
 const MessageBubble = memo(function MessageBubble({ msg, user, editingMessageId, selectedTicketId, onEdit, onDelete, onImageClick, editInputRef, handleEditMessage }) {
   const senderId = msg.sender?._id || msg.sender;
-  const isOwn = senderId?.toString?.() === user?._id?.toString?.();
+  const isOwn = !!(senderId && user?._id && senderId?.toString?.() === user?._id?.toString?.());
   const messageTime = getMessageTime(msg.createdAt || msg.timestamp);
   const statusIcon = getMessageStatus(msg, user?._id);
 

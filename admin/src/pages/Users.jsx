@@ -188,13 +188,6 @@ const Users = () => {
     setOpenDialog(true);
   };
 
-  const safeUserId = (user) => user?._id;
-
-  const handleEditUser = async (user) => {
-    if (!safeUserId(user)) return;
-    // ... rest of the function
-  };
-
   const handleEditUser = async (user) => {
     setSelectedUser(user);
     setFormData({

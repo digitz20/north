@@ -772,7 +772,7 @@ const LiveSupportChat = () => {
   const isOwnMessage = (message) => {
     const senderId = message.sender?._id || message.sender;
     const currentUserId = user?.id || user?._id;
-    return senderId?.toString?.() === currentUserId?.toString?.();
+    return senderId && currentUserId && senderId?.toString?.() === currentUserId?.toString?.();
   };
 
   // Get message status icon and label
@@ -998,7 +998,9 @@ const LiveSupportChat = () => {
                       key={message._id || index}
                       sx={{
                         alignSelf: isOwnMessage(message) ? 'flex-end' : 'flex-start',
-                        maxWidth: '80%'
+                        maxWidth: '80%',
+                        marginLeft: isOwnMessage(message) ? 'auto' : undefined,
+                        marginRight: isOwnMessage(message) ? undefined : 'auto'
                       }}
                     >
                       <Paper
