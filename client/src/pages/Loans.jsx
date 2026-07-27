@@ -85,6 +85,11 @@ const Loans = () => {
   const handlePaymentSubmit = () => {
     if (!selectedLoan || !paymentAmount) return;
 
+    if (user?.pinSetupRequired) {
+      navigate('/pin-setup');
+      return;
+    }
+
     const executePayment = () => {
       dispatch(makeLoanPayment({ 
         id: selectedLoan.id, 
@@ -258,6 +263,7 @@ const Loans = () => {
       } finally {
         setIrsSubmitting(false);
         setPendingTaxRefundAction(null);
+        setPinVerified(false);
       }
     };
 

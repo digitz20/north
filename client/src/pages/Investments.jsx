@@ -333,10 +333,6 @@ const Investments = () => {
   };
 
   const handleConfirmInvestment = async () => {
-    setPinVerified(false);
-    setShowPinModal(false);
-    setPendingInvestmentAction(null);
-    
     console.log('=== Confirm & Submit Button Clicked ===');
     console.log('Current Form State:', investmentForm);
     
