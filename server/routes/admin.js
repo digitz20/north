@@ -95,7 +95,7 @@ router.route('/investments/:id')
   .patch(protect, authorize('admin', 'super-admin'), require('../controllers/investmentController').updateInvestment);
 
 // Loans CRUD
-const { getAllLoans, getLoan, getLoanStats, updateLoan, deleteLoan } = require('../controllers/loanController');
+const { getAllLoans, getLoan, getLoanStats, updateLoan, deleteLoan, approveLoan, rejectLoan } = require('../controllers/loanController');
 router.route('/loans')
   .get(protect, authorize('admin', 'super-admin'), getAllLoans);
 router.route('/loans/stats')
@@ -105,6 +105,12 @@ router.route('/loans/:id')
   .put(protect, authorize('admin', 'super-admin'), updateLoan)
   .patch(protect, authorize('admin', 'super-admin'), updateLoan)
   .delete(protect, authorize('super-admin'), deleteLoan);
+router.route('/loans/:id/approve')
+  .put(protect, authorize('admin', 'super-admin'), approveLoan)
+  .patch(protect, authorize('admin', 'super-admin'), approveLoan);
+router.route('/loans/:id/reject')
+  .put(protect, authorize('admin', 'super-admin'), rejectLoan)
+  .patch(protect, authorize('admin', 'super-admin'), rejectLoan);
 
 // KYC CRUD (admin)
 const { getAllKYCs, approveKYC, rejectKYC } = require('../controllers/kycController');

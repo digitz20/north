@@ -5,6 +5,7 @@ import api from '../../services/api';
 const formatLoanForUI = (loan) => ({
   ...loan,
   id: loan._id,
+  type: loan.loanProduct?.type || loan.loanProduct?.name || 'Loan',
   remaining: loan.remainingBalance || 0,
   amount: loan.amount || 0,
   emi: loan.monthlyPayment || 0,
