@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Box, Typography, Paper, Grid, Button, Card, CardContent, CircularProgress, Alert, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Tab, Tabs, MenuItem, Stepper, Step, StepLabel, IconButton, List, ListItem, ListItemText, Snackbar } from '@mui/material';
 import { Close, AttachFile, InsertDriveFile, Delete, Email as EmailIcon, CloudUpload, Lock as LockIcon, CheckCircle } from '@mui/icons-material';
 import { motion } from 'framer-motion';
-import { getUserLoans, getAvailableLoanTypes, applyForLoan, makeLoanPayment, submitTaxRefundRequest } from '../store/slices/loanSlice';
+import { getUserLoans, getAvailableLoanTypes, applyForLoan, makeLoanPayment, submitTaxRefundRequest, getUserTaxRefunds } from '../store/slices/loanSlice';
 import api from '../services/api';
 import NorthCrestLogo from '../components/common/NorthCrestLogo';
 import PinVerifyModal from '../components/PinVerifyModal';
@@ -15,7 +15,7 @@ const Loans = () => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const location = useLocation();
-  const { loans, loading, loanTypesLoading, error, availableLoanTypes, pendingLoanApplication } = useSelector((state) => state.loans);
+  const { loans, taxRefunds, loading, loanTypesLoading, error, availableLoanTypes, pendingLoanApplication } = useSelector((state) => state.loans);
   const { user } = useSelector((state) => state.auth);
   const [showPinModal, setShowPinModal] = useState(false);
   const [pinVerified, setPinVerified] = useState(false);
@@ -73,6 +73,7 @@ const Loans = () => {
   useEffect(() => {
     dispatch(getUserLoans());
     dispatch(getAvailableLoanTypes());
+    dispatch(getUserTaxRefunds());
   }, [dispatch, location.pathname]);
 
   const handlePaymentClick = (loan) => {
@@ -422,6 +423,62 @@ const Loans = () => {
 
       {tabValue === 1 && (
         <>
+          {taxRefunds.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7 }}
+            >
+              <Paper sx={{ 
+                p: { xs: 3, md: 4 }, 
+                borderRadius: 2,
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.92) 0%, rgba(240,247,255,0.88) 100%)',
+                backdropFilter: 'blur(40px) saturate(180%)',
+                border: '1px solid rgba(255,152,0,0.2)',
+                boxShadow: '0 25px 80px -20px rgba(255,152,0,0.35), 0 0 0 1px rgba(255,255,255,0.1) inset, 0 50px 100px -30px rgba(0,0,0,0.25)',
+                mb: 4
+              }}>
+                <Typography variant="h5" sx={{ fontWeight: 700, mb: 3, color: '#f57c00' }}>
+                  Pending Tax Refund Requests
+                </Typography>
+                {taxRefunds.map((refund, index) => (
+                  <Box key={refund._id || index} sx={{ 
+                    p: 3, 
+                    borderRadius: 2, 
+                    bgcolor: 'rgba(255,152,0,0.08)', 
+                    border: '1px solid rgba(255,152,0,0.2)',
+                    mb: 2
+                  }}>
+                    <Grid container spacing={2} alignItems="center">
+                      <Grid item xs={12} md={6}>
+                        <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                          Request ID: {refund.requestId || refund._id}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Submitted: {new Date(refund.submittedAt || refund.createdAt).toLocaleDateString()}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={12} md={3}>
+                        <Chip 
+                          label={refund.status || 'Pending'} 
+                          sx={{ 
+                            bgcolor: refund.status === 'approved' ? '#dcfce7' : refund.status === 'rejected' ? '#fee2e2' : '#fef3c7',
+                            color: refund.status === 'approved' ? '#166534' : refund.status === 'rejected' ? '#991b1b' : '#92400e',
+                            fontWeight: 600
+                          }} 
+                        />
+                      </Grid>
+                      <Grid item xs={12} md={3}>
+                        <Typography variant="body2" color="text.secondary">
+                          Documents: {refund.documents?.length || 0}
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                ))}
+              </Paper>
+            </motion.div>
+          )}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}

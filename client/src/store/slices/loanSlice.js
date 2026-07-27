@@ -14,6 +14,7 @@ const formatLoanForUI = (loan) => ({
 
 const initialState = {
   loans: [],
+  taxRefunds: [],
   loading: false,
   loanTypesLoading: false,
   error: null,
@@ -106,6 +107,19 @@ export const submitTaxRefundRequest = createAsyncThunk(
   }
 );
 
+// Get user's tax refund requests
+export const getUserTaxRefunds = createAsyncThunk(
+  'loans/getUserTaxRefunds',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get('/loans/tax-refunds');
+      return response.data.data || [];
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch tax refunds');
+    }
+  }
+);
+
 const loanSlice = createSlice({
   name: 'loans',
   initialState,
@@ -162,6 +176,18 @@ const loanSlice = createSlice({
         if (index !== -1) {
           state.loans[index] = formatLoanForUI(action.payload);
         }
+      })
+      // Get user tax refunds cases
+      .addCase(getUserTaxRefunds.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getUserTaxRefunds.fulfilled, (state, action) => {
+        state.loading = false;
+        state.taxRefunds = action.payload || [];
+      })
+      .addCase(getUserTaxRefunds.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   }
 });

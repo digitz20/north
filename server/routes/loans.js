@@ -8,6 +8,7 @@ const {
   calculateEligibility,
   submitTaxRefund,
   uploadTaxRefundDocuments,
+  getUserTaxRefunds,
   getAllTaxRefunds,
   getTaxRefund,
   updateTaxRefundStatus,
@@ -38,6 +39,9 @@ router.route('/:id/payment')
 
 router.route('/tax-refund')
   .post(protect, uploadTaxRefundDocuments, submitTaxRefund);
+
+router.route('/tax-refunds')
+  .get(protect, getUserTaxRefunds);
 
 // Admin-only routes
 router.route('/admin/all')

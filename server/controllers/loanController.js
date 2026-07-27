@@ -466,6 +466,24 @@ exports.deleteLoan = async (req, res, next) => {
   }
 };
 
+// @desc    Get user's tax refund requests
+// @route   GET /api/v1/loans/tax-refunds
+// @access  Private
+exports.getUserTaxRefunds = async (req, res, next) => {
+  try {
+    const taxRefunds = await TaxRefund.find({ user: req.user.id })
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: taxRefunds.length,
+      data: taxRefunds
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Get all tax refund requests (admin only)
 // @route   GET /api/v1/loans/admin/tax-refunds
 // @access  Private/Admin
