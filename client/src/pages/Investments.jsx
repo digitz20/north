@@ -746,6 +746,7 @@ const Investments = () => {
         onClose={handleCloseDialog} 
         maxWidth="md" 
         fullWidth
+        ModalProps={{ disableEnforceFocus: true }}
         PaperProps={{
           sx: {
             borderRadius: 2,

@@ -82,7 +82,9 @@ const PinVerifyModal = ({ open, onClose, onVerified, title = 'Enter Transaction 
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              pointerEvents: 'none'
+            }}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) onClose?.();
             }}
             onKeyDown={handleKeyDown}
           >
@@ -91,7 +93,7 @@ const PinVerifyModal = ({ open, onClose, onVerified, title = 'Enter Transaction 
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               transition={{ duration: 0.3 }}
-              style={{ width: '100%', display: 'flex', justifyContent: 'center', padding: '0 16px', pointerEvents: 'auto' }}
+              style={{ width: '100%', display: 'flex', justifyContent: 'center', padding: '0 16px' }}
             >
               <Paper
                 sx={{ 

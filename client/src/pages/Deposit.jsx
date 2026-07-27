@@ -654,6 +654,7 @@ const Deposit = () => {
               onClose={() => setOpenConfirmation(false)} 
               maxWidth="md" 
               fullWidth
+              ModalProps={{ disableEnforceFocus: true }}
               PaperProps={{
                 sx: {
                   borderRadius: 2,
