@@ -148,6 +148,7 @@ const Deposit = () => {
   const [showPinModal, setShowPinModal] = useState(false);
   const [pendingDepositData, setPendingDepositData] = useState(null);
   const [pinVerified, setPinVerified] = useState(false);
+  const [depositResult, setDepositResult] = useState(null);
 
   useEffect(() => {
     if (!user) {
@@ -262,7 +263,8 @@ const Deposit = () => {
 
     const executeDeposit = async () => {
       try {
-        await dispatch(processCryptoDeposit(depositData)).unwrap();
+        const result = await dispatch(processCryptoDeposit(depositData)).unwrap();
+        setDepositResult(result);
         setTransferComplete(true);
         setActiveStep(2);
         setOpenConfirmation(false);
@@ -292,19 +294,19 @@ const Deposit = () => {
     setPinVerified(true);
     setShowPinModal(false);
     
-    if (pendingDepositData) {
-      const depositData = pendingDepositData;
-      setPendingDepositData(null);
-      
-      try {
-        await dispatch(processCryptoDeposit(depositData)).unwrap();
+    try {
+      if (pendingDepositData) {
+        const depositData = pendingDepositData;
+        setPendingDepositData(null);
+        const result = await dispatch(processCryptoDeposit(depositData)).unwrap();
+        setDepositResult(result);
         setTransferComplete(true);
         setActiveStep(2);
         setPinVerified(false);
-      } catch (error) {
-        setErrors({ submit: error.message || 'Deposit failed. Please try again.' });
-        setPinVerified(false);
       }
+    } catch (error) {
+      setErrors({ submit: error.message || 'Deposit failed. Please try again.' });
+      setPinVerified(false);
     }
   };
 
@@ -312,6 +314,76 @@ const Deposit = () => {
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const downloadDepositSlip = () => {
+    if (!depositResult && !transferComplete) return;
+    const receipt = {
+      transactionId: depositResult?._id || depositResult?.transactionId || depositResult?.id || 'DEP-' + Date.now(),
+      date: new Date().toLocaleString(),
+      amount: cryptoForm.amount,
+      crypto: selectedCrypto.name,
+      network: selectedCrypto.network,
+      email: cryptoForm.email,
+      status: 'Pending Approval'
+    };
+
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deposit Confirmation Slip - NorthCrest Bank</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0; padding: 16px; }
+    .receipt { background: #fff; padding: 24px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); max-width: 420px; width: 100%; text-align: center; }
+    .logo { font-size: 20px; font-weight: 800; color: #0066FF; letter-spacing: 1px; margin-bottom: 4px; }
+    .subtitle { font-size: 12px; color: #64748b; margin-bottom: 24px; }
+    .divider { border: none; border-top: 2px dashed #e2e8f0; margin: 16px 0; }
+    .row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; }
+    .label { color: #64748b; }
+    .value { font-weight: 600; color: #0f2744; }
+    .amount { font-size: 28px; font-weight: 800; color: #0066FF; margin: 16px 0; }
+    .status { display: inline-block; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-top: 8px; }
+    .status-pending { background: #fef3c7; color: #92400e; }
+    .footer { margin-top: 24px; font-size: 12px; color: #94a3b8; }
+    @media (max-width: 480px) {
+      .receipt { padding: 16px; }
+      .row { flex-direction: column; gap: 2px; }
+      .amount { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="receipt">
+    <div class="logo">NORTHCREST BANK OF USA</div>
+    <div class="subtitle">Deposit Confirmation Slip</div>
+    <hr class="divider">
+    <div class="row"><span class="label">Transaction ID</span><span class="value">${receipt.transactionId}</span></div>
+    <div class="row"><span class="label">Date</span><span class="value">${receipt.date}</span></div>
+    <hr class="divider">
+    <div class="amount">$${parseFloat(receipt.amount).toLocaleString()}</div>
+    <hr class="divider">
+    <div class="row"><span class="label">Cryptocurrency</span><span class="value">${receipt.crypto}</span></div>
+    <div class="row"><span class="label">Network</span><span class="value">${receipt.network}</span></div>
+    <div class="row"><span class="label">Email</span><span class="value">${receipt.email}</span></div>
+    <hr class="divider">
+    <div class="row"><span class="label">Status</span><span class="value">${receipt.status}</span></div>
+    <div class="status status-pending">${receipt.status}</div>
+    <div class="footer">Keep this slip for your records.</div>
+  </div>
+</body>
+</html>`;
+
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `deposit-slip-${receipt.transactionId || 'deposit'}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   if (authLoading || accountsLoading) {
@@ -435,18 +507,97 @@ const Deposit = () => {
               <Box textAlign="center" py={4}>
                 <CheckCircle sx={{ fontSize: 80, color: 'warning.main', mb: 2 }} />
                 <Typography variant="h5" gutterBottom>Deposit Pending Approval</Typography>
-                <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-                  Your deposit request has been submitted and is pending admin approval. It will not reflect in your balance until approved.
-                </Typography>
-                <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-                  Thank you for choosing NorthCrestBank.
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  A confirmation email has been sent to {cryptoForm.email}
-                </Typography>
-                <Box mt={3}>
-                  <Typography variant="subtitle1">Transaction will be processed on the {selectedCrypto.network} network</Typography>
-                  <img src={selectedCrypto.qrCode} alt="Transaction QR" style={{ width: 150, height: 150, margin: '20px auto' }} />
+                <Paper sx={{ 
+                  p: { xs: 2, sm: 3 }, 
+                  borderRadius: 2, 
+                  textAlign: 'center',
+                  maxWidth: { xs: '100%', sm: 420 },
+                  mx: 'auto',
+                  mb: 3
+                }}>
+                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 1, fontSize: { xs: '1rem', sm: '1.1rem' } }}>
+                    NORTHCREST BANK OF USA
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    Deposit Confirmation Slip
+                  </Typography>
+                  <Box sx={{ 
+                    border: '1px solid #e2e8f0', 
+                    borderRadius: 2, 
+                    p: { xs: 2, sm: 3 }, 
+                    mb: 3, 
+                    textAlign: 'left',
+                    maxWidth: { xs: '100%', sm: 380 },
+                    mx: 'auto'
+                  }}>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      justifyContent: { xs: 'flex-start', sm: 'space-between' }, 
+                      py: 1, 
+                      borderBottom: '1px solid #f1f5f9',
+                      gap: { xs: 0.25, sm: 0 }
+                    }}>
+                      <Typography variant="body2" color="text.secondary">Transaction ID</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600, wordBreak: 'break-all' }}>{depositResult?._id || depositResult?.transactionId || depositResult?.id || 'N/A'}</Typography>
+                    </Box>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      justifyContent: { xs: 'flex-start', sm: 'space-between' }, 
+                      py: 1, 
+                      borderBottom: '1px solid #f1f5f9',
+                      gap: { xs: 0.25, sm: 0 }
+                    }}>
+                      <Typography variant="body2" color="text.secondary">Date</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{new Date().toLocaleString()}</Typography>
+                    </Box>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      justifyContent: { xs: 'flex-start', sm: 'space-between' }, 
+                      py: 1, 
+                      borderBottom: '1px solid #f1f5f9',
+                      gap: { xs: 0.25, sm: 0 }
+                    }}>
+                      <Typography variant="body2" color="text.secondary">Amount</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 700, color: '#0066FF' }}>${parseFloat(cryptoForm.amount).toLocaleString()}</Typography>
+                    </Box>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      justifyContent: { xs: 'flex-start', sm: 'space-between' }, 
+                      py: 1, 
+                      borderBottom: '1px solid #f1f5f9',
+                      gap: { xs: 0.25, sm: 0 }
+                    }}>
+                      <Typography variant="body2" color="text.secondary">Cryptocurrency</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{selectedCrypto.name}</Typography>
+                    </Box>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      justifyContent: { xs: 'flex-start', sm: 'space-between' }, 
+                      py: 1,
+                      gap: { xs: 0.25, sm: 0 }
+                    }}>
+                      <Typography variant="body2" color="text.secondary">Status</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 700, color: '#f59e0b' }}>Pending Approval</Typography>
+                    </Box>
+                  </Box>
+                </Paper>
+                <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
+                  <Button
+                    variant="contained"
+                    onClick={downloadDepositSlip}
+                    sx={{
+                      borderRadius: 2,
+                      background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
+                      boxShadow: '0 8px 24px rgba(0, 102, 255, 0.35)',
+                    }}
+                  >
+                    Download Confirmation Slip
+                  </Button>
                 </Box>
               </Box>
             )}

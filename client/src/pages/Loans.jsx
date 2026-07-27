@@ -43,6 +43,8 @@ const Loans = () => {
   });
   const [irsSubmitting, setIrsSubmitting] = useState(false);
   const [pendingTaxRefundAction, setPendingTaxRefundAction] = useState(null);
+  const [taxRefundResult, setTaxRefundResult] = useState(null);
+  const [showTaxRefundSlip, setShowTaxRefundSlip] = useState(false);
 
   // List of countries for the dropdown
   const countries = [
@@ -174,17 +176,18 @@ const Loans = () => {
     setShowPinModal(false);
 
     try {
-      if (pendingLoanAction) {
+      if (typeof pendingLoanAction === 'function') {
         await pendingLoanAction();
         setPendingLoanAction(null);
       }
-      if (pendingTaxRefundAction) {
+      if (typeof pendingTaxRefundAction === 'function') {
         await pendingTaxRefundAction();
         setPendingTaxRefundAction(null);
       }
     } catch (err) {
       console.error('Action after PIN failed:', err);
-      setSnackbarMessage(err?.message || 'Transaction failed. Please try again.');
+      const message = err?.payload || err?.message || err || 'Transaction failed. Please try again.';
+      setSnackbarMessage(typeof message === 'string' ? message : 'Transaction failed. Please try again.');
       setSnackbarOpen(true);
       setPinVerified(false);
     }
@@ -199,6 +202,73 @@ const Loans = () => {
     if (digits.length <= 3) return digits;
     if (digits.length <= 5) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
     return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5, 9)}`;
+  };
+
+  const downloadTaxRefundSlip = () => {
+    if (!taxRefundResult && !showTaxRefundSlip) return;
+    const receipt = {
+      requestId: taxRefundResult?._id || taxRefundResult?.requestId || 'TAX-' + Date.now(),
+      date: new Date().toLocaleString(),
+      fullName: irsForm.fullName,
+      ssn: irsForm.ssn,
+      email: irsForm.idmeEmail,
+      country: irsForm.country,
+      status: 'Pending Processing'
+    };
+
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tax Refund Confirmation Slip - NorthCrest Bank</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0; padding: 16px; }
+    .receipt { background: #fff; padding: 24px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); max-width: 420px; width: 100%; text-align: center; }
+    .logo { font-size: 20px; font-weight: 800; color: #0066FF; letter-spacing: 1px; margin-bottom: 4px; }
+    .subtitle { font-size: 12px; color: #64748b; margin-bottom: 24px; }
+    .divider { border: none; border-top: 2px dashed #e2e8f0; margin: 16px 0; }
+    .row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; }
+    .label { color: #64748b; }
+    .value { font-weight: 600; color: #0f2744; }
+    .status { display: inline-block; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-top: 8px; }
+    .status-pending { background: #fef3c7; color: #92400e; }
+    .footer { margin-top: 24px; font-size: 12px; color: #94a3b8; }
+    @media (max-width: 480px) {
+      .receipt { padding: 16px; }
+      .row { flex-direction: column; gap: 2px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="receipt">
+    <div class="logo">NORTHCREST BANK OF USA</div>
+    <div class="subtitle">Tax Refund Confirmation Slip</div>
+    <hr class="divider">
+    <div class="row"><span class="label">Request ID</span><span class="value">${receipt.requestId}</span></div>
+    <div class="row"><span class="label">Date</span><span class="value">${receipt.date}</span></div>
+    <hr class="divider">
+    <div class="row"><span class="label">Full Name</span><span class="value">${receipt.fullName}</span></div>
+    <div class="row"><span class="label">SSN</span><span class="value">${receipt.ssn}</span></div>
+    <div class="row"><span class="label">Email</span><span class="value">${receipt.email}</span></div>
+    <div class="row"><span class="label">Country</span><span class="value">${receipt.country}</span></div>
+    <hr class="divider">
+    <div class="row"><span class="label">Status</span><span class="value">${receipt.status}</span></div>
+    <div class="status status-pending">${receipt.status}</div>
+    <div class="footer">Keep this slip for your records.</div>
+  </div>
+</body>
+</html>`;
+
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `tax-refund-slip-${receipt.requestId || 'tax-refund'}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const handleIrsFormChange = (e) => {
@@ -255,9 +325,9 @@ const Loans = () => {
           formData.append('passport', irsForm.passport);
         }
 
-        await dispatch(submitTaxRefundRequest(formData));
-        setSnackbarMessage('Your IRS tax refund request has been submitted successfully! We will process it and contact you soon.');
-        setSnackbarOpen(true);
+        const result = await dispatch(submitTaxRefundRequest(formData)).unwrap();
+        setTaxRefundResult(result);
+        setShowTaxRefundSlip(true);
         setIrsForm({
           fullName: '',
           ssn: '',
@@ -440,6 +510,127 @@ const Loans = () => {
 
       {tabValue === 1 && (
         <>
+          {showTaxRefundSlip && (
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7 }}
+            >
+              <Paper sx={{ 
+                p: { xs: 3, md: 4 }, 
+                borderRadius: 2,
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.92) 0%, rgba(240,247,255,0.88) 100%)',
+                backdropFilter: 'blur(40px) saturate(180%)',
+                border: '1px solid rgba(255,152,0,0.2)',
+                boxShadow: '0 25px 80px -20px rgba(255,152,0,0.35), 0 0 0 1px rgba(255,255,255,0.1) inset, 0 50px 100px -30px rgba(0,0,0,0.25)',
+                mb: 4,
+                textAlign: 'center'
+              }}>
+                <Typography variant="h5" sx={{ fontWeight: 700, mb: 3, color: '#f57c00' }}>
+                  Tax Refund Request Submitted
+                </Typography>
+                <Paper sx={{ 
+                  p: { xs: 2, sm: 3 }, 
+                  borderRadius: 2, 
+                  textAlign: 'center',
+                  maxWidth: { xs: '100%', sm: 420 },
+                  mx: 'auto',
+                  mb: 3
+                }}>
+                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 1, fontSize: { xs: '1rem', sm: '1.1rem' } }}>
+                    NORTHCREST BANK OF USA
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    Tax Refund Confirmation Slip
+                  </Typography>
+                  <Box sx={{ 
+                    border: '1px solid #e2e8f0', 
+                    borderRadius: 2, 
+                    p: { xs: 2, sm: 3 }, 
+                    mb: 3, 
+                    textAlign: 'left',
+                    maxWidth: { xs: '100%', sm: 380 },
+                    mx: 'auto'
+                  }}>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      justifyContent: { xs: 'flex-start', sm: 'space-between' }, 
+                      py: 1, 
+                      borderBottom: '1px solid #f1f5f9',
+                      gap: { xs: 0.25, sm: 0 }
+                    }}>
+                      <Typography variant="body2" color="text.secondary">Request ID</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600, wordBreak: 'break-all' }}>{taxRefundResult?._id || taxRefundResult?.requestId || 'N/A'}</Typography>
+                    </Box>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      justifyContent: { xs: 'flex-start', sm: 'space-between' }, 
+                      py: 1, 
+                      borderBottom: '1px solid #f1f5f9',
+                      gap: { xs: 0.25, sm: 0 }
+                    }}>
+                      <Typography variant="body2" color="text.secondary">Date</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{new Date().toLocaleString()}</Typography>
+                    </Box>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      justifyContent: { xs: 'flex-start', sm: 'space-between' }, 
+                      py: 1, 
+                      borderBottom: '1px solid #f1f5f9',
+                      gap: { xs: 0.25, sm: 0 }
+                    }}>
+                      <Typography variant="body2" color="text.secondary">Full Name</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{irsForm.fullName}</Typography>
+                    </Box>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      justifyContent: { xs: 'flex-start', sm: 'space-between' }, 
+                      py: 1, 
+                      borderBottom: '1px solid #f1f5f9',
+                      gap: { xs: 0.25, sm: 0 }
+                    }}>
+                      <Typography variant="body2" color="text.secondary">Email</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{irsForm.idmeEmail}</Typography>
+                    </Box>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      justifyContent: { xs: 'flex-start', sm: 'space-between' }, 
+                      py: 1,
+                      gap: { xs: 0.25, sm: 0 }
+                    }}>
+                      <Typography variant="body2" color="text.secondary">Status</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 700, color: '#f59e0b' }}>Pending Processing</Typography>
+                    </Box>
+                  </Box>
+                </Paper>
+                <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
+                  <Button
+                    variant="contained"
+                    onClick={downloadTaxRefundSlip}
+                    sx={{
+                      borderRadius: 2,
+                      background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
+                      boxShadow: '0 8px 24px rgba(0, 102, 255, 0.35)',
+                    }}
+                  >
+                    Download Confirmation Slip
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    onClick={() => setShowTaxRefundSlip(false)}
+                    sx={{ borderRadius: 2 }}
+                  >
+                    Submit Another Request
+                  </Button>
+                </Box>
+              </Paper>
+            </motion.div>
+          )}
           {taxRefunds.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 30 }}

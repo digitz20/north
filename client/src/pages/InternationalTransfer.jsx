@@ -506,15 +506,16 @@ const InternationalTransfer = () => {
     setPinVerified(true);
     setShowPinModal(false);
     
-    if (pendingTransferAction) {
-      try {
+    try {
+      if (typeof pendingTransferAction === 'function') {
         await pendingTransferAction();
         setPendingTransferAction(null);
-      } catch (err) {
-        console.error('Transfer after PIN failed:', err);
-        setErrors(prev => ({ ...prev, submit: err.message || 'Transfer failed' }));
-        setPinVerified(false);
       }
+    } catch (err) {
+      console.error('Transfer after PIN failed:', err);
+      const message = err?.payload || err?.message || err || 'Transfer failed';
+      setErrors(prev => ({ ...prev, submit: typeof message === 'string' ? message : 'Transfer failed. Please try again.' }));
+      setPinVerified(false);
     }
   };
 

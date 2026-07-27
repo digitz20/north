@@ -11,6 +11,7 @@ import { verifyTransactionPin } from '../store/slices/authSlice';
 
 const PinVerifyModal = ({ open, onClose, onVerified, title = 'Enter Transaction PIN', description = 'Please enter your 4-digit PIN to confirm this transaction' }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { loading } = useSelector((state) => state.auth);
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
