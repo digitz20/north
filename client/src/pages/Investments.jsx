@@ -364,14 +364,14 @@ const Investments = () => {
       try {
         console.log('Attempting API call with:', depositData);
         
-        await dispatch(processCryptoDeposit(depositData)).unwrap();
+        await dispatch(processCryptoDeposit(depositData));
         await dispatch(createInvestment({
           planId: investmentForm.selectedPlan,
           amount: parseFloat(investmentForm.amount),
           accountId: investmentForm.destinationAccount,
           category: investmentForm.investmentCategory,
           proofImages: uploadedImages.map(img => img.data)
-        })).unwrap();
+        }));
         
         console.log('API calls succeeded');
         setShowSuccessPopup(true);
@@ -400,7 +400,8 @@ const Investments = () => {
         }, 3000);
       } catch (error) {
         console.error('Investment submission error:', error);
-        setErrors({ submit: error.message || 'Failed to submit investment. Please try again.' });
+        const message = error?.payload || error?.message || 'Failed to submit investment. Please try again.';
+        setErrors({ submit: message });
         setPinVerified(false);
       }
     };
@@ -424,9 +425,16 @@ const Investments = () => {
     setPinVerified(true);
     setShowPinModal(false);
     
-    if (pendingInvestmentAction) {
-      await pendingInvestmentAction();
-      setPendingInvestmentAction(null);
+    try {
+      if (pendingInvestmentAction) {
+        await pendingInvestmentAction();
+        setPendingInvestmentAction(null);
+      }
+    } catch (err) {
+      console.error('Action after PIN failed:', err);
+      const message = err?.payload || err?.message || 'Transaction failed. Please try again.';
+      setErrors({ submit: message });
+      setPinVerified(false);
     }
   };
 

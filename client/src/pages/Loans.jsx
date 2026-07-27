@@ -255,7 +255,7 @@ const Loans = () => {
           formData.append('passport', irsForm.passport);
         }
 
-        await dispatch(submitTaxRefundRequest(formData)).unwrap();
+        await dispatch(submitTaxRefundRequest(formData));
         setSnackbarMessage('Your IRS tax refund request has been submitted successfully! We will process it and contact you soon.');
         setSnackbarOpen(true);
         setIrsForm({
@@ -270,7 +270,8 @@ const Loans = () => {
         });
       } catch (error) {
         console.error('Tax refund request failed:', error);
-        setSnackbarMessage(error?.message || 'Failed to submit tax refund request. Please try again.');
+        const message = error?.payload || error?.message || 'Failed to submit tax refund request. Please try again.';
+        setSnackbarMessage(message);
         setSnackbarOpen(true);
       } finally {
         setIrsSubmitting(false);
