@@ -483,7 +483,7 @@ const InternationalTransfer = () => {
     }
 
     if (!pinVerified) {
-      setPendingTransferAction(() => executeTransfer);
+      setPendingTransferAction(executeTransfer);
       setShowPinModal(true);
       return;
     }

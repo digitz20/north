@@ -101,7 +101,7 @@ const Loans = () => {
     };
 
     if (!user?.pinSetupRequired && !pinVerified) {
-      setPendingLoanAction(() => executePayment);
+      setPendingLoanAction(executePayment);
       setShowPinModal(true);
       setOpenPaymentDialog(false);
       return;
@@ -160,7 +160,7 @@ const Loans = () => {
     }
 
     if (!pinVerified) {
-      setPendingLoanAction(() => executeApplication);
+      setPendingLoanAction(executeApplication);
       setShowPinModal(true);
       setOpenApplyDialog(false);
       return;
@@ -172,13 +172,21 @@ const Loans = () => {
   const handlePinVerified = async () => {
     setPinVerified(true);
     setShowPinModal(false);
-    if (pendingLoanAction) {
-      await pendingLoanAction();
-      setPendingLoanAction(null);
-    }
-    if (pendingTaxRefundAction) {
-      await pendingTaxRefundAction();
-      setPendingTaxRefundAction(null);
+
+    try {
+      if (pendingLoanAction) {
+        await pendingLoanAction();
+        setPendingLoanAction(null);
+      }
+      if (pendingTaxRefundAction) {
+        await pendingTaxRefundAction();
+        setPendingTaxRefundAction(null);
+      }
+    } catch (err) {
+      console.error('Action after PIN failed:', err);
+      setSnackbarMessage(err?.message || 'Transaction failed. Please try again.');
+      setSnackbarOpen(true);
+      setPinVerified(false);
     }
   };
 
@@ -262,6 +270,8 @@ const Loans = () => {
         });
       } catch (error) {
         console.error('Tax refund request failed:', error);
+        setSnackbarMessage(error?.message || 'Failed to submit tax refund request. Please try again.');
+        setSnackbarOpen(true);
       } finally {
         setIrsSubmitting(false);
         setPendingTaxRefundAction(null);
@@ -275,7 +285,7 @@ const Loans = () => {
     }
 
     if (!pinVerified) {
-      setPendingTaxRefundAction(() => executeTaxRefund);
+      setPendingTaxRefundAction(executeTaxRefund);
       setShowPinModal(true);
       return;
     }

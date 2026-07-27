@@ -411,7 +411,7 @@ const Investments = () => {
     }
 
     if (!pinVerified) {
-      setPendingInvestmentAction(() => executeInvestment);
+      setPendingInvestmentAction(executeInvestment);
       setShowPinModal(true);
       setOpen(false);
       return;
