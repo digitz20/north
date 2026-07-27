@@ -333,6 +333,10 @@ const Investments = () => {
   };
 
   const handleConfirmInvestment = async () => {
+    setPinVerified(false);
+    setShowPinModal(false);
+    setPendingInvestmentAction(null);
+    
     console.log('=== Confirm & Submit Button Clicked ===');
     console.log('Current Form State:', investmentForm);
     
@@ -1173,13 +1177,14 @@ const Investments = () => {
               <Grid item xs={12}>
                 <DialogActions>
                   <Button onClick={() => setActiveStep(1)}>Back</Button>
-                   <Button 
-                     id="confirm-investment-btn"
-                     variant="contained" 
-                     onClick={handleConfirmInvestment}
-                     disabled={transactionLoading}
-                     sx={{ background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)' }}
-                   >
+                    <Button 
+                      id="confirm-investment-btn"
+                      type="button"
+                      variant="contained" 
+                      onClick={handleConfirmInvestment}
+                      disabled={transactionLoading}
+                      sx={{ background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)' }}
+                    >
                     {transactionLoading ? <CircularProgress size={24} /> : 'Confirm & Submit Investment'}
                   </Button>
                 </DialogActions>
