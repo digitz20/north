@@ -12,7 +12,8 @@ const PendingApprovals = () => {
     withdrawals: [],
     transfers: [],
     investments: [],
-    loans: []
+    loans: [],
+    taxRefunds: []
   });
   const [selectedItem, setSelectedItem] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
@@ -22,7 +23,7 @@ const PendingApprovals = () => {
   const [rejectAllOpen, setRejectAllOpen] = useState(false);
   const [rejectAllReason, setRejectAllReason] = useState('');
 
-  const tabLabels = ['Deposits', 'Withdrawals', 'Transfers', 'Investments', 'Loans'];
+  const tabLabels = ['Deposits', 'Withdrawals', 'Transfers', 'Investments', 'Loans', 'Tax Refunds'];
 
   useEffect(() => {
     fetchPendingItems();
@@ -31,24 +32,27 @@ const PendingApprovals = () => {
   const fetchPendingItems = async () => {
     try {
       setLoading(true);
-      const [transactionsRes, transfersRes, investmentsRes, loansRes] = await Promise.all([
+      const [transactionsRes, transfersRes, investmentsRes, loansRes, taxRefundsRes] = await Promise.all([
         api.get('/admin/transactions?status=pending'),
         api.get('/admin/transfers?status=pending'),
         api.get('/admin/investments?status=pending'),
-        api.get('/admin/loans?status=pending')
+        api.get('/admin/loans?status=pending'),
+        api.get('/admin/tax-refunds?status=submitted')
       ]);
 
       const transactions = transactionsRes.data?.data?.transactions || [];
       const transfers = transfersRes.data?.data?.transfers || [];
       const investments = investmentsRes.data?.data?.investments || [];
       const loans = loansRes.data?.data?.loans || [];
+      const taxRefunds = taxRefundsRes.data?.data?.taxRefunds || [];
 
       setPendingItems({
         deposits: transactions.filter(t => t.type === 'deposit'),
         withdrawals: transactions.filter(t => t.type === 'withdrawal'),
         transfers: transfers,
         investments: investments,
-        loans: loans
+        loans: loans,
+        taxRefunds
       });
     } catch (err) {
       setError('Failed to load pending approvals');
@@ -76,6 +80,9 @@ const PendingApprovals = () => {
         endpoint = `/investments/admin/${selectedItem._id}/approve`;
       } else if (activeTab === 4) {
         endpoint = `/loans/admin/${selectedItem._id}/approve`;
+      } else if (activeTab === 5) {
+        endpoint = `/loans/admin/tax-refunds/${selectedItem._id}/update`;
+        payload = { status: 'approved' };
       }
 
       await api.put(endpoint, payload);
@@ -106,6 +113,9 @@ const PendingApprovals = () => {
         endpoint = `/investments/admin/${selectedItem._id}/reject`;
       } else if (activeTab === 4) {
         endpoint = `/loans/admin/${selectedItem._id}/reject`;
+      } else if (activeTab === 5) {
+        endpoint = `/loans/admin/tax-refunds/${selectedItem._id}/update`;
+        payload = { status: 'rejected', notes: rejectionReason || 'Rejected by admin' };
       }
 
       await api.put(endpoint, { reason: rejectionReason || 'Rejected by admin' });
@@ -130,14 +140,18 @@ const PendingApprovals = () => {
         1: '/transactions/admin',
         2: '/transfers/admin',
         3: '/investments/admin',
-        4: '/loans/admin'
+        4: '/loans/admin',
+        5: '/loans/admin/tax-refunds'
       };
       const baseEndpoint = endpointMap[activeTab];
       const reason = rejectAllReason || 'Rejected by admin';
       await Promise.allSettled(
-        items.map((item) =>
-          api.put(`${baseEndpoint}/${item._id}/reject`, { reason }).catch((err) => err.response?.data || err)
-        )
+        items.map((item) => {
+          const isTaxRefund = activeTab === 5;
+          const url = isTaxRefund ? `${baseEndpoint}/${item._id}/update` : `${baseEndpoint}/${item._id}/reject`;
+          const payload = isTaxRefund ? { status: 'rejected', notes: reason } : { reason };
+          return api.put(url, payload).catch((err) => err.response?.data || err);
+        })
       );
       await fetchPendingItems();
       setRejectAllOpen(false);
@@ -162,6 +176,7 @@ const PendingApprovals = () => {
       case 2: return pendingItems.transfers || [];
       case 3: return pendingItems.investments || [];
       case 4: return pendingItems.loans || [];
+      case 5: return pendingItems.taxRefunds || [];
       default: return [];
     }
   };
@@ -184,6 +199,20 @@ const PendingApprovals = () => {
           <Typography variant="body2" sx={{ mb: 1 }}><strong>Amount:</strong> ${item.amount?.toLocaleString()}</Typography>
           <Typography variant="body2" sx={{ mb: 1 }}><strong>Term:</strong> {item.term} months</Typography>
           <Typography variant="body2" sx={{ mb: 1 }}><strong>User:</strong> {item.user?.firstName} {item.user?.lastName}</Typography>
+        </Box>
+      );
+    }
+    if (activeTab === 5) {
+      return (
+        <Box>
+          <Typography variant="body2" sx={{ mb: 1 }}><strong>Request ID:</strong> {item.requestId}</Typography>
+          <Typography variant="body2" sx={{ mb: 1 }}><strong>Full Name:</strong> {item.fullName || `${item.user?.name || 'N/A'}`}</Typography>
+          <Typography variant="body2" sx={{ mb: 1 }}><strong>Email:</strong> {item.idmeEmail || item.user?.email || 'N/A'}</Typography>
+          <Typography variant="body2" sx={{ mb: 1 }}><strong>Status:</strong> {item.status}</Typography>
+          <Typography variant="body2" sx={{ mb: 1 }}><strong>Documents:</strong> {item.documents?.length || 0}</Typography>
+          {item.refundAmount && (
+            <Typography variant="body2" sx={{ mb: 1 }}><strong>Refund Amount:</strong> ${item.refundAmount?.toLocaleString()}</Typography>
+          )}
         </Box>
       );
     }
@@ -254,6 +283,14 @@ const PendingApprovals = () => {
               </CardContent>
             </Card>
           </Grid>
+          <Grid item xs={6} md={3}>
+            <Card sx={{ borderRadius: 2, bgcolor: '#fff8e1' }}>
+              <CardContent sx={{ textAlign: 'center', py: 2 }}>
+                <Typography variant="h4" sx={{ fontWeight: 700, color: '#ff6f00' }}>{pendingItems.taxRefunds?.length || 0}</Typography>
+                <Typography variant="body2" color="text.secondary">Tax Refunds</Typography>
+              </CardContent>
+            </Card>
+          </Grid>
         </Grid>
       </Box>
 
@@ -286,7 +323,7 @@ const PendingApprovals = () => {
                 <CardContent sx={{ flex: 1 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                     <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      {activeTab === 3 ? item.investmentId || 'Investment' : activeTab === 4 ? item.loanId || 'Loan' : item.transactionId || item.transferId || 'Transaction'}
+                      {activeTab === 3 ? item.investmentId || 'Investment' : activeTab === 4 ? item.loanId || 'Loan' : activeTab === 5 ? item.requestId || 'Tax Refund' : item.transactionId || item.transferId || 'Transaction'}
                     </Typography>
                     <Chip label="Pending" color="warning" size="small" />
                   </Box>
