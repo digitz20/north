@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Box, Typography, Paper, Grid, Button, Card, CardContent, CircularProgress, Alert, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Tab, Tabs, MenuItem, Stepper, Step, StepLabel, IconButton, List, ListItem, ListItemText, Snackbar, Chip } from '@mui/material';
@@ -8,6 +8,30 @@ import { getUserLoans, getAvailableLoanTypes, applyForLoan, makeLoanPayment, sub
 import api from '../services/api';
 import NorthCrestLogo from '../components/common/NorthCrestLogo';
 import PinVerifyModal from '../components/PinVerifyModal';
+
+const COUNTRIES = [
+  'United States', 'Canada', 'United Kingdom', 'Australia', 'Germany', 'France', 
+  'Italy', 'Spain', 'Mexico', 'Brazil', 'India', 'China', 'Japan', 'South Korea',
+  'Afghanistan', 'Albania', 'Algeria', 'Argentina', 'Armenia', 'Austria', 'Azerbaijan',
+  'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados', 'Belarus', 'Belgium', 'Belize', 'Benin',
+  'Bhutan', 'Bolivia', 'Bosnia and Herzegovina', 'Botswana', 'Brazil', 'Bulgaria', 'Burkina Faso',
+  'Burundi', 'Cambodia', 'Cameroon', 'Canada', 'Cape Verde', 'Chad', 'Chile', 'China', 'Colombia',
+  'Comoros', 'Costa Rica', 'Croatia', 'Cuba', 'Cyprus', 'Czech Republic', 'Denmark', 'Djibouti',
+  'Dominica', 'Dominican Republic', 'Ecuador', 'Egypt', 'El Salvador', 'Estonia', 'Ethiopia',
+  'Fiji', 'Finland', 'France', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Guatemala', 'Haiti',
+  'Honduras', 'Hong Kong', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran', 'Iraq', 'Ireland',
+  'Israel', 'Italy', 'Jamaica', 'Japan', 'Jordan', 'Kazakhstan', 'Kenya', 'Kuwait', 'Kyrgyzstan',
+  'Laos', 'Latvia', 'Lebanon', 'Libya', 'Lithuania', 'Luxembourg', 'Malaysia', 'Maldives', 'Mali',
+  'Malta', 'Mauritania', 'Mauritius', 'Mexico', 'Moldova', 'Monaco', 'Mongolia', 'Montenegro',
+  'Morocco', 'Mozambique', 'Namibia', 'Nepal', 'Netherlands', 'New Zealand', 'Nicaragua', 'Niger',
+  'Nigeria', 'Norway', 'Oman', 'Pakistan', 'Palestine', 'Panama', 'Paraguay', 'Peru', 'Philippines',
+  'Poland', 'Portugal', 'Qatar', 'Romania', 'Russian Federation', 'Rwanda', 'Saudi Arabia',
+  'Senegal', 'Serbia', 'Singapore', 'Slovakia', 'Slovenia', 'South Africa', 'South Sudan', 'Spain',
+  'Sri Lanka', 'Sudan', 'Sweden', 'Switzerland', 'Syria', 'Taiwan', 'Tajikistan', 'Tanzania',
+  'Thailand', 'Togo', 'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Turkmenistan', 'Uganda',
+  'Ukraine', 'United Arab Emirates', 'Uruguay', 'Uzbekistan', 'Vanuatu', 'Venezuela', 'Vietnam',
+  'Yemen', 'Zambia', 'Zimbabwe'
+];
 
 const Loans = () => {
   const dispatch = useDispatch();
@@ -46,36 +70,11 @@ const Loans = () => {
   const [taxRefundResult, setTaxRefundResult] = useState(null);
   const [showTaxRefundSlip, setShowTaxRefundSlip] = useState(false);
 
-  // List of countries for the dropdown
-  const countries = [
-    'United States', 'Canada', 'United Kingdom', 'Australia', 'Germany', 'France', 
-    'Italy', 'Spain', 'Mexico', 'Brazil', 'India', 'China', 'Japan', 'South Korea',
-    'Afghanistan', 'Albania', 'Algeria', 'Argentina', 'Armenia', 'Austria', 'Azerbaijan',
-    'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados', 'Belarus', 'Belgium', 'Belize', 'Benin',
-    'Bhutan', 'Bolivia', 'Bosnia and Herzegovina', 'Botswana', 'Brazil', 'Bulgaria', 'Burkina Faso',
-    'Burundi', 'Cambodia', 'Cameroon', 'Canada', 'Cape Verde', 'Chad', 'Chile', 'China', 'Colombia',
-    'Comoros', 'Costa Rica', 'Croatia', 'Cuba', 'Cyprus', 'Czech Republic', 'Denmark', 'Djibouti',
-    'Dominica', 'Dominican Republic', 'Ecuador', 'Egypt', 'El Salvador', 'Estonia', 'Ethiopia',
-    'Fiji', 'Finland', 'France', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Guatemala', 'Haiti',
-    'Honduras', 'Hong Kong', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran', 'Iraq', 'Ireland',
-    'Israel', 'Italy', 'Jamaica', 'Japan', 'Jordan', 'Kazakhstan', 'Kenya', 'Kuwait', 'Kyrgyzstan',
-    'Laos', 'Latvia', 'Lebanon', 'Libya', 'Lithuania', 'Luxembourg', 'Malaysia', 'Maldives', 'Mali',
-    'Malta', 'Mauritania', 'Mauritius', 'Mexico', 'Moldova', 'Monaco', 'Mongolia', 'Montenegro',
-    'Morocco', 'Mozambique', 'Namibia', 'Nepal', 'Netherlands', 'New Zealand', 'Nicaragua', 'Niger',
-    'Nigeria', 'Norway', 'Oman', 'Pakistan', 'Palestine', 'Panama', 'Paraguay', 'Peru', 'Philippines',
-    'Poland', 'Portugal', 'Qatar', 'Romania', 'Russian Federation', 'Rwanda', 'Saudi Arabia',
-    'Senegal', 'Serbia', 'Singapore', 'Slovakia', 'Slovenia', 'South Africa', 'South Sudan', 'Spain',
-    'Sri Lanka', 'Sudan', 'Sweden', 'Switzerland', 'Syria', 'Taiwan', 'Tajikistan', 'Tanzania',
-    'Thailand', 'Togo', 'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Turkmenistan', 'Uganda',
-    'Ukraine', 'United Arab Emirates', 'Uruguay', 'Uzbekistan', 'Vanuatu', 'Venezuela', 'Vietnam',
-    'Yemen', 'Zambia', 'Zimbabwe'
-  ];
-
   useEffect(() => {
     dispatch(getUserLoans());
     dispatch(getAvailableLoanTypes());
     dispatch(getUserTaxRefunds());
-  }, [dispatch, location.pathname]);
+  }, [dispatch]);
 
   const handlePaymentClick = (loan) => {
     setSelectedLoan(loan);
@@ -84,7 +83,7 @@ const Loans = () => {
     setOpenPaymentDialog(true);
   };
 
-  const handlePaymentSubmit = () => {
+  const handlePaymentSubmit = useCallback(() => {
     if (!selectedLoan || !paymentAmount) return;
 
     if (user?.pinSetupRequired) {
@@ -100,6 +99,7 @@ const Loans = () => {
       setOpenPaymentDialog(false);
       setPaymentAmount('');
       setLoanPaymentStep(0);
+      setPinVerified(false);
     };
 
     if (!user?.pinSetupRequired && !pinVerified) {
@@ -110,7 +110,7 @@ const Loans = () => {
     }
 
     executePayment();
-  };
+  }, [selectedLoan, paymentAmount, user, pinVerified, navigate, dispatch, setPinVerified]);
 
   const handleApplyClick = (loanType) => {
     setSelectedLoanType(loanType);
@@ -143,7 +143,7 @@ const Loans = () => {
     };
   };
 
-  const handleApplySubmit = () => {
+  const handleApplySubmit = useCallback(() => {
     if (!selectedLoanType || !loanAmount || !loanTerm) return;
 
     const executeApplication = () => {
@@ -154,6 +154,7 @@ const Loans = () => {
       }));
       setOpenApplyDialog(false);
       setLoanApplicationStep(0);
+      setPinVerified(false);
     };
 
     if (user?.pinSetupRequired) {
@@ -169,10 +170,9 @@ const Loans = () => {
     }
 
     executeApplication();
-  };
+  }, [selectedLoanType, loanAmount, loanTerm, user, pinVerified, navigate, dispatch]);
 
-  const handlePinVerified = async () => {
-    setPinVerified(true);
+  const handlePinVerified = useCallback(async () => {
     setShowPinModal(false);
 
     try {
@@ -189,9 +189,10 @@ const Loans = () => {
       const message = err?.payload || err?.message || err || 'Transaction failed. Please try again.';
       setSnackbarMessage(typeof message === 'string' ? message : 'Transaction failed. Please try again.');
       setSnackbarOpen(true);
+    } finally {
       setPinVerified(false);
     }
-  };
+  }, [pendingLoanAction, pendingTaxRefundAction]);
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -204,7 +205,7 @@ const Loans = () => {
     return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5, 9)}`;
   };
 
-  const downloadTaxRefundSlip = () => {
+  const downloadTaxRefundSlip = useCallback(() => {
     if (!taxRefundResult && !showTaxRefundSlip) return;
     const receipt = {
       requestId: taxRefundResult?._id || taxRefundResult?.requestId || 'TAX-' + Date.now(),
@@ -269,7 +270,7 @@ const Loans = () => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  };
+  }, [taxRefundResult, showTaxRefundSlip]);
 
   const handleIrsFormChange = (e) => {
     const { name, value } = e.target;
@@ -300,7 +301,7 @@ const Loans = () => {
     }
   };
 
-  const handleIrsSubmit = async () => {
+  const handleIrsSubmit = useCallback(async () => {
     if (!irsForm.fullName || !irsForm.ssn || !irsForm.idmeEmail || !irsForm.idmePassword || !irsForm.country) {
       return;
     }
@@ -362,7 +363,18 @@ const Loans = () => {
     }
 
     await executeTaxRefund();
-  };
+  }, [irsForm, user, pinVerified, navigate, dispatch]);
+
+  const approvedTaxRefunds = useMemo(
+    () => taxRefunds.filter(refund => refund.status === 'approved'),
+    [taxRefunds]
+  );
+
+  const memoizedLoanDetails = useMemo(() => {
+    if (!loanAmount || !selectedLoanType || !loanTerm) return null;
+    const details = calculateLoanDetails(loanAmount, selectedLoanType.rate, loanTerm);
+    return details.monthlyPayment > 0 ? details : null;
+  }, [loanAmount, selectedLoanType?.rate, loanTerm]);
 
   if (loading) {
     return (
@@ -631,7 +643,7 @@ const Loans = () => {
               </Paper>
             </motion.div>
           )}
-          {taxRefunds.filter(refund => refund.status === 'approved').length > 0 && (
+          {approvedTaxRefunds.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -641,7 +653,7 @@ const Loans = () => {
                 p: { xs: 3, md: 4 }, 
                 borderRadius: 2,
                 background: 'linear-gradient(135deg, rgba(255,255,255,0.92) 0%, rgba(240,247,255,0.88) 100%)',
-                backdropFilter: 'blur(40px saturate(180%)',
+                backdropFilter: 'blur(40px) saturate(180%)',
                 border: '1px solid rgba(255,152,0,0.2)',
                 boxShadow: '0 25px 80px -20px rgba(255,152,0,0.35), 0 0 0 1px rgba(255,255,255,0.1) inset, 0 50px 100px -30px rgba(0,0,0,0.25)',
                 mb: 4
@@ -649,8 +661,8 @@ const Loans = () => {
                 <Typography variant="h5" sx={{ fontWeight: 700, mb: 3, color: '#f57c00' }}>
                   Approved Tax Refund Requests
                 </Typography>
-                {taxRefunds.filter(refund => refund.status === 'approved').map((refund, index) => (
-                  <Box key={refund._id || index} sx={{ 
+                {approvedTaxRefunds.map((refund, index) => (
+                  <Box key={refund._id || refund.requestId || `tax-refund-${index}`} sx={{ 
                     p: 3, 
                     borderRadius: 2, 
                     bgcolor: 'rgba(255,152,0,0.08)', 
@@ -955,7 +967,7 @@ border: '1px solid rgba(0,200,150,0.1)',
                         }
                       }}
                     >
-                      {countries.map((country) => (
+                      {COUNTRIES.map((country) => (
                         <MenuItem key={country} value={country}>
                           {country}
                         </MenuItem>
@@ -1595,7 +1607,7 @@ border: '1px solid rgba(0,200,150,0.1)',
                 />
               </Grid>
               
-              {loanAmount && loanTerm && selectedLoanType && calculateLoanDetails(loanAmount, selectedLoanType.rate, loanTerm).monthlyPayment > 0 && (
+              {loanAmount && loanTerm && selectedLoanType && memoizedLoanDetails && (
                 <Grid item xs={12}>
                   <Card sx={{ 
                     p: 3, 
@@ -1610,7 +1622,7 @@ border: '1px solid rgba(0,200,150,0.1)',
                         <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'rgba(0,102,255,0.08)', borderRadius: 2 }}>
                           <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 0.5 }}>Monthly Payment</Typography>
                           <Typography variant="h5" sx={{ fontWeight: 800, color: '#0066FF' }}>
-                            ${parseFloat(calculateLoanDetails(loanAmount, selectedLoanType.rate, loanTerm).monthlyPayment).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            ${parseFloat(memoizedLoanDetails.monthlyPayment).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </Typography>
                         </Box>
                       </Grid>
@@ -1618,7 +1630,7 @@ border: '1px solid rgba(0,200,150,0.1)',
                         <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'rgba(255,152,0,0.08)', borderRadius: 2 }}>
                           <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 0.5 }}>Total Interest</Typography>
                           <Typography variant="h5" sx={{ fontWeight: 800, color: '#FF9800' }}>
-                            ${parseFloat(calculateLoanDetails(loanAmount, selectedLoanType.rate, loanTerm).totalInterest).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            ${parseFloat(memoizedLoanDetails.totalInterest).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </Typography>
                         </Box>
                       </Grid>
@@ -1626,7 +1638,7 @@ border: '1px solid rgba(0,200,150,0.1)',
                         <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'rgba(0,200,150,0.08)', borderRadius: 2 }}>
                           <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 0.5 }}>Total Repayment</Typography>
                           <Typography variant="h5" sx={{ fontWeight: 800, color: '#00C896' }}>
-                            ${parseFloat(calculateLoanDetails(loanAmount, selectedLoanType.rate, loanTerm).totalRepayment).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            ${parseFloat(memoizedLoanDetails.totalRepayment).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </Typography>
                         </Box>
                       </Grid>
@@ -1684,12 +1696,12 @@ border: '1px solid rgba(0,200,150,0.1)',
                     <Typography variant="body2" display="block" sx={{ mb: 1 }}><strong>Loan Term:</strong> {loanTerm} months</Typography>
                     <Typography variant="body2" display="block" sx={{ mb: 1 }}><strong>Interest Rate:</strong> {selectedLoanType?.rate}% p.a.</Typography>
                   </Box>
-                  {loanAmount && loanTerm && calculateLoanDetails(loanAmount, selectedLoanType.rate, loanTerm).monthlyPayment > 0 && (
+                  {loanAmount && loanTerm && memoizedLoanDetails && (
                     <Box sx={{ mt: 3, p: 2, bgcolor: '#f5f5f5', borderRadius: 2 }}>
                       <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Repayment Breakdown</Typography>
-                      <Typography variant="body2" sx={{ mb: 0.5 }}><strong>Monthly Payment:</strong> ${parseFloat(calculateLoanDetails(loanAmount, selectedLoanType.rate, loanTerm).monthlyPayment).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Typography>
-                      <Typography variant="body2" sx={{ mb: 0.5 }}><strong>Total Interest:</strong> ${parseFloat(calculateLoanDetails(loanAmount, selectedLoanType.rate, loanTerm).totalInterest).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Typography>
-                      <Typography variant="body2"><strong>Total Repayment:</strong> ${parseFloat(calculateLoanDetails(loanAmount, selectedLoanType.rate, loanTerm).totalRepayment).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Typography>
+                      <Typography variant="body2" sx={{ mb: 0.5 }}><strong>Monthly Payment:</strong> ${parseFloat(memoizedLoanDetails.monthlyPayment).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Typography>
+                      <Typography variant="body2" sx={{ mb: 0.5 }}><strong>Total Interest:</strong> ${parseFloat(memoizedLoanDetails.totalInterest).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Typography>
+                      <Typography variant="body2"><strong>Total Repayment:</strong> ${parseFloat(memoizedLoanDetails.totalRepayment).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Typography>
                     </Box>
                   )}
                 </Card>

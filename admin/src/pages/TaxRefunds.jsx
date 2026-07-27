@@ -29,6 +29,8 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import CloseIcon from '@mui/icons-material/Close';
 import api from '../services/api';
 
+const API_BASE = import.meta.env.VITE_API_URL || 'https://established-vanny-digitz-b5fdc94b.koyeb.app';
+
 const TaxRefunds = () => {
   const [taxRefunds, setTaxRefunds] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -377,7 +379,7 @@ const TaxRefunds = () => {
                     {selectedRefund.documents.map((doc, idx) => (
                       <ImageListItem key={doc._id || idx} sx={{ borderRadius: 2, overflow: 'hidden', border: '1px solid rgba(0,0,0,0.08)' }}>
                         <img
-                          src={doc.url}
+                          src={API_BASE + doc.url}
                           alt={doc.name}
                           loading="lazy"
                           style={{ width: '100%', height: 160, objectFit: 'cover' }}

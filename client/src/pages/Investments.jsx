@@ -381,21 +381,6 @@ const Investments = () => {
         setTimeout(() => {
           setShowSuccessPopup(false);
           setActiveStep(0);
-          setInvestmentForm({
-            investmentCategory: 'crypto',
-            selectedPlan: investmentPlans.crypto[0]?.id || '',
-            amount: '',
-            destinationAccount: accounts[0]?._id || '',
-            crypto: 'btc',
-            transactionHash: '',
-            walletAddress: '',
-            savedWalletAddress: '',
-            email: user?.email || ''
-          });
-          setUploadedImages([]);
-          setImagePreviews([]);
-          setErrors({});
-          setPinVerified(false);
         }, 3000);
       } catch (error) {
         console.error('Investment submission error:', error);
@@ -475,7 +460,7 @@ const Investments = () => {
     const receipt = {
       transactionId: investmentResult?._id || investmentResult?.id || 'INV-' + Date.now(),
       date: new Date().toLocaleString(),
-      amount: investmentForm.amount,
+      amount: investmentResult?.amountInvested || investmentForm.amount || 0,
       category: investmentForm.investmentCategory ? investmentForm.investmentCategory.charAt(0).toUpperCase() + investmentForm.investmentCategory.slice(1) : 'Investment',
       plan: currentPlan?.name || investmentForm.selectedPlan || 'N/A',
       crypto: selectedCrypto?.name || 'N/A',
@@ -518,7 +503,7 @@ const Investments = () => {
     <div class="row"><span class="label">Reference ID</span><span class="value">${receipt.transactionId}</span></div>
     <div class="row"><span class="label">Date</span><span class="value">${receipt.date}</span></div>
     <hr class="divider">
-    <div class="amount">$${parseFloat(receipt.amount).toLocaleString()}</div>
+    <div class="amount">$${Number(receipt.amount || 0).toLocaleString()}</div>
     <hr class="divider">
     <div class="row"><span class="label">Category</span><span class="value">${receipt.category}</span></div>
     <div class="row"><span class="label">Plan</span><span class="value">${receipt.plan}</span></div>
@@ -693,7 +678,7 @@ const Investments = () => {
                     gap: { xs: 0.25, sm: 0 }
                   }}>
                     <Typography variant="body2" color="text.secondary">Amount</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 700, color: '#0066FF' }}>${parseFloat(investmentForm.amount).toLocaleString()}</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 700, color: '#0066FF' }}>${(investmentResult?.amountInvested || parseFloat(investmentForm.amount || 0)).toLocaleString()}</Typography>
                   </Box>
                   <Box sx={{ 
                     display: 'flex', 
