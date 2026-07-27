@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -42,7 +43,7 @@ const PinVerifyModal = ({ open, onClose, onVerified, title = 'Enter Transaction 
     }
   };
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {open && (
         <Box
@@ -169,7 +170,8 @@ const PinVerifyModal = ({ open, onClose, onVerified, title = 'Enter Transaction 
           </motion.div>
         </Box>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 
