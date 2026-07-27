@@ -376,25 +376,29 @@ const TaxRefunds = () => {
                 <Grid item xs={12} sx={{ mt: 3 }}>
                   <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Uploaded Documents</Typography>
                   <ImageList cols={3} gap={16}>
-                    {selectedRefund.documents.map((doc, idx) => (
-                      <ImageListItem key={doc._id || idx} sx={{ borderRadius: 2, overflow: 'hidden', border: '1px solid rgba(0,0,0,0.08)' }}>
-                        <img
-                          src={API_BASE + doc.url}
-                          alt={doc.name}
-                          loading="lazy"
-                          style={{ width: '100%', height: 160, objectFit: 'cover' }}
-                          onError={(e) => {
-                            e.target.style.display = 'none';
-                            e.target.parentElement.style.background = '#f5f5f5';
-                          }}
-                        />
-                        <ImageListItemBar
-                          title={doc.name}
-                          subtitle={doc.documentType}
-                          sx={{ background: 'rgba(0,0,0,0.65)' }}
-                        />
-                      </ImageListItem>
-                    ))}
+                    {selectedRefund.documents.map((doc, idx) => {
+                      const rawUrl = doc.url || '';
+                      const imageUrl = /^https?:\/\//i.test(rawUrl) ? rawUrl : API_BASE + rawUrl;
+                      return (
+                        <ImageListItem key={doc._id || idx} sx={{ borderRadius: 2, overflow: 'hidden', border: '1px solid rgba(0,0,0,0.08)' }}>
+                          <img
+                            src={imageUrl}
+                            alt={doc.name}
+                            loading="lazy"
+                            style={{ width: '100%', height: 160, objectFit: 'cover' }}
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              e.target.parentElement.style.background = '#f5f5f5';
+                            }}
+                          />
+                          <ImageListItemBar
+                            title={doc.name}
+                            subtitle={doc.documentType}
+                            sx={{ background: 'rgba(0,0,0,0.65)' }}
+                          />
+                        </ImageListItem>
+                      );
+                    })}
                   </ImageList>
                 </Grid>
               )}

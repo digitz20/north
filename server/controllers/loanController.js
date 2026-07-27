@@ -7,31 +7,18 @@ const User = require('../models/User');
 const mongoose = require('mongoose');
 const emailService = require('../utils/email');
 const logger = require('../utils/logger');
+const cloudinary = require('../utils/cloudinary');
 const { sendToUser } = require('../sockets/socketServer');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadDir = path.join(__dirname, '../uploads/tax-refunds');
-    // Create directory if it doesn't exist
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    cb(null, `tax-refund-${uniqueSuffix}${ext}`);
-  }
-});
+// Configure multer to keep files in memory for Cloudinary upload
+const storage = multer.memoryStorage();
 
-const upload = multer({ 
+const upload = multer({
   storage: storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit per file
+  limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: function (req, file, cb) {
     const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
     if (allowedTypes.includes(file.mimetype)) {
@@ -854,12 +841,9 @@ exports.submitTaxRefund = async (req, res, next) => {
       const fileKeys = Object.keys(req.files);
       for (let i = 0; i < fileKeys.length; i++) {
         const file = req.files[fileKeys[i]];
-        // Try to determine document category from client-side naming
-        const docIndex = fileKeys[i].split('_')[1];
         const originalName = file.originalname.toLowerCase();
         let documentCategory = 'other';
-        
-        // Categorize documents based on filename or position
+
         if (originalName.includes('passport')) {
           documentCategory = 'passport';
         } else if (originalName.includes('irs') || originalName.includes('tax') || originalName.includes('1040')) {
@@ -869,11 +853,32 @@ exports.submitTaxRefund = async (req, res, next) => {
         } else if (originalName.includes('back') || i === 1) {
           documentCategory = 'id-back';
         }
-        
+
+        let documentUrl = '';
+        if (cloudinary.config().cloud_name) {
+          try {
+            const uploadResult = await new Promise((resolve, reject) => {
+              cloudinary.v2.uploader.upload_stream(
+                { folder: 'tax-refunds', resource_type: 'auto' },
+                (error, result) => {
+                  if (error) return reject(error);
+                  resolve(result);
+                }
+              ).end(file.buffer);
+            });
+            documentUrl = uploadResult.secure_url;
+          } catch (uploadError) {
+            logger.error(`Failed to upload document to Cloudinary: ${uploadError.message}`);
+            documentUrl = `/uploads/tax-refunds/${file.filename || file.originalname}`;
+          }
+        } else {
+          documentUrl = `/uploads/tax-refunds/${file.filename || file.originalname}`;
+        }
+
         documents.push({
           documentType: file.mimetype,
           name: file.originalname,
-          url: `/uploads/tax-refunds/${file.filename}`,
+          url: documentUrl,
           documentCategory,
           uploadedAt: new Date()
         });

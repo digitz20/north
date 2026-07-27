@@ -104,10 +104,15 @@ app.use('/uploads', (req, res, next) => {
   const fs = require('fs');
   const uploadsRoot = path.join(__dirname, 'uploads');
 
-  if (req.method === 'OPTIONS') {
+  const setCorsHeaders = () => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cache-Control');
+    res.header('Cross-Origin-Resource-Policy', 'cross-origin');
+  };
+
+  if (req.method === 'OPTIONS') {
+    setCorsHeaders();
     res.header('Access-Control-Max-Age', '86400');
     return res.sendStatus(204);
   }
@@ -115,6 +120,7 @@ app.use('/uploads', (req, res, next) => {
   if (req.method === 'GET') {
     const filePath = path.join(uploadsRoot, req.path);
     if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
+      setCorsHeaders();
       return res.sendStatus(404);
     }
     const ext = path.extname(filePath).toLowerCase();
@@ -125,8 +131,7 @@ app.use('/uploads', (req, res, next) => {
       '.mp4': 'video/mp4', '.pdf': 'application/pdf',
       '.doc': 'application/msword', '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     };
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Cross-Origin-Resource-Policy', 'cross-origin');
+    setCorsHeaders();
     res.header('Content-Type', mimeTypes[ext] || 'application/octet-stream');
     res.header('Cache-Control', 'public, max-age=31536000');
     fs.createReadStream(filePath).pipe(res);
