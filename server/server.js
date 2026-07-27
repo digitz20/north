@@ -3,8 +3,25 @@ const app = require('./app');
 const connectDB = require('./config/database');
 const logger = require('./utils/logger');
 const { initializeSocket } = require('./sockets/socketServer');
+const fs = require('fs');
+const path = require('path');
 
 const PORT = process.env.PORT || 5000;
+
+const ensureUploadDirs = () => {
+  const uploadsRoot = path.join(__dirname, 'uploads');
+  const dirs = [
+    path.join(uploadsRoot, 'tax-refunds'),
+    path.join(uploadsRoot, 'support')
+  ];
+  dirs.forEach(dir => {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  });
+};
+
+ensureUploadDirs();
 
 // Create HTTP server
 const server = http.createServer(app);
