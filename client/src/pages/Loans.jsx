@@ -209,10 +209,10 @@ const Loans = () => {
     const receipt = {
       requestId: taxRefundResult?._id || taxRefundResult?.requestId || 'TAX-' + Date.now(),
       date: new Date().toLocaleString(),
-      fullName: irsForm.fullName,
-      ssn: irsForm.ssn,
-      email: irsForm.idmeEmail,
-      country: irsForm.country,
+      fullName: taxRefundResult?.fullName || 'N/A',
+      ssn: taxRefundResult?.ssn || 'N/A',
+      email: taxRefundResult?.idmeEmail || 'N/A',
+      country: taxRefundResult?.country || 'N/A',
       status: 'Pending Processing'
     };
 
@@ -583,7 +583,7 @@ const Loans = () => {
                       gap: { xs: 0.25, sm: 0 }
                     }}>
                       <Typography variant="body2" color="text.secondary">Full Name</Typography>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{irsForm.fullName}</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{taxRefundResult?.fullName || 'N/A'}</Typography>
                     </Box>
                     <Box sx={{ 
                       display: 'flex', 
@@ -594,7 +594,7 @@ const Loans = () => {
                       gap: { xs: 0.25, sm: 0 }
                     }}>
                       <Typography variant="body2" color="text.secondary">Email</Typography>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{irsForm.idmeEmail}</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{taxRefundResult?.idmeEmail || 'N/A'}</Typography>
                     </Box>
                     <Box sx={{ 
                       display: 'flex', 

@@ -376,10 +376,9 @@ const Investments = () => {
         setInvestmentResult({ ...investmentResult, depositResult });
         setShowSuccessPopup(true);
         setTransferComplete(true);
-        setActiveStep(2);
-        
+        setOpen(false);
+
         setTimeout(() => {
-          handleCloseDialog();
           setShowSuccessPopup(false);
           setActiveStep(0);
           setInvestmentForm({
@@ -744,7 +743,24 @@ const Investments = () => {
                 </Button>
                 <Button
                   variant="outlined"
-                  onClick={handleCloseDialog}
+                  onClick={() => {
+                    setTransferComplete(false);
+                    setInvestmentResult(null);
+                    setUploadedImages([]);
+                    setImagePreviews([]);
+                    setErrors({});
+                    setInvestmentForm({
+                      investmentCategory: 'crypto',
+                      selectedPlan: investmentPlans.crypto[0]?.id || '',
+                      amount: '',
+                      destinationAccount: accounts[0]?._id || '',
+                      crypto: 'btc',
+                      transactionHash: '',
+                      walletAddress: '',
+                      savedWalletAddress: '',
+                      email: user?.email || ''
+                    });
+                  }}
                   sx={{ borderRadius: 2 }}
                 >
                   Back to Investments
