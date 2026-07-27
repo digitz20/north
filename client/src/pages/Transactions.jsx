@@ -131,33 +131,104 @@ const Transactions = () => {
       recipient: tx.recipient
     };
 
-    const receiptText = `
-NORTHCREST BANK OF USA
-========================
-Transaction Receipt
-========================
-Transaction ID: ${receipt.transactionId}
-Date: ${receipt.date}
-Amount: $${parseFloat(receipt.amount).toLocaleString()}
-Type: ${receipt.type}
-Status: ${receipt.status}
-Description: ${receipt.description}
-Reference: ${receipt.reference}
-${receipt.sender ? `Sender User: ${receipt.sender.user || 'N/A'}` : ''}
-${receipt.recipient ? `Recipient: ${receipt.recipient.name || 'N/A'}` : ''}
-========================
-Keep this receipt for your records.
-    `;
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const width = 720;
+    const padding = 36;
+    const contentWidth = width - padding * 2;
+    let y = padding;
 
-    const blob = new Blob([receiptText], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `transaction-${receipt.transactionId || 'receipt'}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, width, 1200);
+
+    ctx.fillStyle = '#0f2744';
+    ctx.fillRect(0, 0, width, 110);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 26px Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('NORTHCREST BANK OF USA', width / 2, 52);
+
+    ctx.font = '18px Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif';
+    ctx.fillStyle = '#e5f2ff';
+    ctx.fillText('Transaction Receipt', width / 2, 88);
+
+    y = 150;
+
+    const drawRow = (label, value, highlight = false) => {
+      if (y > 1120) return;
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 18px Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(label, padding, y);
+
+      ctx.fillStyle = highlight ? '#0066FF' : '#334155';
+      ctx.font = `${highlight ? 'bold' : 'normal'} 18px Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif`;
+      ctx.textAlign = 'right';
+      const text = String(value ?? 'N/A');
+      ctx.fillText(text, padding + contentWidth, y);
+
+      y += 46;
+    };
+
+    const drawDivider = () => {
+      if (y > 1120) return;
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(padding, y);
+      ctx.lineTo(padding + contentWidth, y);
+      ctx.stroke();
+      y += 24;
+    };
+
+    drawRow('Transaction ID', receipt.transactionId);
+    drawDivider();
+    drawRow('Date', receipt.date);
+    drawDivider();
+    drawRow('Type', String(receipt.type).toUpperCase());
+    drawDivider();
+    drawRow('Amount', `$${parseFloat(receipt.amount).toLocaleString()}`, true);
+    drawDivider();
+    drawRow('Status', String(receipt.status));
+    drawDivider();
+    drawRow('Description', String(receipt.description));
+    drawDivider();
+    if (receipt.reference) {
+      drawRow('Reference', String(receipt.reference));
+      drawDivider();
+    }
+    if (receipt.sender?.user) {
+      drawRow('Sender', String(receipt.sender.user));
+      drawDivider();
+    }
+    if (receipt.recipient?.name) {
+      drawRow('Recipient', String(receipt.recipient.name));
+      drawDivider();
+    }
+
+    ctx.fillStyle = '#0f2744';
+    ctx.fillRect(0, 1140, width, 60);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 16px Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Keep this receipt for your records.', width / 2, 1176);
+
+    canvas.width = width;
+    canvas.height = 1200;
+
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `transaction-${receipt.transactionId || 'receipt'}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 'image/png');
   };
 
   const containerVariants = {
@@ -706,3 +777,4 @@ Keep this receipt for your records.
 };
 
 export default Transactions;
+

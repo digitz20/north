@@ -72,8 +72,6 @@ const PinVerifyModal = ({ open, onClose, onVerified, title = 'Enter Transaction 
             style={{ width: '100%', display: 'flex', justifyContent: 'center', padding: '0 16px' }}
           >
             <Paper
-              component="form"
-              onSubmit={handleSubmit}
               sx={{ 
                 maxWidth: 420,
                 width: '100%',
@@ -128,34 +126,36 @@ const PinVerifyModal = ({ open, onClose, onVerified, title = 'Enter Transaction 
                 </Alert>
               )}
 
-              <TextField
-                fullWidth
-                label="Transaction PIN"
-                value={pin}
-                onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                inputProps={{ maxLength: 4, pattern: '\\d*' }}
-                type="password"
-                required
-                sx={{ mb: 3 }}
-                autoFocus
-                error={pin.length === 4 && attempts > 0}
-              />
+              <form onSubmit={handleSubmit}>
+                <TextField
+                  fullWidth
+                  label="Transaction PIN"
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  inputProps={{ maxLength: 4, pattern: '\\d*' }}
+                  type="password"
+                  required
+                  sx={{ mb: 3 }}
+                  autoFocus
+                  error={pin.length === 4 && attempts > 0}
+                />
 
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                size="large"
-                disabled={loading || pin.length !== 4}
-                sx={{ 
-                  py: 1.5,
-                  background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
-                  fontSize: '1.1rem',
-                  fontWeight: 600
-                }}
-              >
-                {loading ? <CircularProgress size={24} sx={{ color: 'white' }} /> : 'Confirm PIN'}
-              </Button>
+                <Button
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  size="large"
+                  disabled={loading || pin.length !== 4}
+                  sx={{ 
+                    py: 1.5,
+                    background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
+                    fontSize: '1.1rem',
+                    fontWeight: 600
+                  }}
+                >
+                  {loading ? <CircularProgress size={24} sx={{ color: 'white' }} /> : 'Confirm PIN'}
+                </Button>
+              </form>
 
               <Box sx={{ mt: 3, textAlign: 'center' }}>
                 <Typography variant="caption" color="text.secondary">
