@@ -405,7 +405,7 @@ const Investments = () => {
       }
     };
 
-    if (user?.transactionPin && !pinVerified) {
+    if (!user?.pinSetupRequired && !pinVerified) {
       setPendingInvestmentAction(() => executeInvestment);
       setShowPinModal(true);
       return;

@@ -477,7 +477,7 @@ const InternationalTransfer = () => {
       }
     };
 
-    if (user?.transactionPin && !pinVerified) {
+    if (!user?.pinSetupRequired && !pinVerified) {
       setPendingTransferAction(() => executeTransfer);
       setShowPinModal(true);
       return;

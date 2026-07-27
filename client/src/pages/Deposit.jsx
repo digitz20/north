@@ -271,7 +271,7 @@ const Deposit = () => {
       }
     };
 
-    if (user?.transactionPin && !pinVerified) {
+    if (!user?.pinSetupRequired && !pinVerified) {
       setPendingDepositData(depositData);
       setShowPinModal(true);
       return;

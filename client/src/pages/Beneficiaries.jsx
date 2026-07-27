@@ -37,6 +37,7 @@ const Beneficiaries = () => {
   const dispatch = useDispatch();
   const location = useLocation();
   const { beneficiaries, loading } = useSelector((state) => state.beneficiaries);
+  const { user } = useSelector((state) => state.auth);
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
