@@ -749,65 +749,67 @@ const Users = () => {
       return <Typography color="text.secondary">No cards found</Typography>;
     }
     return (
-      <TableContainer>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Card ID</TableCell>
-              <TableCell>Type</TableCell>
-              <TableCell>Network</TableCell>
-              <TableCell>Last Four</TableCell>
-              <TableCell>Credit Limit</TableCell>
-              <TableCell>Daily Limit</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {userDetails.cards.map((card) => (
-              <TableRow key={card._id}>
-                <TableCell sx={{ fontFamily: 'monospace' }}>{card.cardId || card._id}</TableCell>
-                <TableCell sx={{ textTransform: 'capitalize' }}>{card.cardType}</TableCell>
-                <TableCell>{card.cardNetwork}</TableCell>
-                <TableCell sx={{ fontFamily: 'monospace' }}>****{card.lastFourDigits}</TableCell>
-                <TableCell>
-                  {editCardCreditLimitId === card._id ? (
-                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                      <TextField
-                        size="small"
-                        type="number"
-                        value={editCardCreditLimitValue}
-                        onChange={(e) => setEditCardCreditLimitValue(e.target.value)}
-                        sx={{ width: 120 }}
-                      />
-                      <Button size="small" variant="contained" onClick={() => handleUpdateCardCreditLimit(card._id)}>Save</Button>
-                      <Button size="small" onClick={() => { setEditCardCreditLimitId(null); setEditCardCreditLimitValue(''); }}>Cancel</Button>
-                    </Box>
-                  ) : (
-                    <Typography sx={{ fontWeight: 600 }}>${card.creditLimit?.toLocaleString() || '0'}</Typography>
-                  )}
-                </TableCell>
-                <TableCell>
-                  {editCardDailyLimitId === card._id ? (
-                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                      <TextField
-                        size="small"
-                        type="number"
-                        value={editCardDailyLimitValue}
-                        onChange={(e) => setEditCardDailyLimitValue(e.target.value)}
-                        sx={{ width: 120 }}
-                      />
-                      <Button size="small" variant="contained" onClick={() => handleUpdateCardDailyLimit(card._id)}>Save</Button>
-                      <Button size="small" onClick={() => { setEditCardDailyLimitId(null); setEditCardDailyLimitValue(''); }}>Cancel</Button>
-                    </Box>
-                  ) : (
-                    <Typography sx={{ fontWeight: 600 }}>${card.dailySpendingLimit?.toLocaleString() || '0'}</Typography>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <Chip label={card.isActive ? (card.isLocked ? 'Locked' : 'Active') : 'Inactive'} color={card.isActive ? (card.isLocked ? 'warning' : 'success') : 'error'} size="small" />
-                </TableCell>
-                <TableCell>
+      <Grid container spacing={2}>
+        {userDetails.cards.map((card) => (
+          <Grid item xs={12} sm={6} key={card._id}>
+            <Card sx={{ borderRadius: 2, overflow: 'hidden' }}>
+              <Box sx={{ bgcolor: 'primary.main', color: 'white', p: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                    {card.cardType ? `•••• ${card.lastFourDigits}` : `Card ${String(card._id).slice(-4)}`}
+                  </Typography>
+                  <Chip
+                    label={card.isActive ? (card.isLocked ? 'Locked' : 'Active') : 'Inactive'}
+                    size="small"
+                    color={card.isActive ? (card.isLocked ? 'warning' : 'success') : 'error'}
+                    sx={{ color: 'white', '& .MuiChip-icon': { color: 'white' } }}
+                  />
+                </Box>
+              </Box>
+              <CardContent>
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <Typography variant="caption" color="text.secondary">Card ID</Typography>
+                    <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>{card.cardId || String(card._id)}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography variant="caption" color="text.secondary">Type</Typography>
+                    <Typography variant="body2" sx={{ textTransform: 'capitalize' }}>{card.cardType}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography variant="caption" color="text.secondary">Network</Typography>
+                    <Typography variant="body2">{card.cardNetwork}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography variant="caption" color="text.secondary">Last Four</Typography>
+                    <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>****{card.lastFourDigits}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography variant="caption" color="text.secondary">Credit Limit</Typography>
+                    {editCardCreditLimitId === card._id ? (
+                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mt: 0.5, flexWrap: 'wrap' }}>
+                        <TextField size="small" type="number" value={editCardCreditLimitValue} onChange={(e) => setEditCardCreditLimitValue(e.target.value)} sx={{ width: { xs: 80, sm: 120 } }} />
+                        <Button size="small" variant="contained" onClick={() => handleUpdateCardCreditLimit(card._id)}>Save</Button>
+                        <Button size="small" onClick={() => { setEditCardCreditLimitId(null); setEditCardCreditLimitValue(''); }}>Cancel</Button>
+                      </Box>
+                    ) : (
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>${card.creditLimit?.toLocaleString() || '0'}</Typography>
+                    )}
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography variant="caption" color="text.secondary">Daily Limit</Typography>
+                    {editCardDailyLimitId === card._id ? (
+                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mt: 0.5, flexWrap: 'wrap' }}>
+                        <TextField size="small" type="number" value={editCardDailyLimitValue} onChange={(e) => setEditCardDailyLimitValue(e.target.value)} sx={{ width: { xs: 80, sm: 120 } }} />
+                        <Button size="small" variant="contained" onClick={() => handleUpdateCardDailyLimit(card._id)}>Save</Button>
+                        <Button size="small" onClick={() => { setEditCardDailyLimitId(null); setEditCardDailyLimitValue(''); }}>Cancel</Button>
+                      </Box>
+                    ) : (
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>${card.dailySpendingLimit?.toLocaleString() || '0'}</Typography>
+                    )}
+                  </Grid>
+                </Grid>
+                <Box sx={{ mt: 2, display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
                   <Tooltip title="Edit Credit Limit">
                     <IconButton size="small" onClick={() => { setEditCardCreditLimitId(card._id); setEditCardCreditLimitValue(card.creditLimit?.toString() || '0'); }}>
                       <EditIcon fontSize="small" />
@@ -823,12 +825,12 @@ const Users = () => {
                       <VisibilityIcon fontSize="small" />
                     </IconButton>
                   </Tooltip>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
     );
   };
 
