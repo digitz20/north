@@ -413,6 +413,7 @@ const Investments = () => {
     if (!pinVerified) {
       setPendingInvestmentAction(() => executeInvestment);
       setShowPinModal(true);
+      setOpen(false);
       return;
     }
 
@@ -532,6 +533,42 @@ const Investments = () => {
         </Box>
       ) : (
         <>
+          {showSuccessPopup && (
+            <Box sx={{ 
+              position: 'fixed', 
+              top: '50%', 
+              left: '50%', 
+              transform: 'translate(-50%, -50%)', 
+              bgcolor: 'white', 
+              p: 4, 
+              borderRadius: 2, 
+              boxShadow: 24, 
+              zIndex: 9999,
+              textAlign: 'center',
+              minWidth: '350px'
+            }}>
+              <Typography variant="h4" gutterBottom color="success.main">🎉 Congratulations!</Typography>
+              <Typography variant="body1" sx={{ mb: 3 }}>Your investment has been submitted and is pending admin approval.</Typography>
+              <CircularProgress />
+            </Box>
+          )}
+          {transferComplete && !showSuccessPopup && (
+            <Box textAlign="center" py={4}>
+              <CheckCircle sx={{ fontSize: 80, color: 'success.main', mb: 2 }} />
+              <Typography variant="h5" gutterBottom>Investment Submitted Successfully!</Typography>
+              <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+                Your investment is pending admin approval. It will be active once approved.
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                A confirmation email has been sent to {investmentForm.email}
+              </Typography>
+              <Box mt={4}>
+                <Button variant="contained" onClick={handleCloseDialog}>
+                  Back to Investments
+                </Button>
+              </Box>
+            </Box>
+          )}
           <Grid container spacing={{ xs: 2, sm: 3, md: 4 }} mb={5}>
             <Grid item xs={12} md={6}>
               <motion.div
@@ -784,27 +821,6 @@ const Investments = () => {
               </Step>
             ))}
           </Stepper>
-
-          {/* Success Popup - shows when investment is submitted */}
-          {showSuccessPopup && (
-            <Box sx={{ 
-              position: 'fixed', 
-              top: '50%', 
-              left: '50%', 
-              transform: 'translate(-50%, -50%)', 
-              bgcolor: 'white', 
-              p: 4, 
-              borderRadius: 2, 
-              boxShadow: 24, 
-              zIndex: 9999,
-              textAlign: 'center',
-              minWidth: '350px'
-            }}>
-              <Typography variant="h4" gutterBottom color="success.main">🎉 Congratulations!</Typography>
-              <Typography variant="body1" sx={{ mb: 3 }}>Your investment has been submitted and is pending admin approval.</Typography>
-              <CircularProgress />
-            </Box>
-          )}
 
           {activeStep === 0 && (
             <Grid container spacing={{ xs: 2, sm: 3 }}>
@@ -1187,25 +1203,6 @@ const Investments = () => {
                 </DialogActions>
               </Grid>
             </Grid>
-          )}
-
-          {/* Step 3: Complete */}
-          {transferComplete && (
-            <Box textAlign="center" py={4}>
-              <CheckCircle sx={{ fontSize: 80, color: 'success.main', mb: 2 }} />
-              <Typography variant="h5" gutterBottom>Investment Submitted Successfully!</Typography>
-              <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-                Your investment is pending admin approval. It will be active once approved.
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                A confirmation email has been sent to {investmentForm.email}
-              </Typography>
-              <Box mt={4}>
-                <Button variant="contained" onClick={handleCloseDialog}>
-                  Back to Investments
-                </Button>
-              </Box>
-            </Box>
           )}
         </DialogContent>
       </Dialog>

@@ -103,6 +103,7 @@ const Loans = () => {
     if (!user?.pinSetupRequired && !pinVerified) {
       setPendingLoanAction(() => executePayment);
       setShowPinModal(true);
+      setOpenPaymentDialog(false);
       return;
     }
 
@@ -161,6 +162,7 @@ const Loans = () => {
     if (!pinVerified) {
       setPendingLoanAction(() => executeApplication);
       setShowPinModal(true);
+      setOpenApplyDialog(false);
       return;
     }
 

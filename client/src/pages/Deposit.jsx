@@ -265,6 +265,7 @@ const Deposit = () => {
         await dispatch(processCryptoDeposit(depositData)).unwrap();
         setTransferComplete(true);
         setActiveStep(2);
+        setOpenConfirmation(false);
         setPinVerified(false);
       } catch (error) {
         setErrors({ submit: error.message || 'Deposit failed. Please try again.' });
@@ -280,6 +281,7 @@ const Deposit = () => {
     if (!pinVerified) {
       setPendingDepositData(depositData);
       setShowPinModal(true);
+      setOpenConfirmation(false);
       return;
     }
 
@@ -428,6 +430,26 @@ const Deposit = () => {
 
             {errors.submit && <Alert severity="error" sx={{ mb: 3 }}>{errors.submit}</Alert>}
             {errors.image && <Alert severity="error" sx={{ mb: 3 }}>{errors.image}</Alert>}
+
+            {transferComplete && (
+              <Box textAlign="center" py={4}>
+                <CheckCircle sx={{ fontSize: 80, color: 'warning.main', mb: 2 }} />
+                <Typography variant="h5" gutterBottom>Deposit Pending Approval</Typography>
+                <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+                  Your deposit request has been submitted and is pending admin approval. It will not reflect in your balance until approved.
+                </Typography>
+                <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                  Thank you for choosing NorthCrestBank.
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  A confirmation email has been sent to {cryptoForm.email}
+                </Typography>
+                <Box mt={3}>
+                  <Typography variant="subtitle1">Transaction will be processed on the {selectedCrypto.network} network</Typography>
+                  <img src={selectedCrypto.qrCode} alt="Transaction QR" style={{ width: 150, height: 150, margin: '20px auto' }} />
+                </Box>
+              </Box>
+            )}
 
             <Grid container spacing={{ xs: 2, sm: 3 }}>
               {activeStep === 0 && (
@@ -682,25 +704,7 @@ const Deposit = () => {
                 </IconButton>
               </DialogTitle>
               <DialogContent>
-                {transferComplete ? (
-                  <Box textAlign="center" py={4}>
-                    <CheckCircle sx={{ fontSize: 80, color: 'warning.main', mb: 2 }} />
-                    <Typography variant="h5" gutterBottom>Deposit Pending Approval</Typography>
-                    <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-                      Your deposit request has been submitted and is pending admin approval. It will not reflect in your balance until approved.
-                    </Typography>
-                    <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-                      Thank you for choosing NorthCrestBank.
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      A confirmation email has been sent to {cryptoForm.email}
-                    </Typography>
-                    <Box mt={3}>
-                      <Typography variant="subtitle1">Transaction will be processed on the {selectedCrypto.network} network</Typography>
-                      <img src={selectedCrypto.qrCode} alt="Transaction QR" style={{ width: 150, height: 150, margin: '20px auto' }} />
-                    </Box>
-                  </Box>
-                ) : (
+                {!transferComplete && (
                   <Grid container spacing={3}>
                     <Grid item xs={12}>
                       <Card variant="outlined" sx={{ borderRadius: 2 }}>
