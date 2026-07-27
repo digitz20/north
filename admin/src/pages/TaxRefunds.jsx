@@ -45,8 +45,7 @@ const TaxRefunds = () => {
   const fetchTaxRefunds = async () => {
     try {
       const response = await api.get('/loans/admin/tax-refunds');
-      // Correctly extract array - add safeguard to ensure it's always an array
-      const refundsData = response.data?.data || response.data || [];
+      const refundsData = response.data?.data?.taxRefunds || response.data?.data || response.data || [];
       setTaxRefunds(Array.isArray(refundsData) ? refundsData : []);
       setLoading(false);
     } catch (error) {
@@ -69,7 +68,7 @@ const TaxRefunds = () => {
   const handleUpdateStatus = async () => {
     if (!selectedRefund) return;
     try {
-      await api.patch(`/admin/tax-refunds/${selectedRefund._id}`, updateForm);
+      await api.put(`/admin/tax-refunds/${selectedRefund._id}/update`, updateForm);
       setOpenDialog(false);
       fetchTaxRefunds();
     } catch (error) {

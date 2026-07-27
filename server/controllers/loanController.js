@@ -511,7 +511,7 @@ exports.getAllTaxRefunds = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      count: loans.length,
+      count: taxRefunds.length,
       total,
       pagination: {
         page,
@@ -519,7 +519,7 @@ exports.getAllTaxRefunds = async (req, res, next) => {
         pages: Math.ceil(total / limit)
       },
       data: {
-        loans,
+        taxRefunds,
         total,
         pagination: {
           page,
