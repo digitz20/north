@@ -30,6 +30,7 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import LogoutIcon from '@mui/icons-material/Logout';
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import EmailIcon from '@mui/icons-material/Email';
+import ReceiptIcon from '@mui/icons-material/Receipt';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../store/slices/authSlice';
 
@@ -71,6 +72,7 @@ const DashboardLayout = () => {
     { text: 'Transfers', icon: <MoneyTransferIcon />, path: '/transfers' },
     { text: 'Accounts', icon: <AccountBalanceIcon />, path: '/accounts' },
     { text: 'Loans', icon: <CreditScoreIcon />, path: '/loans' },
+    { text: 'Tax Refunds', icon: <ReceiptIcon />, path: '/tax-refunds' },
     { text: 'Investments', icon: <TrendingUpIcon />, path: '/investments' },
     { text: 'Support Tickets', icon: <SupportAgentIcon />, path: '/support' },
     { text: 'Email Logs', icon: <EmailIcon />, path: '/email-logs' },

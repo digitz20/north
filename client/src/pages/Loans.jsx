@@ -631,7 +631,7 @@ const Loans = () => {
               </Paper>
             </motion.div>
           )}
-          {taxRefunds.length > 0 && (
+          {taxRefunds.filter(refund => refund.status === 'approved').length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -641,15 +641,15 @@ const Loans = () => {
                 p: { xs: 3, md: 4 }, 
                 borderRadius: 2,
                 background: 'linear-gradient(135deg, rgba(255,255,255,0.92) 0%, rgba(240,247,255,0.88) 100%)',
-                backdropFilter: 'blur(40px) saturate(180%)',
+                backdropFilter: 'blur(40px saturate(180%)',
                 border: '1px solid rgba(255,152,0,0.2)',
                 boxShadow: '0 25px 80px -20px rgba(255,152,0,0.35), 0 0 0 1px rgba(255,255,255,0.1) inset, 0 50px 100px -30px rgba(0,0,0,0.25)',
                 mb: 4
               }}>
                 <Typography variant="h5" sx={{ fontWeight: 700, mb: 3, color: '#f57c00' }}>
-                  Pending Tax Refund Requests
+                  Approved Tax Refund Requests
                 </Typography>
-                {taxRefunds.map((refund, index) => (
+                {taxRefunds.filter(refund => refund.status === 'approved').map((refund, index) => (
                   <Box key={refund._id || index} sx={{ 
                     p: 3, 
                     borderRadius: 2, 

@@ -471,7 +471,7 @@ exports.deleteLoan = async (req, res, next) => {
 // @access  Private
 exports.getUserTaxRefunds = async (req, res, next) => {
   try {
-    const taxRefunds = await TaxRefund.find({ user: req.user.id })
+    const taxRefunds = await TaxRefund.find({ user: req.user.id, status: 'approved' })
       .sort({ createdAt: -1 });
 
     res.status(200).json({

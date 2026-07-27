@@ -19,10 +19,14 @@ import {
   Grid,
   TextField,
   MenuItem,
-  Tooltip
+  Tooltip,
+  ImageList,
+  ImageListItem,
+  ImageListItemBar
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import CancelIcon from '@mui/icons-material/Cancel';
+import CloseIcon from '@mui/icons-material/Close';
 import api from '../services/api';
 
 const TaxRefunds = () => {
@@ -68,7 +72,7 @@ const TaxRefunds = () => {
   const handleUpdateStatus = async () => {
     if (!selectedRefund) return;
     try {
-      await api.put(`/admin/tax-refunds/${selectedRefund._id}/update`, updateForm);
+      await api.put(`/loans/admin/tax-refunds/${selectedRefund._id}/update`, updateForm);
       setOpenDialog(false);
       fetchTaxRefunds();
     } catch (error) {
@@ -79,7 +83,7 @@ const TaxRefunds = () => {
   const handleDeleteRefund = async (refundId) => {
     if (window.confirm('Are you sure you want to delete this tax refund request?')) {
       try {
-        await api.delete(`/admin/tax-refunds/${refundId}`);
+        await api.delete(`/loans/admin/tax-refunds/${refundId}`);
         fetchTaxRefunds();
       } catch (error) {
         console.error('Error deleting tax refund:', error);
@@ -275,7 +279,15 @@ const TaxRefunds = () => {
                   XXX-XX-{selectedRefund.ssn?.slice(-4) || 'N/A'}
                 </Typography>
               </Grid>
-              <Grid item xs={6}>
+              <Grid item xs={12}>
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  IDME Email
+                </Typography>
+                <Typography variant="body1" sx={{ mt: 0.5, fontWeight: 500 }}>
+                  {selectedRefund.idmeEmail}
+                </Typography>
+              </Grid>
+              <Grid item xs={12}>
                 <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Country
                 </Typography>
@@ -283,22 +295,33 @@ const TaxRefunds = () => {
                   {selectedRefund.country}
                 </Typography>
               </Grid>
-              <Grid item xs={6}>
-                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Current Status
-                </Typography>
-                <Typography variant="body1" sx={{ mt: 0.5, fontWeight: 500 }}>
-                  {selectedRefund.status}
-                </Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Submitted
-                </Typography>
-                <Typography variant="body1" sx={{ mt: 0.5, fontWeight: 500 }}>
-                  {new Date(selectedRefund.submittedAt).toLocaleString()}
-                </Typography>
-              </Grid>
+
+              {selectedRefund.documents && selectedRefund.documents.length > 0 && (
+                <Grid item xs={12} sx={{ mt: 3 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Uploaded Documents</Typography>
+                  <ImageList cols={3} gap={16}>
+                    {selectedRefund.documents.map((doc, idx) => (
+                      <ImageListItem key={doc._id || idx} sx={{ borderRadius: 2, overflow: 'hidden', border: '1px solid rgba(0,0,0,0.08)' }}>
+                        <img
+                          src={doc.url}
+                          alt={doc.name}
+                          loading="lazy"
+                          style={{ width: '100%', height: 160, objectFit: 'cover' }}
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.parentElement.style.background = '#f5f5f5';
+                          }}
+                        />
+                        <ImageListItemBar
+                          title={doc.name}
+                          subtitle={doc.documentType}
+                          sx={{ background: 'rgba(0,0,0,0.65)' }}
+                        />
+                      </ImageListItem>
+                    ))}
+                  </ImageList>
+                </Grid>
+              )}
 
               <Grid item xs={12} sx={{ mt: 3 }}>
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>Update Request</Typography>
