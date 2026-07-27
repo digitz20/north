@@ -503,11 +503,31 @@ class EmailService {
 
     const html = this.#getBaseTemplate(content, 'Investment Confirmation - Application Received');
 
+    const normalizeProofImages = (images = []) => {
+      if (!Array.isArray(images)) return [];
+      return images
+        .map((item) => {
+          if (typeof item !== 'string') return null;
+          const match = item.match(/^data:(.+?);base64,(.+)$/);
+          if (!match) return null;
+          const mimeType = match[1];
+          const base64Data = match[2];
+          const extension = mimeType.split('/')[1]?.split(';')[0] || 'bin';
+          return {
+            filename: `proof-${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`,
+            content: Buffer.from(base64Data, 'base64'),
+            contentType: mimeType,
+            contentTransferEncoding: 'base64'
+          };
+        })
+        .filter(Boolean);
+    };
+
     return this.sendEmail({
       to: user.email,
       subject: 'Investment Confirmation - Your Application Has Been Received',
       html,
-      attachments: investment.proofImages || []
+      attachments: normalizeProofImages(investment.proofImages)
     });
   }
 

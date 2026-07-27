@@ -160,6 +160,16 @@ router.route('/reports/loans')
 router.route('/reports/investments')
   .get(protect, authorize('admin', 'super-admin'), getInvestmentsReport);
 
+// Tax refund admin routes (aliases for /api/v1/loans/admin/tax-refunds)
+const { getAllTaxRefunds, getTaxRefund, updateTaxRefundStatus, deleteTaxRefund } = require('../controllers/loanController');
+router.route('/tax-refunds')
+  .get(protect, authorize('admin', 'super-admin'), getAllTaxRefunds);
+router.route('/tax-refunds/:id/update')
+  .put(protect, authorize('admin', 'super-admin'), updateTaxRefundStatus);
+router.route('/tax-refunds/:id')
+  .get(protect, authorize('admin', 'super-admin'), getTaxRefund)
+  .delete(protect, authorize('admin', 'super-admin'), deleteTaxRefund);
+
 // Support ticket actions
 const { closeTicket, assignTicket, deleteTicket } = require('../controllers/supportController');
 router.route('/support-tickets')
