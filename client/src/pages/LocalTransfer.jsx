@@ -191,10 +191,11 @@ const LocalTransfer = () => {
 <!DOCTYPE html>
 <html>
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Payment Slip - NorthCrest Bank</title>
   <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-    .receipt { background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); max-width: 420px; width: 100%; text-align: center; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0; padding: 16px; }
+    .receipt { background: #fff; padding: 24px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); max-width: 420px; width: 100%; text-align: center; }
     .logo { font-size: 20px; font-weight: 800; color: #0066FF; letter-spacing: 1px; margin-bottom: 4px; }
     .subtitle { font-size: 12px; color: #64748b; margin-bottom: 24px; }
     .divider { border: none; border-top: 2px dashed #e2e8f0; margin: 16px 0; }
@@ -206,6 +207,11 @@ const LocalTransfer = () => {
     .status-completed { background: #dcfce7; color: #166534; }
     .status-pending { background: #fef3c7; color: #92400e; }
     .footer { margin-top: 24px; font-size: 12px; color: #94a3b8; }
+    @media (max-width: 480px) {
+      .receipt { padding: 16px; }
+      .row { flex-direction: column; gap: 2px; }
+      .amount { font-size: 24px; }
+    }
   </style>
 </head>
 <body>
@@ -314,45 +320,115 @@ const LocalTransfer = () => {
             )}
 
             {transferResult && (
-              <Paper sx={{ p: 4, borderRadius: 2, textAlign: 'center', mb: 3 }}>
-                <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
+              <Paper sx={{ 
+                p: { xs: 2, sm: 4 }, 
+                borderRadius: 2, 
+                textAlign: 'center', 
+                mb: 3,
+                maxWidth: { xs: '100%', sm: 600 },
+                mx: 'auto'
+              }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, mb: 1, fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
                   NORTHCREST BANK OF USA
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                   Payment Slip
                 </Typography>
-                <Box sx={{ border: '1px solid #e2e8f0', borderRadius: 2, p: 3, mb: 3, textAlign: 'left' }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1, borderBottom: '1px solid #f1f5f9' }}>
-                    <Typography variant="body2" color="text.secondary">Transaction ID</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{transferResult._id}</Typography>
+                <Box sx={{ 
+                  border: '1px solid #e2e8f0', 
+                  borderRadius: 2, 
+                  p: { xs: 2, sm: 3 }, 
+                  mb: 3, 
+                  textAlign: 'left',
+                  maxWidth: { xs: '100%', sm: 420 },
+                  mx: 'auto'
+                }}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    justifyContent: { xs: 'flex-start', sm: 'space-between' }, 
+                    py: 1, 
+                    borderBottom: '1px solid #f1f5f9',
+                    gap: { xs: 0.25, sm: 0 }
+                  }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Transaction ID</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' }, wordBreak: 'break-all' }}>{transferResult._id}</Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1, borderBottom: '1px solid #f1f5f9' }}>
-                    <Typography variant="body2" color="text.secondary">Date</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{new Date().toLocaleString()}</Typography>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    justifyContent: { xs: 'flex-start', sm: 'space-between' }, 
+                    py: 1, 
+                    borderBottom: '1px solid #f1f5f9',
+                    gap: { xs: 0.25, sm: 0 }
+                  }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Date</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{new Date().toLocaleString()}</Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1, borderBottom: '1px solid #f1f5f9' }}>
-                    <Typography variant="body2" color="text.secondary">Amount</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 700, color: '#0066FF' }}>${parseFloat(formData.amount).toLocaleString()}</Typography>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    justifyContent: { xs: 'flex-start', sm: 'space-between' }, 
+                    py: 1, 
+                    borderBottom: '1px solid #f1f5f9',
+                    gap: { xs: 0.25, sm: 0 }
+                  }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Amount</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 700, color: '#0066FF', fontSize: { xs: '0.875rem', sm: '0.875rem' } }}>${parseFloat(formData.amount).toLocaleString()}</Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1, borderBottom: '1px solid #f1f5f9' }}>
-                    <Typography variant="body2" color="text.secondary">Transfer Type</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{transferTypes.find(t => t.value === formData.transferType)?.label || formData.transferType}</Typography>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    justifyContent: { xs: 'flex-start', sm: 'space-between' }, 
+                    py: 1, 
+                    borderBottom: '1px solid #f1f5f9',
+                    gap: { xs: 0.25, sm: 0 }
+                  }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Transfer Type</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{transferTypes.find(t => t.value === formData.transferType)?.label || formData.transferType}</Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1, borderBottom: '1px solid #f1f5f9' }}>
-                    <Typography variant="body2" color="text.secondary">Recipient</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{formData.beneficiaryName}</Typography>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    justifyContent: { xs: 'flex-start', sm: 'space-between' }, 
+                    py: 1, 
+                    borderBottom: '1px solid #f1f5f9',
+                    gap: { xs: 0.25, sm: 0 }
+                  }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Recipient</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{formData.beneficiaryName}</Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1, borderBottom: '1px solid #f1f5f9' }}>
-                    <Typography variant="body2" color="text.secondary">Account Number</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{formData.beneficiaryAccountNumber}</Typography>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    justifyContent: { xs: 'flex-start', sm: 'space-between' }, 
+                    py: 1, 
+                    borderBottom: '1px solid #f1f5f9',
+                    gap: { xs: 0.25, sm: 0 }
+                  }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Account Number</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{formData.beneficiaryAccountNumber}</Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1, borderBottom: '1px solid #f1f5f9' }}>
-                    <Typography variant="body2" color="text.secondary">Bank Name</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{formData.bankName}</Typography>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    justifyContent: { xs: 'flex-start', sm: 'space-between' }, 
+                    py: 1, 
+                    borderBottom: '1px solid #f1f5f9',
+                    gap: { xs: 0.25, sm: 0 }
+                  }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Bank Name</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' }, wordBreak: 'break-word' }}>{formData.bankName}</Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1 }}>
-                    <Typography variant="body2" color="text.secondary">Status</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 700, color: transferResult.status === 'completed' ? '#00C896' : '#f59e0b' }}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    justifyContent: { xs: 'flex-start', sm: 'space-between' }, 
+                    py: 1,
+                    gap: { xs: 0.25, sm: 0 }
+                  }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Status</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 700, color: transferResult.status === 'completed' ? '#00C896' : '#f59e0b', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                       {transferResult.status === 'completed' ? 'Completed' : 'Pending Approval'}
                     </Typography>
                   </Box>
