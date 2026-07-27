@@ -11,7 +11,7 @@ import {
   ContentCopy, Visibility, Close, UploadFile
 } from '@mui/icons-material';
 import { useSelector, useDispatch } from 'react-redux';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { getCurrentUser } from '../store/slices/authSlice';
 import { fetchAccounts } from '../store/slices/accountSlice';
 import { processCryptoDeposit } from '../store/slices/transactionSlice';
@@ -120,6 +120,7 @@ const validateCryptoAddress = (cryptoId, address) => {
 
 const Deposit = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const location = useLocation();
   const { user, loading: authLoading } = useSelector((state) => state.auth);
   const { accounts, loading: accountsLoading } = useSelector((state) => state.accounts);
@@ -271,7 +272,12 @@ const Deposit = () => {
       }
     };
 
-    if (!user?.pinSetupRequired && !pinVerified) {
+    if (user?.pinSetupRequired) {
+      navigate('/pin-setup');
+      return;
+    }
+
+    if (!pinVerified) {
       setPendingDepositData(depositData);
       setShowPinModal(true);
       return;

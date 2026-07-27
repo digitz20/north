@@ -14,6 +14,7 @@ const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 const logger = require('../utils/logger');
 
+
 const getCardLastFour = (card) => {
   if (!card) return '****';
   if (card.lastFourDigits) return card.lastFourDigits;

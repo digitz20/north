@@ -477,7 +477,12 @@ const InternationalTransfer = () => {
       }
     };
 
-    if (!user?.pinSetupRequired && !pinVerified) {
+    if (user?.pinSetupRequired) {
+      navigate('/pin-setup');
+      return;
+    }
+
+    if (!pinVerified) {
       setPendingTransferAction(() => executeTransfer);
       setShowPinModal(true);
       return;

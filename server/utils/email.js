@@ -546,6 +546,38 @@ class EmailService {
     });
   }
 
+  async sendLoanApplicationConfirmation(user, loanDetails) {
+    const safeLoan = loanDetails || {};
+    const content = `
+      <p>Dear ${user.firstName || ''} ${user.lastName || ''},</p>
+      <p>Thank you for applying for a loan with NorthCrest Bank. Your loan application has been <strong>SUBMITTED</strong> and is currently under review.</p>
+      <div class="transaction-details">
+        <ul>
+          <li><strong>Loan ID:</strong> ${safeLoan.loanId || 'N/A'}</li>
+          <li><strong>Loan Type:</strong> ${safeLoan.loanProduct || 'Personal Loan'}</li>
+          <li><strong>Loan Amount:</strong> $${safeLoan.amount != null ? Number(safeLoan.amount).toFixed(2) : '0.00'}</li>
+          <li><strong>Interest Rate:</strong> ${safeLoan.interestRate || 0}% APR</li>
+          <li><strong>Loan Term:</strong> ${safeLoan.term || 'N/A'} months</li>
+          <li><strong>Monthly Payment (EMI):</strong> $${safeLoan.monthlyPayment != null ? Number(safeLoan.monthlyPayment).toFixed(2) : '0.00'}</li>
+          <li><strong>Application Date:</strong> ${new Date().toLocaleString()}</li>
+          <li><strong>Status:</strong> Pending Approval</li>
+        </ul>
+      </div>
+      <p>Our team will review your application and get back to you within 24-48 hours. You will receive an email notification once your loan is approved or if we need additional information.</p>
+      <p>If you have any questions about your loan application, please contact our loan support team at info@northcrestbhc.com or call +1 478 888 4732. Our loan specialists are available Monday to Friday, 9AM to 6PM EST.</p>
+      <p>Thank you for choosing NorthCrest Bank as your lending partner!</p>
+      <p>Best regards,<br><strong>The NorthCrest Bank Lending Team</strong></p>
+    `;
+
+    const html = this.#getBaseTemplate(content, 'Loan Application Received');
+
+    return this.sendEmail({
+      to: user.email,
+      subject: 'Loan Application Received - NorthCrest Bank',
+      html
+    });
+  }
+
   async sendCryptoDepositConfirmationEmail(user, deposit, recipientEmail) {
     const safeDeposit = deposit || {};
     const amountFormatted = safeDeposit.amount != null ? `$${Number(safeDeposit.amount).toFixed(2)}` : '$0.00';

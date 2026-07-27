@@ -405,7 +405,12 @@ const Investments = () => {
       }
     };
 
-    if (!user?.pinSetupRequired && !pinVerified) {
+    if (user?.pinSetupRequired) {
+      navigate('/pin-setup');
+      return;
+    }
+
+    if (!pinVerified) {
       setPendingInvestmentAction(() => executeInvestment);
       setShowPinModal(true);
       return;

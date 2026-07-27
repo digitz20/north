@@ -126,7 +126,12 @@ const LocalTransfer = () => {
       description: formData.description
     };
 
-    if (!user?.pinSetupRequired && !pinVerified) {
+    if (user?.pinSetupRequired) {
+      navigate('/pin-setup');
+      return;
+    }
+
+    if (!pinVerified) {
       setPendingTransferData(transferData);
       setShowPinModal(true);
       setLoading(false);

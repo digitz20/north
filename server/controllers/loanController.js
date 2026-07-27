@@ -298,6 +298,21 @@ exports.applyForLoan = async (req, res, next) => {
       }
     }], { session });
 
+    try {
+      await emailService.sendLoanApplicationConfirmation(req.user, {
+        loanId: loan[0].loanId,
+        amount: loan[0].amount,
+        term: loan[0].term,
+        interestRate: loan[0].interestRate,
+        monthlyPayment: loan[0].monthlyPayment,
+        loanProduct: loanProduct.name,
+        status: loan[0].status
+      });
+      logger.info(`Loan application confirmation email sent to: ${req.user.email}`);
+    } catch (emailErr) {
+      logger.error(`Failed to send loan application email: ${emailErr.message}`);
+    }
+
     await session.commitTransaction();
     session.endSession();
 
@@ -478,14 +493,22 @@ exports.getAllTaxRefunds = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      count: taxRefunds.length,
+      count: loans.length,
       total,
       pagination: {
         page,
         limit,
         pages: Math.ceil(total / limit)
       },
-      data: taxRefunds
+      data: {
+        loans,
+        total,
+        pagination: {
+          page,
+          limit,
+          pages: Math.ceil(total / limit)
+        }
+      }
     });
   } catch (error) {
     next(error);
