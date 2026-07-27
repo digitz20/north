@@ -500,8 +500,8 @@ exports.getAllTaxRefunds = async (req, res, next) => {
     }
 
     const taxRefunds = await TaxRefund.find(query)
-      .populate('user', 'name email')
-      .populate('processedBy', 'name email')
+      .populate('user', 'firstName lastName email')
+      .populate('processedBy', 'firstName lastName email')
       .skip(startIndex)
       .limit(limit)
       .sort({ createdAt: -1 });
@@ -538,8 +538,8 @@ exports.getAllTaxRefunds = async (req, res, next) => {
 exports.getTaxRefund = async (req, res, next) => {
   try {
     const taxRefund = await TaxRefund.findById(req.params.id)
-      .populate('user', 'name email')
-      .populate('processedBy', 'name email');
+      .populate('user', 'firstName lastName email')
+      .populate('processedBy', 'firstName lastName email');
 
     if (!taxRefund) {
       return res.status(404).json({
