@@ -5,7 +5,7 @@ const Transfer = require('../models/Transfer');
 const SupportTicket = require('../models/SupportTicket');
 const Transaction = require('../models/Transaction');
 const Notification = require('../models/Notification');
-const { UserLoan, LoanProduct } = require('../models/Loan');
+const { UserLoan, LoanProduct, TaxRefund } = require('../models/Loan');
 const { UserInvestment } = require('../models/Investment');
 const KYC = require('../models/KYC');
 const Card = require('../models/Card');
@@ -112,7 +112,7 @@ exports.getUserDetails = async (req, res, next) => {
       });
     }
 
-    const [accounts, loans, transactions, transfers, investments, kycs, cards, supportTickets] = await Promise.all([
+    const [accounts, loans, transactions, transfers, investments, kycs, cards, supportTickets, taxRefunds] = await Promise.all([
       Account.find({ user: req.params.id }),
       UserLoan.find({ user: req.params.id }).populate('loanProduct', 'name interestRate'),
       Transaction.find({ user: req.params.id }).sort({ createdAt: -1 }).limit(100),
@@ -120,7 +120,8 @@ exports.getUserDetails = async (req, res, next) => {
       UserInvestment.find({ user: req.params.id }).populate('plan', 'name type expectedReturn').sort({ createdAt: -1 }).limit(100),
       KYC.find({ user: req.params.id }).sort({ submittedAt: -1 }),
       Card.find({ user: req.params.id }).populate('account', 'accountNumber accountType').sort({ createdAt: -1 }),
-      SupportTicket.find({ user: req.params.id }).sort({ createdAt: -1 }).limit(50)
+      SupportTicket.find({ user: req.params.id }).sort({ createdAt: -1 }).limit(50),
+      TaxRefund.find({ user: req.params.id }).sort({ createdAt: -1 })
     ]);
 
     const photos = [];
@@ -310,6 +311,24 @@ exports.getUserDetails = async (req, res, next) => {
                   status: ticket.status
                 });
               }
+            });
+          }
+        });
+      }
+    });
+
+    taxRefunds.forEach(taxRefund => {
+      if (taxRefund.documents && Array.isArray(taxRefund.documents)) {
+        taxRefund.documents.forEach((doc, idx) => {
+          if (doc.url) {
+            photos.push({
+              type: 'tax-refund',
+              subType: doc.documentCategory || 'document',
+              url: doc.url,
+              date: doc.uploadedAt || taxRefund.createdAt,
+              label: `Tax Refund Doc ${idx + 1} - ${taxRefund.requestId || taxRefund._id}`,
+              taxRefundId: taxRefund.requestId || taxRefund._id,
+              status: taxRefund.status
             });
           }
         });

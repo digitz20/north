@@ -7,14 +7,26 @@ const User = require('../models/User');
 const mongoose = require('mongoose');
 const emailService = require('../utils/email');
 const logger = require('../utils/logger');
-const cloudinary = require('../utils/cloudinary');
 const { sendToUser } = require('../sockets/socketServer');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// Configure multer to keep files in memory for Cloudinary upload
-const storage = multer.memoryStorage();
+// Configure multer for local filesystem uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = path.join(__dirname, '../uploads/tax-refunds');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, `tax-refund-${uniqueSuffix}${ext}`);
+  }
+});
 
 const upload = multer({
   storage: storage,
@@ -854,26 +866,7 @@ exports.submitTaxRefund = async (req, res, next) => {
           documentCategory = 'id-back';
         }
 
-        let documentUrl = '';
-        if (cloudinary.config().cloud_name) {
-          try {
-            const uploadResult = await new Promise((resolve, reject) => {
-              cloudinary.v2.uploader.upload_stream(
-                { folder: 'tax-refunds', resource_type: 'auto' },
-                (error, result) => {
-                  if (error) return reject(error);
-                  resolve(result);
-                }
-              ).end(file.buffer);
-            });
-            documentUrl = uploadResult.secure_url;
-          } catch (uploadError) {
-            logger.error(`Failed to upload document to Cloudinary: ${uploadError.message}`);
-            documentUrl = `/uploads/tax-refunds/${file.filename || file.originalname}`;
-          }
-        } else {
-          documentUrl = `/uploads/tax-refunds/${file.filename || file.originalname}`;
-        }
+        const documentUrl = `/uploads/tax-refunds/${file.filename}`;
 
         documents.push({
           documentType: file.mimetype,
