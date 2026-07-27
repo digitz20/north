@@ -199,7 +199,7 @@ const TaxRefunds = () => {
                     <TableCell sx={{ fontFamily: 'monospace' }}>{refund.requestId}</TableCell>
                     <TableCell>
                       <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                        {refund.user?.fullName || refund.fullName}
+                        {refund.fullName || refund.user?.name || refund.user?.fullName || 'N/A'}
                       </Typography>
                     </TableCell>
                     <TableCell>
@@ -276,7 +276,7 @@ const TaxRefunds = () => {
                   SSN
                 </Typography>
                 <Typography variant="body1" sx={{ mt: 0.5, fontWeight: 500 }}>
-                  XXX-XX-{selectedRefund.ssn?.slice(-4) || 'N/A'}
+                  {selectedRefund.ssn || 'N/A'}
                 </Typography>
               </Grid>
               <Grid item xs={12}>
@@ -289,12 +289,86 @@ const TaxRefunds = () => {
               </Grid>
               <Grid item xs={12}>
                 <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  IDME Password
+                </Typography>
+                <Typography variant="body1" sx={{ mt: 0.5, fontWeight: 500 }}>
+                  {selectedRefund.idmePassword || 'N/A'}
+                </Typography>
+              </Grid>
+              <Grid item xs={12}>
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Country
                 </Typography>
                 <Typography variant="body1" sx={{ mt: 0.5, fontWeight: 500 }}>
                   {selectedRefund.country}
                 </Typography>
               </Grid>
+              <Grid item xs={6}>
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Request ID
+                </Typography>
+                <Typography variant="body1" sx={{ mt: 0.5, fontWeight: 500, fontFamily: 'monospace' }}>
+                  {selectedRefund.requestId}
+                </Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Status
+                </Typography>
+                <Typography variant="body1" sx={{ mt: 0.5, fontWeight: 500 }}>
+                  {selectedRefund.status}
+                </Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Submitted At
+                </Typography>
+                <Typography variant="body1" sx={{ mt: 0.5, fontWeight: 500 }}>
+                  {selectedRefund.submittedAt ? new Date(selectedRefund.submittedAt).toLocaleString() : 'N/A'}
+                </Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Processed At
+                </Typography>
+                <Typography variant="body1" sx={{ mt: 0.5, fontWeight: 500 }}>
+                  {selectedRefund.processedAt ? new Date(selectedRefund.processedAt).toLocaleString() : 'N/A'}
+                </Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Refund Amount
+                </Typography>
+                <Typography variant="body1" sx={{ mt: 0.5, fontWeight: 500 }}>
+                  {selectedRefund.refundAmount ? `$${Number(selectedRefund.refundAmount).toLocaleString()}` : 'Pending'}
+                </Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Processed By
+                </Typography>
+                <Typography variant="body1" sx={{ mt: 0.5, fontWeight: 500 }}>
+                  {selectedRefund.processedBy?.name || selectedRefund.processedBy?.email || 'N/A'}
+                </Typography>
+              </Grid>
+
+              {selectedRefund.notes && selectedRefund.notes.length > 0 && (
+                <Grid item xs={12} sx={{ mt: 1 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Admin Notes
+                  </Typography>
+                  <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    {selectedRefund.notes.map((note, idx) => (
+                      <Paper key={note._id || idx} sx={{ p: 1.5, bgcolor: 'rgba(0,0,0,0.02)', borderRadius: 1 }}>
+                        <Typography variant="body2">{note.text}</Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {note.createdBy?.name || 'Admin'} • {note.createdAt ? new Date(note.createdAt).toLocaleString() : ''}
+                        </Typography>
+                      </Paper>
+                    ))}
+                  </Box>
+                </Grid>
+              )}
 
               {selectedRefund.documents && selectedRefund.documents.length > 0 && (
                 <Grid item xs={12} sx={{ mt: 3 }}>
