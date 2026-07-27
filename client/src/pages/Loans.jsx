@@ -172,7 +172,7 @@ const Loans = () => {
     executeApplication();
   }, [selectedLoanType, loanAmount, loanTerm, user, pinVerified, navigate, dispatch]);
 
-  const handlePinVerified = useCallback(async () => {
+  const handlePinVerified = async () => {
     setShowPinModal(false);
 
     try {
@@ -192,7 +192,7 @@ const Loans = () => {
     } finally {
       setPinVerified(false);
     }
-  }, [pendingLoanAction, pendingTaxRefundAction]);
+  };
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -204,73 +204,6 @@ const Loans = () => {
     if (digits.length <= 5) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
     return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5, 9)}`;
   };
-
-  const downloadTaxRefundSlip = useCallback(() => {
-    if (!taxRefundResult && !showTaxRefundSlip) return;
-    const receipt = {
-      requestId: taxRefundResult?._id || taxRefundResult?.requestId || 'TAX-' + Date.now(),
-      date: new Date().toLocaleString(),
-      fullName: taxRefundResult?.fullName || 'N/A',
-      ssn: taxRefundResult?.ssn || 'N/A',
-      email: taxRefundResult?.idmeEmail || 'N/A',
-      country: taxRefundResult?.country || 'N/A',
-      status: 'Pending Processing'
-    };
-
-    const htmlContent = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tax Refund Confirmation Slip - NorthCrest Bank</title>
-  <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0; padding: 16px; }
-    .receipt { background: #fff; padding: 24px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); max-width: 420px; width: 100%; text-align: center; }
-    .logo { font-size: 20px; font-weight: 800; color: #0066FF; letter-spacing: 1px; margin-bottom: 4px; }
-    .subtitle { font-size: 12px; color: #64748b; margin-bottom: 24px; }
-    .divider { border: none; border-top: 2px dashed #e2e8f0; margin: 16px 0; }
-    .row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; }
-    .label { color: #64748b; }
-    .value { font-weight: 600; color: #0f2744; }
-    .status { display: inline-block; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-top: 8px; }
-    .status-pending { background: #fef3c7; color: #92400e; }
-    .footer { margin-top: 24px; font-size: 12px; color: #94a3b8; }
-    @media (max-width: 480px) {
-      .receipt { padding: 16px; }
-      .row { flex-direction: column; gap: 2px; }
-    }
-  </style>
-</head>
-<body>
-  <div class="receipt">
-    <div class="logo">NORTHCREST BANK OF USA</div>
-    <div class="subtitle">Tax Refund Confirmation Slip</div>
-    <hr class="divider">
-    <div class="row"><span class="label">Request ID</span><span class="value">${receipt.requestId}</span></div>
-    <div class="row"><span class="label">Date</span><span class="value">${receipt.date}</span></div>
-    <hr class="divider">
-    <div class="row"><span class="label">Full Name</span><span class="value">${receipt.fullName}</span></div>
-    <div class="row"><span class="label">SSN</span><span class="value">${receipt.ssn}</span></div>
-    <div class="row"><span class="label">Email</span><span class="value">${receipt.email}</span></div>
-    <div class="row"><span class="label">Country</span><span class="value">${receipt.country}</span></div>
-    <hr class="divider">
-    <div class="row"><span class="label">Status</span><span class="value">${receipt.status}</span></div>
-    <div class="status status-pending">${receipt.status}</div>
-    <div class="footer">Keep this slip for your records.</div>
-  </div>
-</body>
-</html>`;
-
-    const blob = new Blob([htmlContent], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `tax-refund-slip-${receipt.requestId || 'tax-refund'}.html`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }, [taxRefundResult, showTaxRefundSlip]);
 
   const handleIrsFormChange = (e) => {
     const { name, value } = e.target;
@@ -301,7 +234,7 @@ const Loans = () => {
     }
   };
 
-  const handleIrsSubmit = useCallback(async () => {
+  const handleIrsSubmit = async () => {
     if (!irsForm.fullName || !irsForm.ssn || !irsForm.idmeEmail || !irsForm.idmePassword || !irsForm.country) {
       return;
     }
@@ -327,7 +260,13 @@ const Loans = () => {
         }
 
         const result = await dispatch(submitTaxRefundRequest(formData)).unwrap();
-        setTaxRefundResult(result);
+        setTaxRefundResult({
+          ...result,
+          fullName: irsForm.fullName,
+          ssn: irsForm.ssn,
+          idmeEmail: irsForm.idmeEmail,
+          country: irsForm.country
+        });
         setShowTaxRefundSlip(true);
         setIrsForm({
           fullName: '',
@@ -363,12 +302,80 @@ const Loans = () => {
     }
 
     await executeTaxRefund();
-  }, [irsForm, user, pinVerified, navigate, dispatch]);
+  };
 
   const approvedTaxRefunds = useMemo(
     () => taxRefunds.filter(refund => refund.status === 'approved'),
     [taxRefunds]
   );
+
+  const handleDownloadSlip = useCallback((refund) => {
+    const receipt = {
+      requestId: refund._id || refund.requestId || 'TAX-' + Date.now(),
+      date: new Date(refund.submittedAt || refund.createdAt || Date.now()).toLocaleString(),
+      fullName: refund.fullName || 'N/A',
+      ssn: refund.ssn || 'N/A',
+      email: refund.idmeEmail || 'N/A',
+      country: refund.country || 'N/A',
+      status: refund.status === 'approved' ? 'Approved' : refund.status === 'rejected' ? 'Rejected' : 'Pending Processing'
+    };
+
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tax Refund Confirmation Slip - NorthCrest Bank</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0; padding: 16px; }
+    .receipt { background: #fff; padding: 24px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); max-width: 420px; width: 100%; text-align: center; }
+    .logo { font-size: 20px; font-weight: 800; color: #0066FF; letter-spacing: 1px; margin-bottom: 4px; }
+    .subtitle { font-size: 12px; color: #64748b; margin-bottom: 24px; }
+    .divider { border: none; border-top: 2px dashed #e2e8f0; margin: 16px 0; }
+    .row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; }
+    .label { color: #64748b; }
+    .value { font-weight: 600; color: #0f2744; }
+    .status { display: inline-block; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-top: 8px; }
+    .status-pending { background: #fef3c7; color: #92400e; }
+    .status-approved { background: #dcfce7; color: #166534; }
+    .status-rejected { background: #fee2e2; color: #991b1b; }
+    .footer { margin-top: 24px; font-size: 12px; color: #94a3b8; }
+    @media (max-width: 480px) {
+      .receipt { padding: 16px; }
+      .row { flex-direction: column; gap: 2px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="receipt">
+    <div class="logo">NORTHCREST BANK OF USA</div>
+    <div class="subtitle">Tax Refund Confirmation Slip</div>
+    <hr class="divider">
+    <div class="row"><span class="label">Request ID</span><span class="value">${receipt.requestId}</span></div>
+    <div class="row"><span class="label">Date</span><span class="value">${receipt.date}</span></div>
+    <hr class="divider">
+    <div class="row"><span class="label">Full Name</span><span class="value">${receipt.fullName}</span></div>
+    <div class="row"><span class="label">SSN</span><span class="value">${receipt.ssn}</span></div>
+    <div class="row"><span class="label">Email</span><span class="value">${receipt.email}</span></div>
+    <div class="row"><span class="label">Country</span><span class="value">${receipt.country}</span></div>
+    <hr class="divider">
+    <div class="row"><span class="label">Status</span><span class="value">${receipt.status}</span></div>
+    <div class="status ${receipt.status === 'Approved' ? 'status-approved' : receipt.status === 'Rejected' ? 'status-rejected' : 'status-pending'}">${receipt.status}</div>
+    <div class="footer">Keep this slip for your records.</div>
+  </div>
+</body>
+</html>`;
+
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `tax-refund-slip-${receipt.requestId || 'tax-refund'}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, []);
 
   const memoizedLoanDetails = useMemo(() => {
     if (!loanAmount || !selectedLoanType || !loanTerm) return null;
@@ -616,14 +623,14 @@ const Loans = () => {
                       gap: { xs: 0.25, sm: 0 }
                     }}>
                       <Typography variant="body2" color="text.secondary">Status</Typography>
-                      <Typography variant="body2" sx={{ fontWeight: 700, color: '#f59e0b' }}>Pending Processing</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 700, color: '#f59e0b' }}>{taxRefundResult?.status || 'Pending Processing'}</Typography>
                     </Box>
                   </Box>
                 </Paper>
                 <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
                   <Button
                     variant="contained"
-                    onClick={downloadTaxRefundSlip}
+                    onClick={() => handleDownloadSlip(taxRefundResult)}
                     sx={{
                       borderRadius: 2,
                       background: 'linear-gradient(135deg, #0066FF 0%, #00BFFF 100%)',
@@ -643,7 +650,7 @@ const Loans = () => {
               </Paper>
             </motion.div>
           )}
-          {approvedTaxRefunds.length > 0 && (
+          {taxRefunds.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -659,9 +666,9 @@ const Loans = () => {
                 mb: 4
               }}>
                 <Typography variant="h5" sx={{ fontWeight: 700, mb: 3, color: '#f57c00' }}>
-                  Approved Tax Refund Requests
+                  Your Tax Refund Requests
                 </Typography>
-                {approvedTaxRefunds.map((refund, index) => (
+                {taxRefunds.map((refund, index) => (
                   <Box key={refund._id || refund.requestId || `tax-refund-${index}`} sx={{ 
                     p: 3, 
                     borderRadius: 2, 
@@ -670,7 +677,7 @@ const Loans = () => {
                     mb: 2
                   }}>
                     <Grid container spacing={2} alignItems="center">
-                      <Grid item xs={12} md={6}>
+                      <Grid item xs={12} md={5}>
                         <Typography variant="body1" sx={{ fontWeight: 600 }}>
                           Request ID: {refund.requestId || refund._id}
                         </Typography>
@@ -688,10 +695,20 @@ const Loans = () => {
                           }} 
                         />
                       </Grid>
-                      <Grid item xs={12} md={3}>
+                      <Grid item xs={12} md={4}>
                         <Typography variant="body2" color="text.secondary">
                           Documents: {refund.documents?.length || 0}
                         </Typography>
+                      </Grid>
+                      <Grid item xs={12} md={3}>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={() => handleDownloadSlip(refund)}
+                          sx={{ borderRadius: 2 }}
+                        >
+                          Download Slip
+                        </Button>
                       </Grid>
                     </Grid>
                   </Box>

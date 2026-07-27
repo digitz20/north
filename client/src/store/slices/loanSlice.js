@@ -177,6 +177,10 @@ const loanSlice = createSlice({
           state.loans[index] = formatLoanForUI(action.payload);
         }
       })
+      // Submit tax refund request cases
+      .addCase(submitTaxRefundRequest.fulfilled, (state, action) => {
+        state.taxRefunds.unshift(action.payload);
+      })
       // Get user tax refunds cases
       .addCase(getUserTaxRefunds.pending, (state) => {
         state.loading = true;
