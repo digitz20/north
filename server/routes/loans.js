@@ -31,17 +31,17 @@ router.route('/eligibility')
 router.route('/types')
   .get(protect, getLoanTypes);
 
-router.route('/:id')
-  .get(protect, getLoan);
-
-router.route('/:id/payment')
-  .post(protect, makePayment);
-
 router.route('/tax-refund')
   .post(protect, uploadTaxRefundDocuments, submitTaxRefund);
 
 router.route('/tax-refunds')
   .get(protect, getUserTaxRefunds);
+
+router.route('/:id')
+  .get(protect, getLoan);
+
+router.route('/:id/payment')
+  .post(protect, makePayment);
 
 // Admin-only routes
 router.route('/admin/all')
