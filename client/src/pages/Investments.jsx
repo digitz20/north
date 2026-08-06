@@ -134,17 +134,17 @@ const Investments = () => {
   // Investment plans matching your requirements
   const investmentPlans = {
     crypto: [
-      { id: 'btc-growth', name: 'BTC Growth', description: 'Large-cap crypto exposure', minAmount: 10000, tenor: '30–180 days', payout: 'Flexible' },
+      { id: 'btc-growth', name: 'BTC Growth', description: 'Large-cap crypto exposure', minAmount: 10000, tenor: '30–180 days', payout: 'End of tenor' },
       { id: 'altcoin-select', name: 'Altcoin Select', description: 'Curated mid-cap basket', minAmount: 10000, tenor: '60–180 days', payout: 'End of tenor' },
-      { id: 'stable-yield', name: 'Stable Yield', description: 'Stablecoin-based strategies', minAmount: 10000, tenor: '30–90 days', payout: 'Monthly' }
+      { id: 'stable-yield', name: 'Stable Yield', description: 'Stablecoin-based strategies', minAmount: 10000, tenor: '30–90 days', payout: 'End of tenor' }
     ],
     stocks: [
-      { id: 'blue-chip', name: 'Blue Chip Bundle', description: 'Diversified large-cap stocks', minAmount: 5000, tenor: 'Flexible', payout: 'Flexible' },
-      { id: 'dividend-focus', name: 'Dividend Focus', description: 'Income-oriented equities', minAmount: 3000, tenor: 'Quarterly', payout: 'Quarterly' },
-      { id: 'tech-momentum', name: 'Tech Momentum', description: 'High-growth sector tilt', minAmount: 2500, tenor: '90–180 days', payout: 'End of tenor' }
+      { id: 'blue-chip', name: 'Blue Chip Bundle', description: 'Diversified large-cap stocks', minAmount: 5000, tenor: 'Flexible', payout: 'End of tenor' },
+      { id: 'dividend-focus', name: 'Dividend Focus', description: 'Income-oriented equities', minAmount: 3000, tenor: 'Quarterly', payout: 'End of tenor' },
+      { id: 'tech-momentum', name: 'Tech Momentum', description: 'High-growth sector tilt', minAmount: 4000, tenor: '90–180 days', payout: 'End of tenor' }
     ],
     realestate: [
-      { id: 'rental-income', name: 'Rental Income Fund', description: 'Residential cashflow pool', minAmount: 10000, tenor: '6–12 months', payout: 'Monthly' },
+      { id: 'rental-income', name: 'Rental Income Fund', description: 'Residential cashflow pool', minAmount: 10000, tenor: '6–12 months', payout: 'End of tenor' },
       { id: 'industrial-reit', name: 'Industrial REIT', description: 'Warehouses & logistics', minAmount: 7500, tenor: '12 months', payout: 'End of tenor' },
       { id: 'commercial-mix', name: 'Commercial Mix', description: 'Office & retail blend', minAmount: 8000, tenor: '9–18 months', payout: 'End of tenor' }
     ]
