@@ -187,7 +187,7 @@ const InternationalTransfer = () => {
       swiftCode: '',
       country: ''
     },
-    crypto: 'btc'
+    crypto: 'usdc'
   });
 
   const [myBeneficiaries, setMyBeneficiaries] = useState([]);
