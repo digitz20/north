@@ -157,7 +157,7 @@ const Deposit = () => {
   
   const [cryptoForm, setCryptoForm] = useState({
     destinationAccount: '',
-    crypto: 'btc',
+    crypto: 'usdc',
     transactionHash: '',
     savedWalletAddress: '',
     amount: '',
