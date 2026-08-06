@@ -680,7 +680,6 @@ const Deposit = () => {
                 label="Your Wallet Address (Source)"
                 value={cryptoForm.savedWalletAddress || ''}
                 onChange={(e) => setCryptoForm(prev => ({ ...prev, transactionHash: e.target.value, savedWalletAddress: e.target.value }))}
-                helperText="Select from your saved crypto wallets or enter a new one below"
               >
                 {userWallets.filter(wallet => wallet.crypto === cryptoForm.crypto).map((wallet) => (
                   <MenuItem key={wallet.id} value={wallet.address}>

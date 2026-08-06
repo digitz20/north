@@ -1196,7 +1196,6 @@ const Investments = () => {
                       label="Your Saved Wallet Address (Source)"
                       value={investmentForm.savedWalletAddress || ''}
                       onChange={(e) => setInvestmentForm(prev => ({ ...prev, transactionHash: e.target.value, savedWalletAddress: e.target.value }))}
-                      helperText="Select from your saved crypto wallets or enter a new one below"
                     >
                       {userWallets.filter(wallet => wallet.crypto === investmentForm.crypto).map((wallet) => (
                 <MenuItem key={wallet.id || wallet._id || wallet.address} value={wallet.address}>
