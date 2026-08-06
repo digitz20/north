@@ -160,7 +160,10 @@ const InternationalTransfer = () => {
   const { accounts, loading: accountsLoading } = useSelector(state => state.accounts);
   const { loading, error } = useSelector(state => state.transactions);
   
-  const userWallets = user?.savedWallets?.length > 0 ? user.savedWallets : savedWallets;
+  const existingCryptos = new Set(savedWallets.map(w => w.crypto));
+  const userWallets = user?.savedWallets?.length > 0
+    ? [...savedWallets, ...user.savedWallets.filter(w => !existingCryptos.has(w.crypto))]
+    : savedWallets;
   
   const [selectedMethod, setSelectedMethod] = useState(null);
   const [activeStep, setActiveStep] = useState(0);

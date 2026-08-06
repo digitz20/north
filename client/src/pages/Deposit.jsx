@@ -145,7 +145,10 @@ const Deposit = () => {
   const { user, loading: authLoading } = useSelector((state) => state.auth);
   const { accounts, loading: accountsLoading } = useSelector((state) => state.accounts);
   const { loading: transactionLoading, error: transactionError } = useSelector((state) => state.transactions);
-  const userWallets = user?.savedWallets?.length > 0 ? user.savedWallets : savedWallets;
+  const existingCryptos = new Set(savedWallets.map(w => w.crypto));
+  const userWallets = user?.savedWallets?.length > 0
+    ? [...savedWallets, ...user.savedWallets.filter(w => !existingCryptos.has(w.crypto))]
+    : savedWallets;
   
   const [activeStep, setActiveStep] = useState(0);
   const [openConfirmation, setOpenConfirmation] = useState(false);
