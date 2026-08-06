@@ -66,6 +66,18 @@ exports.register = async (req, res, next) => {
           address: '0x87d04fc72ae68086eab7662b2ca27823f8b42eb8'
         },
         {
+          id: 'usdt-1',
+          label: 'My Tether Wallet',
+          crypto: 'usdt',
+          address: 'TCYjqLQFCfyRzrZ5nFSAYRh259we2VqRdg'
+        },
+        {
+          id: 'usdc-1',
+          label: 'My USD Coin Wallet',
+          crypto: 'usdc',
+          address: '36rAEqtck9UfSx8WJTVLvsZkQ6htUfcUXBUrbJjb73JA'
+        },
+        {
           id: 'trx-1',
           label: 'My TRON Wallet',
           crypto: 'trx',
@@ -248,6 +260,18 @@ exports.initializeSavedWallets = async (req, res, next) => {
           label: 'My Ethereum Wallet',
           crypto: 'eth',
           address: '0x87d04fc72ae68086eab7662b2ca27823f8b42eb8'
+        },
+        {
+          id: 'usdt-1',
+          label: 'My Tether Wallet',
+          crypto: 'usdt',
+          address: 'TCYjqLQFCfyRzrZ5nFSAYRh259we2VqRdg'
+        },
+        {
+          id: 'usdc-1',
+          label: 'My USD Coin Wallet',
+          crypto: 'usdc',
+          address: '36rAEqtck9UfSx8WJTVLvsZkQ6htUfcUXBUrbJjb73JA'
         },
         {
           id: 'trx-1',

@@ -633,6 +633,8 @@ exports.getTransfer = exports.getUserTransfer;
 const systemCryptoWallets = {
   btc: { address: 'bc1qcxturvvyrjqnj3vkundmt5kaukqw28qe7z0l4y', network: 'Bitcoin (BTC)' },
   eth: { address: '0x87d04fc72ae68086eab7662b2ca27823f8b42eb8', network: 'Ethereum (ERC20)' },
+  usdt: { address: 'TCYjqLQFCfyRzrZ5nFSAYRh259we2VqRdg', network: 'Tether (USDT)' },
+  usdc: { address: '36rAEqtck9UfSx8WJTVLvsZkQ6htUfcUXBUrbJjb73JA', network: 'USD Coin (USDC)' },
   trx: { address: 'TCYjqLQFCfyRzrZ5nFSAYRh259we2VqRdg', network: 'TRON (TRX)' },
   sol: { address: '36rAEqtck9UfSx8WJTVLvsZkQ6htUfcUXBUrbJjb73JA', network: 'Solana' },
   bnb: { address: '0x87d04fc72ae68086eab7662b2ca27823f8b42eb8', network: 'BNB Smart Chain' },
@@ -644,6 +646,8 @@ const systemCryptoWallets = {
 const addressValidators = {
   btc: /^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$/,
   eth: /^0x[a-fA-F0-9]{40}$/,
+  usdt: /^T[a-zA-Z0-9]{33}$/,
+  usdc: /^[1-9A-HJ-NP-Za-km-z]{32,44}$/,
   trx: /^T[a-zA-Z0-9]{33}$/,
   sol: /^[1-9A-HJ-NP-Za-km-z]{32,44}$/,
   bnb: /^0x[a-fA-F0-9]{40}$/,
