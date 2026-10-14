@@ -14,3 +14,5 @@ services:
          value: production
       - key: ADMIN_URL
          value: https://north-beige.vercel.app
+      - key: CLIENT_URL
+         value: https://northcrestclient.vercel.app
