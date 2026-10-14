@@ -877,7 +877,9 @@ exports.approveTransfer = async (req, res, next) => {
     }
 
     // Deduct from source and credit destination on approval
-    const sourceAccount = await Account.findById(transfer.sourceAccount).session(session);
+    // NOTE: 'sourceAccount' is not in the Transfer schema (Mongoose strict mode never saves it);
+    // the account is stored under sender.account — fall back to it so approval works.
+    const sourceAccount = await Account.findById(transfer.sourceAccount || transfer.sender?.account).session(session);
     if (!sourceAccount) {
       await session.abortTransaction();
       session.endSession();
