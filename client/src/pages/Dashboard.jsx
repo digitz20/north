@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getUserAccounts, getWallet } from '../store/slices/accountSlice';
 import { getTransactions } from '../store/slices/transactionSlice';
+import getStatusDisplay from '../utils/statusDisplay';
 import { useSocket } from '../contexts/SocketContext';
 import { motion, useScroll, useInView, AnimatePresence } from 'framer-motion';
 import { gsap } from 'gsap';
@@ -926,6 +927,16 @@ const Dashboard = () => {
                             secondary={
                                <Typography variant="body2" color="text.secondary">{(tx.category || '').charAt(0).toUpperCase() + (tx.category || '').slice(1)} • {tx.time}</Typography>
                             }
+                          />
+                          <Chip
+                            label={getStatusDisplay(tx.status).label}
+                            size="small"
+                            sx={{
+                              mr: 2,
+                              fontWeight: 600,
+                              bgcolor: getStatusDisplay(tx.status).bgcolor,
+                              color: getStatusDisplay(tx.status).color
+                            }}
                           />
                           <Typography
                             variant="h6"

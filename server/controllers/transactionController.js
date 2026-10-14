@@ -809,6 +809,17 @@ exports.rejectTransaction = async (req, res, next) => {
       relatedId: transaction._id
     }], { session });
 
+    try {
+      sendToUser(transaction.user.toString(), 'accountUpdate', {
+        type: 'transaction_rejected',
+        transactionType: transaction.type,
+        amount: transaction.amount,
+        transactionId: transaction._id
+      });
+    } catch (socketErr) {
+      logger.error(`Failed to send account update socket event: ${socketErr.message}`);
+    }
+
     await session.commitTransaction();
     session.endSession();
 

@@ -3,6 +3,8 @@ import { Box, Typography, Grid, Chip, Avatar, Divider, TextField, MenuItem, Inpu
 import { useSelector, useDispatch } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 import { fetchTransactions, getTransactionById } from '../store/slices/transactionSlice';
+import { useSocket } from '../contexts/SocketContext';
+import getStatusDisplay from '../utils/statusDisplay';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import CountUp from 'react-countup';
@@ -33,9 +35,23 @@ const Transactions = () => {
   const [detailOpen, setDetailOpen] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
 
+  const { socket } = useSocket();
+
   useEffect(() => {
     dispatch(fetchTransactions());
   }, [dispatch, location.pathname]);
+
+  // Refetch when admin approves/rejects so the status updates in real time
+  useEffect(() => {
+    if (!socket) return;
+    const handleAccountUpdate = () => {
+      dispatch(fetchTransactions());
+    };
+    socket.on('accountUpdate', handleAccountUpdate);
+    return () => {
+      socket.off('accountUpdate', handleAccountUpdate);
+    };
+  }, [socket, dispatch]);
 
   const totalIncome = transactions
     .filter(t => t.type === 'credit')
@@ -662,11 +678,11 @@ const Transactions = () => {
                         {transaction.type === 'credit' ? '+' : '-'}${transaction.amount.toLocaleString()}
                       </Typography>
                       <Chip 
-                        label={transaction.status}
+                        label={getStatusDisplay(transaction.status).label}
                         size="small"
                         sx={{ 
-                          bgcolor: transaction.status === 'Completed' ? 'rgba(0,200,150,0.1)' : 'rgba(255,200,87,0.1)',
-                          color: transaction.status === 'Completed' ? '#00C896' : '#FFC857',
+                          bgcolor: getStatusDisplay(transaction.status).bgcolor,
+                          color: getStatusDisplay(transaction.status).color,
                           fontWeight: 600
                         }}
                       />
@@ -719,7 +735,7 @@ const Transactions = () => {
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography variant="body2" color="text.secondary">Status</Typography>
-                  <Chip label={selectedTransaction.status} size="small" color={selectedTransaction.status === 'Completed' ? 'success' : 'warning'} />
+                  <Chip label={getStatusDisplay(selectedTransaction.status).label} size="small" color={getStatusDisplay(selectedTransaction.status).chipColor} />
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography variant="body2" color="text.secondary">Description</Typography>

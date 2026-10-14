@@ -1007,6 +1007,23 @@ exports.rejectTransfer = async (req, res, next) => {
       relatedId: transfer._id
     }]);
 
+    // Update the related transaction so it reflects the rejection in the user's transaction list
+    await Transaction.findOneAndUpdate(
+      { reference: transfer._id },
+      { status: 'failed', failureReason: req.body.reason || 'Rejected by admin', processedBy: req.user.id }
+    );
+
+    try {
+      const initiatorId = transfer.initiatedBy?._id ? transfer.initiatedBy._id.toString() : String(transfer.initiatedBy);
+      sendToUser(initiatorId, 'accountUpdate', {
+        type: 'transfer_rejected',
+        amount: transfer.amount,
+        transferId: transfer._id
+      });
+    } catch (socketErr) {
+      logger.error(`Failed to send account update socket event: ${socketErr.message}`);
+    }
+
     res.status(200).json({
       success: true,
       message: 'Transfer rejected successfully'
