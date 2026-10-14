@@ -703,18 +703,33 @@ exports.approveInvestment = async (req, res, next) => {
     // Update plan's total invested
     await InvestmentPlan.findByIdAndUpdate(investment.plan, { $inc: { totalInvested: investment.amountInvested } }, { session });
 
-    // Create transaction record
-    await Transaction.create([{
-      user: investment.user,
-      account: account?._id,
-      type: 'investment',
-      amount: investment.amountInvested,
-      description: `Investment in ${plan?.name || 'Investment Plan'}`,
-      category: 'investment',
-      status: 'completed',
-      direction: 'debit',
-      metadata: { planId: investment.plan, investmentId: investment._id }
-    }], { session });
+    // Update the pending transaction created at submission so the user's
+    // transaction history shows the approval (falls back to creating one
+    // for legacy records that have no pending transaction link).
+    const updatedPendingTx = await Transaction.findOneAndUpdate(
+      { 'metadata.investmentId': investment._id, status: 'pending' },
+      {
+        status: 'completed',
+        completedAt: Date.now(),
+        processedBy: req.user.id,
+        description: `Investment in ${plan?.name || 'Investment Plan'}`
+      },
+      { session }
+    );
+
+    if (!updatedPendingTx) {
+      await Transaction.create([{
+        user: investment.user,
+        account: account?._id,
+        type: 'investment',
+        amount: investment.amountInvested,
+        description: `Investment in ${plan?.name || 'Investment Plan'}`,
+        category: 'investment',
+        status: 'completed',
+        direction: 'debit',
+        metadata: { planId: investment.plan, investmentId: investment._id }
+      }], { session });
+    }
 
     await AuditLog.create([{
       actor: {
@@ -794,6 +809,14 @@ exports.rejectInvestment = async (req, res, next) => {
     investment.rejectionReason = req.body.reason || 'Rejected by administrator';
     await investment.save({ session });
 
+    // Mark the related pending transaction as failed so the user's
+    // transaction history reflects the rejection
+    await Transaction.findOneAndUpdate(
+      { 'metadata.investmentId': investment._id, status: 'pending' },
+      { status: 'failed', failureReason: investment.rejectionReason, processedBy: req.user.id },
+      { session }
+    );
+
     await AuditLog.create([{
       actor: {
         user: req.user.id,
@@ -815,6 +838,16 @@ exports.rejectInvestment = async (req, res, next) => {
       relatedModel: 'UserInvestment',
       relatedId: investment._id
     }], { session });
+
+    try {
+      sendToUser(investment.user.toString(), 'accountUpdate', {
+        type: 'investment_rejected',
+        amount: investment.amountInvested,
+        investmentId: investment._id
+      });
+    } catch (socketErr) {
+      logger.error(`Failed to send account update socket event: ${socketErr.message}`);
+    }
 
     await session.commitTransaction();
     session.endSession();
