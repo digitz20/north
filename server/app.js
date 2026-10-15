@@ -30,6 +30,11 @@ const supportRoutes = require('./routes/support');
 
 const app = express();
 
+// Trust the first proxy hop (Koyeb's load balancer) so Express reads the real
+// client IP from X-Forwarded-For — required for accurate rate limiting and
+// audit logging when deployed behind a proxy.
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet());
 
