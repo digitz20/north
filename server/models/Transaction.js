@@ -22,6 +22,11 @@ const transactionSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Wallet'
   },
+  reference: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Transfer',
+    index: true
+  },
   transactionId: {
     type: String,
     required: true,

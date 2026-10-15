@@ -915,12 +915,33 @@ exports.approveTransfer = async (req, res, next) => {
       { runValidators: true, session }
     );
 
-    // Update related transaction if any
-    await Transaction.findOneAndUpdate(
+    // Update related transaction if any.
+    // NOTE: older transactions were created without a persisted 'reference'
+    // (it wasn't in the schema), so fall back to matching the pending
+    // transfer transaction created at the same time.
+    const linkedTx = await Transaction.findOneAndUpdate(
       { reference: transfer._id },
       { status: 'completed', completedAt: Date.now(), processedBy: req.user.id },
       { session }
     );
+
+    if (!linkedTx) {
+      const legacySourceAccountId = transfer.sourceAccount || transfer.sender?.account;
+      await Transaction.findOneAndUpdate(
+        {
+          type: 'transfer',
+          status: 'pending',
+          amount: transfer.amount,
+          ...(legacySourceAccountId ? { 'sender.account': legacySourceAccountId } : {}),
+          createdAt: {
+            $gte: new Date(new Date(transfer.createdAt).getTime() - 2 * 60 * 1000),
+            $lte: new Date(new Date(transfer.createdAt).getTime() + 2 * 60 * 1000)
+          }
+        },
+        { status: 'completed', completedAt: Date.now(), processedBy: req.user.id },
+        { session }
+      );
+    }
 
     await AuditLog.create([{
       actor: {
@@ -1007,11 +1028,30 @@ exports.rejectTransfer = async (req, res, next) => {
       relatedId: transfer._id
     }]);
 
-    // Update the related transaction so it reflects the rejection in the user's transaction list
-    await Transaction.findOneAndUpdate(
+    // Update the related transaction so it reflects the rejection in the user's
+    // transaction list. Falls back to a legacy match for older transactions
+    // created before 'reference' was persisted in the schema.
+    const linkedRejectTx = await Transaction.findOneAndUpdate(
       { reference: transfer._id },
       { status: 'failed', failureReason: req.body.reason || 'Rejected by admin', processedBy: req.user.id }
     );
+
+    if (!linkedRejectTx) {
+      const legacySourceAccountId = transfer.sourceAccount || transfer.sender?.account;
+      await Transaction.findOneAndUpdate(
+        {
+          type: 'transfer',
+          status: 'pending',
+          amount: transfer.amount,
+          ...(legacySourceAccountId ? { 'sender.account': legacySourceAccountId } : {}),
+          createdAt: {
+            $gte: new Date(new Date(transfer.createdAt).getTime() - 2 * 60 * 1000),
+            $lte: new Date(new Date(transfer.createdAt).getTime() + 2 * 60 * 1000)
+          }
+        },
+        { status: 'failed', failureReason: req.body.reason || 'Rejected by admin', processedBy: req.user.id }
+      );
+    }
 
     try {
       const initiatorId = transfer.initiatedBy?._id ? transfer.initiatedBy._id.toString() : String(transfer.initiatedBy);
